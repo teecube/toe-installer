@@ -1,0 +1,20 @@
+image: debovema/docker-mvn
+
+test:
+    script: 
+        - mvn -gs /home/m2/settings.xml clean install
+    except:
+        - tags
+
+site:
+    script: 
+        - mvn -gs /home/m2/settings.xml clean site-deploy -P t3-snapshot
+    except:
+        - tags
+
+site-redeploy:
+    script: 
+        - mvn -gs /home/m2/settings.xml clean site-deploy -P t3-archive
+        - mvn -gs /home/m2/settings.xml clean site-deploy -P t3-release
+    only:
+        - tags

@@ -1,5 +1,5 @@
 /**
- * (C) Copyright 2014-2016 teecube
+ * (C) Copyright 2016-2016 teecube
  * (http://teecu.be) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -97,6 +97,23 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String configDirectory = "tibco.tra.configDirectory";
 	}
 
+	public static class EMS {
+		public static final String category = "TIBCO EMS";
+		public static final String category_description = "Properties concerning " + category + " binaries & environment";
+
+		public static final String installationPackage = "tibco.ems.installation.package";
+		public static final String installationPackage_description = "tibco.ems.installation.package";
+
+		public static final String installationPackageRegex = "tibco.ems.installation.package.regex";
+		public static final String installationPackageRegex_default = "TIB_ems_(\\d+.\\d+.\\d+)_(.*).zip";
+
+		public static final String installationPackageRegexVersionGroupIndex = "tibco.ems.installation.package.regex.versionGroupIndex";
+		public static final String installationPackageRegexVersionGroupIndex_default = "1";
+
+		public static final String installationPackageVersion = "tibco.ems.installation.package.version";
+		public static final String installationPackageVersionMajorMinor = "tibco.ems.installation.package.versionMajorMinor";
+	}
+
 	public static class BW5 {
 		public static final String category = "TIBCO BusinessWorks 5";
 		public static final String category_description = "Properties concerning " + category + " binaries & environment";
@@ -129,7 +146,7 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String installationPackage_description = "tibco.bw6.installation.package";
 
 		public static final String installationPackageRegex = "tibco.bw6.installation.package.regex";
-		public static final String installationPackageRegex_default = "TIB_BW(-dev)?_(6.\\d+.\\d+)_(.*).zip";
+		public static final String installationPackageRegex_default = "TIB_BW(-dev)?_(6.\\d+.\\d+)_(?!HF)(.*).zip";
 
 		public static final String installationPackageRegexVersionGroupIndex = "tibco.bw6.installation.package.regex.versionGroupIndex";
 		public static final String installationPackageRegexVersionGroupIndex_default = "2";

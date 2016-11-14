@@ -1,5 +1,5 @@
 /**
- * (C) Copyright 2014-2016 teecube
+ * (C) Copyright 2016-2016 teecube
  * (http://teecu.be) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@ import t3.toe.installer.envinfo.RemoveEnvInfoMojo;
 import t3.toe.installer.installers.AdminInstallerMojo;
 import t3.toe.installer.installers.BW5InstallerMojo;
 import t3.toe.installer.installers.BW6InstallerMojo;
+import t3.toe.installer.installers.EMSInstallerMojo;
 import t3.toe.installer.installers.RVInstallerMojo;
 import t3.toe.installer.installers.TEAInstallerMojo;
 import t3.toe.installer.installers.TRAInstallerMojo;
@@ -47,6 +48,8 @@ public class InstallerMojosFactory extends MojosFactory {
 			return (T) new BW5InstallerMojo();
 		case "BW6InstallerMojo":
 			return (T) new BW6InstallerMojo();
+		case "EMSInstallerMojo":
+			return (T) new EMSInstallerMojo();
 		case "RVInstallerMojo":
 			return (T) new RVInstallerMojo();
 		case "TEAInstallerMojo":
@@ -75,6 +78,8 @@ public class InstallerMojosFactory extends MojosFactory {
 			return (T) new BW5InstallerMojo();
 		case "toe:bw6-install":
 			return (T) new BW6InstallerMojo();
+		case "toe:ems-install":
+			return (T) new EMSInstallerMojo();
 		case "toe:rv-install":
 			return (T) new RVInstallerMojo();
 		case "toe:tea-install":

@@ -23,15 +23,15 @@
 		<rules combine.children="append">
 			<requireFilesExist>
 				<files>
-					<file>${tibco.bw6.installation.package}</file>
+					<file>${tibco.ems.installation.package}</file>
 				</files>
-				<message>No installation package for TIBCO BusinessWorks 6.x can be found.${line.separator}${line.separator}With current configuration, this plugin looks in the directory '${tibco.installation.packages.directory}' for a file with this filename pattern : '${tibco.bw6.installation.package.regex}'.${line.separator}You should put in this directory the TIBCO BusinessWorks 6.x installation package or specify its absolute location by setting 'tibco.bw6.installation.package' property.${line.separator}</message>
+				<message>No installation package for TIBCO EMS can be found.${line.separator}${line.separator}With current configuration, this plugin looks in the directory '${tibco.installation.packages.directory}' for a file with this filename pattern : '${tibco.ems.installation.package.regex}'.${line.separator}You should put in this directory the TIBCO EMS installation package or specify its absolute location by setting 'tibco.ems.installation.package' property.${line.separator}</message>
 			</requireFilesExist>
 			<requireFilesDontExist>
 				<files>
-					<file>${tibco.installation.root}/bw/${tibco.bw6.installation.package.versionMajorMinor}</file>
+					<file>${tibco.installation.root}/ems/${tibco.ems.installation.package.versionMajorMinor}</file>
 				</files>
-				<message>There is already a directory called '${tibco.installation.root}/bw/${tibco.bw6.installation.package.versionMajorMinor}' in the current installation (${tibco.installation.environmentName}=${tibco.installation.root}).${line.separator}Specify another target environment with the two properties 'tibco.installation.root' and 'tibco.installation.environmentName'.</message>
+				<message>There is already a directory called '${tibco.installation.root}/ems/${tibco.ems.installation.package.versionMajorMinor}' in the current installation.${line.separator}Specify another target environment with the two properties 'tibco.installation.root' and 'tibco.installation.environmentName'.</message>
 			</requireFilesDontExist>
 		</rules>
 		<fail>true</fail>

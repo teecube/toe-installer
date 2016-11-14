@@ -17,7 +17,6 @@
 package t3.toe.installer.installers;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -32,29 +31,29 @@ import t3.toe.installer.InstallerMojosInformation;
 
 /**
 * <p>
-* This goal installs the TIBCO BusinessWorks 6.x product from an official
-* archive to a target environment.
+* This goal installs the TIBCO EMS product from an official archive to a
+* target environment.
 * </p>
 *
 * @author Mathieu Debove &lt;mad@teecu.be&gt;
 *
 */
-@Mojo(name = "bw6-install", requiresProject = false)
-public class BW6InstallerMojo extends CommonInstaller {
+@Mojo(name = "ems-install", requiresProject = false)
+public class EMSInstallerMojo extends CommonInstaller {
 
-	@Parameter(property = InstallerMojosInformation.BW6.installationPackage, defaultValue = "${" + InstallerMojosInformation.installationPackageDirectory + "}/${tibco.bw6.installation.package.regex}")
+	@Parameter(property = InstallerMojosInformation.EMS.installationPackage, defaultValue = "${" + InstallerMojosInformation.installationPackageDirectory + "}/${tibco.ems.installation.package.regex}")
 	private File installationPackage;
 
-	@Parameter(property = InstallerMojosInformation.BW6.installationPackageRegex, defaultValue = InstallerMojosInformation.BW6.installationPackageRegex_default)
+	@Parameter(property = InstallerMojosInformation.EMS.installationPackageRegex, defaultValue = InstallerMojosInformation.EMS.installationPackageRegex_default)
 	private String installationPackageRegex;
 
-	@Parameter(property = InstallerMojosInformation.BW6.installationPackageRegexVersionGroupIndex, defaultValue = InstallerMojosInformation.BW6.installationPackageRegexVersionGroupIndex_default)
+	@Parameter(property = InstallerMojosInformation.EMS.installationPackageRegexVersionGroupIndex, defaultValue = InstallerMojosInformation.EMS.installationPackageRegexVersionGroupIndex_default)
 	private Integer installationPackageRegexVersionGroupIndex;
 
-	@Parameter(property = InstallerMojosInformation.BW6.installationPackageVersion, defaultValue = "")
+	@Parameter(property = InstallerMojosInformation.EMS.installationPackageVersion, defaultValue = "")
 	private String installationPackageVersion;
 
-	@Parameter(property = InstallerMojosInformation.BW6.installationPackageVersionMajorMinor, defaultValue = "")
+	@Parameter(property = InstallerMojosInformation.EMS.installationPackageVersionMajorMinor, defaultValue = "")
 	private String installationPackageVersionMajorMinor;
 
 	@Override
@@ -88,17 +87,17 @@ public class BW6InstallerMojo extends CommonInstaller {
 
 	@Override
 	public String getInstallationPackagePropertyName() {
-		return InstallerMojosInformation.BW6.installationPackage;
+		return InstallerMojosInformation.EMS.installationPackage;
 	}
 
 	@Override
 	public String getInstallationPackageVersionPropertyName() {
-		return InstallerMojosInformation.BW6.installationPackageVersion;
+		return InstallerMojosInformation.EMS.installationPackageVersion;
 	}
 
 	@Override
 	public String getInstallationPackageVersionMajorMinorPropertyName() {
-		return InstallerMojosInformation.BW6.installationPackageVersionMajorMinor;
+		return InstallerMojosInformation.EMS.installationPackageVersionMajorMinor;
 	}
 
 	@Override
@@ -112,18 +111,18 @@ public class BW6InstallerMojo extends CommonInstaller {
 	}
 
 	@Override
+	public boolean hasDependencies() {
+		return false;
+	}
+
+	@Override
 	public boolean dependenciesExist() {
 		return true;
 	}
 
 	@Override
 	public boolean installationExists() throws MojoExecutionException {
-		return getInstallationRoot() != null && getInstallationRoot().exists() && new File(getInstallationRoot(), "bw/" + getInstallationPackageVersionMajorMinor()).exists();
-	}
-
-	@Override
-	public boolean hasDependencies() {
-		return false;
+		return getInstallationRoot() != null && getInstallationRoot().exists() && new File(getInstallationRoot(), "ems/" + getInstallationPackageVersionMajorMinor()).exists();
 	}
 
 	@Override
@@ -131,25 +130,11 @@ public class BW6InstallerMojo extends CommonInstaller {
 		if (props == null) {
 			return;
 		}
-		
-		FilenameFilter filter = new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String name) {
-				return dir.isDirectory() && name.startsWith("product_tibco_sunec_");
-			}
-		};
-
-		File[] sunec = installationPackageDirectory.listFiles(filter);
-
-		if (sunec.length > 0) {
-			props.setProperty("LGPLAssemblyDownload", "false");
-			props.setProperty("LGPLAssemblyPath", sunec[0].getParentFile().getAbsolutePath());
-		}
 	}
 
 	@Override
 	public String getProductName() {
-		return "TIBCO BusinessWorks 6.x";
+		return "TIBCO EMS";
 	}
 
 }

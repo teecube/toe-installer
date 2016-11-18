@@ -1,20 +1,12 @@
 image: debovema/docker-mvn
 
-test:
-    script: 
-        - mvn -gs /home/m2/settings.xml clean install
-    except:
-        - tags
+before_script:
+    - export RELEASE_SH_CHMOD=`stat --format '%a' ./release.sh`
+    - chmod u+x release.sh
+    - . ./release.sh
 
-site:
-    script: 
-        - mvn -gs /home/m2/settings.xml clean site-deploy -P t3-snapshot
-    except:
-        - tags
-
-site-redeploy:
-    script: 
-        - mvn -gs /home/m2/settings.xml clean site-deploy -P t3-archive
-        - mvn -gs /home/m2/settings.xml clean site-deploy -P t3-release
+release:
+    script:
+        - mvn -gs /home/m2/settings.xml -DdevelopmentVersion=$DEV_VERSION -DreleaseVersion=$RELEASE_VERSION -Dmessage="[maven-release-plugin] [ci skip] Updating parent version" -P additional,maven,site,t3-release release:clean versions:update-parent scm:checkin release:prepare release:perform
     only:
-        - tags
+        - release

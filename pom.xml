@@ -5,11 +5,11 @@
 	<parent>
 		<groupId>io.teecube.toe</groupId>
 		<artifactId>toe</artifactId>
-		<version>0.0.1</version>
+		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>toe-installer-plugin</artifactId>
-	<version>0.0.2-SNAPSHOT</version>
+	<version>0.0.1-SNAPSHOT</version>
 
 	<packaging>maven-plugin</packaging>
 

@@ -9,7 +9,7 @@
 	</parent>
 
 	<artifactId>toe-installer-plugin</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 
 	<packaging>maven-plugin</packaging>
 
@@ -138,7 +138,7 @@
 		<connection>scm:git:https://git.teecu.be/teecube/toe-installer.git</connection>
 		<developerConnection>scm:git:https://git.teecu.be/teecube/toe-installer.git</developerConnection>
 		<url>https://git.teecu.be/teecube/toe-installer</url>
-		<tag>HEAD</tag>
+		<tag>toe-installer-plugin/0.0.1</tag>
 	</scm>
 
 </project>

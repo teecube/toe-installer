@@ -1,28 +1,12 @@
 image: debovema/docker-mvn
 
-test:
-    script: 
-        - mvn -gs /home/m2/settings.xml clean install
-    except:
-        - tags
+before_script:
+    - export RELEASE_SH_CHMOD=`stat --format '%a' ./release.sh`
+    - chmod u+x release.sh
+    - . ./release.sh
 
-site:
-    script: 
-        - mvn -gs /home/m2/settings.xml clean site-deploy -P t3-snapshot
-    except:
-        - tags
-
-site-redeploy:
-    script: 
-        - mvn -gs /home/m2/settings.xml clean site-deploy -P t3-archive
-        - mvn -gs /home/m2/settings.xml clean site-deploy -P t3-release
-    only:
-        - tags
-
-mirror:
+release:
     script:
-        - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-        # SSH private key must be in '/root/.ssh/teecube_github'
-        - eval $(ssh-agent -s) && ssh-add /root/.ssh/teecube_github && ssh-keyscan github.com | sort -u - ~/.ssh/known_hosts -o ~/.ssh/known_hosts
-        # git clone --mirror && git push --mirror
-        - GIT_REPO_URL=`git config --get remote.origin.url` && GIT_REPO_NAME=`basename $GIT_REPO_URL .git` && rm -rf tmp_mirror.git && git clone --mirror $GIT_REPO_URL tmp_mirror.git && cd tmp_mirror.git && git push --mirror git@github.com:teecube/$GIT_REPO_NAME.git
+        - mvn -gs /home/m2/settings.xml -DdevelopmentVersion=$DEV_VERSION -DreleaseVersion=$RELEASE_VERSION -Dmessage="[maven-release-plugin] [ci skip] Updating parent version" -P additional,maven,site,t3-release release:clean versions:update-parent scm:checkin release:prepare release:perform
+    only:
+        - release

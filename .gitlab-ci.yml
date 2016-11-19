@@ -18,3 +18,11 @@ site-redeploy:
         - mvn -gs /home/m2/settings.xml clean site-deploy -P t3-release
     only:
         - tags
+
+mirror:
+    script:
+        - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+        # SSH private key must be in '/root/.ssh/teecube_github'
+        - eval $(ssh-agent -s) && ssh-add /root/.ssh/teecube_github && ssh-keyscan github.com | sort -u - ~/.ssh/known_hosts -o ~/.ssh/known_hosts
+        # git clone --mirror && git push --mirror
+        - GIT_REPO_URL=`git config --get remote.origin.url` && GIT_REPO_NAME=`basename $GIT_REPO_URL .git` && rm -rf tmp_mirror.git && git clone --mirror $GIT_REPO_URL tmp_mirror.git && cd tmp_mirror.git && git push --mirror git@github.com:teecube/$GIT_REPO_NAME.git

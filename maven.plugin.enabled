@@ -1,0 +1,1 @@
+This file enables the 'maven-plugin' profile in main POM, making this project a Maven plugin.

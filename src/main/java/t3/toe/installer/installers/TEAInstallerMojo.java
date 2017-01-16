@@ -1,5 +1,5 @@
 /**
- * (C) Copyright 2016-2016 teecube
+ * (C) Copyright 2016-2017 teecube
  * (http://teecu.be) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,6 +50,9 @@ public class TEAInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.installationPackageRegexVersionGroupIndex, defaultValue = InstallerMojosInformation.EnterpriseAdministrator.installationPackageRegexVersionGroupIndex_default)
 	private Integer installationPackageRegexVersionGroupIndex;
 
+	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.installationPackageRegexPlatformGroupIndex, defaultValue = InstallerMojosInformation.EnterpriseAdministrator.installationPackageRegexPlatformGroupIndex_default)
+	private Integer installationPackageRegexPlatformGroupIndex;
+
 	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.installationPackageVersion, defaultValue = "")
 	private String installationPackageVersion;
 
@@ -92,6 +95,11 @@ public class TEAInstallerMojo extends CommonInstaller {
 	@Override
 	public Integer getInstallationPackageVersionGroupIndex() {
 		return installationPackageRegexVersionGroupIndex;
+	}
+
+	@Override
+	public Integer getInstallationPackagePlatformGroupIndex() {
+		return installationPackageRegexPlatformGroupIndex;
 	}
 
 	@Override

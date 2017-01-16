@@ -1,5 +1,5 @@
 /**
- * (C) Copyright 2016-2016 teecube
+ * (C) Copyright 2016-2017 teecube
  * (http://teecu.be) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,6 +58,9 @@ public class AdminInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.Administrator.installationPackageRegexVersionGroupIndex, defaultValue = InstallerMojosInformation.Administrator.installationPackageRegexVersionGroupIndex_default)
 	private Integer installationPackageRegexVersionGroupIndex;
 
+	@Parameter(property = InstallerMojosInformation.Administrator.installationPackageRegexPlatformGroupIndex, defaultValue = InstallerMojosInformation.Administrator.installationPackageRegexPlatformGroupIndex_default)
+	private Integer installationPackageRegexPlatformGroupIndex;
+
 	@Parameter(property = InstallerMojosInformation.Administrator.installationPackageVersion, defaultValue = "")
 	private String installationPackageVersion;
 
@@ -109,6 +112,11 @@ public class AdminInstallerMojo extends CommonInstaller {
 	@Override
 	public Integer getInstallationPackageVersionGroupIndex() {
 		return installationPackageRegexVersionGroupIndex;
+	}
+
+	@Override
+	public Integer getInstallationPackagePlatformGroupIndex() {
+		return installationPackageRegexPlatformGroupIndex;
 	}
 
 	@Override

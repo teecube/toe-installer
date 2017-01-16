@@ -1,5 +1,5 @@
 /**
- * (C) Copyright 2016-2016 teecube
+ * (C) Copyright 2016-2017 teecube
  * (http://teecu.be) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,6 +50,9 @@ public class EMSInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.EMS.installationPackageRegexVersionGroupIndex, defaultValue = InstallerMojosInformation.EMS.installationPackageRegexVersionGroupIndex_default)
 	private Integer installationPackageRegexVersionGroupIndex;
 
+	@Parameter(property = InstallerMojosInformation.EMS.installationPackageRegexPlatformGroupIndex, defaultValue = InstallerMojosInformation.EMS.installationPackageRegexPlatformGroupIndex_default)
+	private Integer installationPackageRegexPlatformGroupIndex;
+
 	@Parameter(property = InstallerMojosInformation.EMS.installationPackageVersion, defaultValue = "")
 	private String installationPackageVersion;
 
@@ -83,6 +86,11 @@ public class EMSInstallerMojo extends CommonInstaller {
 	@Override
 	public Integer getInstallationPackageVersionGroupIndex() {
 		return installationPackageRegexVersionGroupIndex;
+	}
+
+	@Override
+	public Integer getInstallationPackagePlatformGroupIndex() {
+		return installationPackageRegexPlatformGroupIndex;
 	}
 
 	@Override

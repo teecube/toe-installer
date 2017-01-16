@@ -1,5 +1,5 @@
 /**
- * (C) Copyright 2016-2016 teecube
+ * (C) Copyright 2016-2017 teecube
  * (http://teecu.be) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -251,6 +251,7 @@ public abstract class CommonInstaller extends CommonMojo {
 	public abstract File getInstallationPackage();
 	public abstract String getInstallationPackageRegex();
 	public abstract Integer getInstallationPackageVersionGroupIndex();
+	public abstract Integer getInstallationPackagePlatformGroupIndex();
 	public abstract String getInstallationPackagePropertyName();
 	public abstract String getInstallationPackageVersionPropertyName();
 	public abstract String getInstallationPackageVersionMajorMinorPropertyName();
@@ -352,6 +353,7 @@ public abstract class CommonInstaller extends CommonMojo {
 	    });
 
 		if (result != null && result.length > 0) {
+            System.out.println(result[0].getAbsolutePath());
 			return result[0];
 		}
 

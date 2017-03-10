@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
@@ -30,6 +31,7 @@ import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.settings.Profile;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.io.xpp3.SettingsXpp3Reader;
 import org.apache.maven.settings.io.xpp3.SettingsXpp3Writer;
@@ -80,9 +82,15 @@ public abstract class CommonConfigurer extends CommonMojo {
 	@Parameter(property = InstallerMojosInformation.environmentName, defaultValue = InstallerMojosInformation.environmentName_default)
 	protected String environmentName;
 
-	@Parameter(property = InstallerMojosInformation.writeToSettings, defaultValue = "false")
-	protected Boolean writeToSettings;
+	@Parameter(property = InstallerMojosInformation.overwriteExistingProfile, defaultValue = "true", description = InstallerMojosInformation.overwriteExistingProfile_description)
+	protected Boolean overwriteExistingProfile;
 
+	@Parameter(property = InstallerMojosInformation.useGlobalSettings, defaultValue = "false", description = InstallerMojosInformation.useGlobalSettings_description)
+	protected Boolean useGlobalSettings;
+
+	@Parameter(property = InstallerMojosInformation.writeToSettings, defaultValue = "false", description = InstallerMojosInformation.writeToSettings_description)
+	protected Boolean writeToSettings;
+	
 	protected abstract String getGroupId();
 	protected abstract String getArtifactId();
 	protected abstract String getBootstrapClass();
@@ -147,14 +155,16 @@ public abstract class CommonConfigurer extends CommonMojo {
 			getLog().info("Profile for '" + getArtifactId() + "' plugin version '" + resolvedVersion + "' " + (version == "LATEST" ? "(latest version)" : "(defined in current project)"));
 			if (currentEnvironment != null && validateProfileProperties(currentEnvironment)) {
 				profileProperties = getProfileProperties(currentEnvironment);
-				getLog().info("based on TIBCO environment '" + currentEnvironment.getName() + "=" + currentEnvironment.getLocation() + "'");
+				getLog().info("based on following TIBCO environment:");
+				getLog().info("       name = " + currentEnvironment.getName());
+				getLog().info(" TIBCO_HOME = " + currentEnvironment.getLocation());
 			}
 
 			GenerateGlobalParametersDocMojo standaloneGenerator = GenerateGlobalParametersDocMojo.standaloneGenerator(session.getCurrentProject(), getBootstrapClass(), files);
 
 			getLog().info("\n" + standaloneGenerator.getFullSampleProfileForCommandLine(getArtifactId(), profileProperties));
 
-			File settingsXml = getBestSettings();
+			File settingsXml = getSettingsXml();
 
 			boolean profileMustBeCompleted = currentEnvironment == null || !validateProfileProperties(currentEnvironment);
 
@@ -164,9 +174,29 @@ public abstract class CommonConfigurer extends CommonMojo {
 				if (writeToSettings) {
 					SettingsXpp3Reader reader = new SettingsXpp3Reader();
 					try {
-						Settings settings = reader.read(new FileInputStream(settingsXml));
 						org.apache.maven.settings.Profile p = standaloneGenerator.getFullSampleProfile(getArtifactId(), profileProperties);
-						settings.getProfiles().add(p);
+
+						Boolean existingProfile = false;
+						Settings settings = reader.read(new FileInputStream(settingsXml));
+						for (Iterator<Profile> iterator = settings.getProfiles().listIterator(); iterator.hasNext();) {
+							Profile profile = iterator.next();
+							if (p.getId().equals(profile.getId())) {
+								existingProfile = true;
+								// a profile with same id already exists
+								if (overwriteExistingProfile) {
+									profile = p;
+									iterator.remove();
+									settings.addProfile(p);
+									break;
+								} else {
+									getLog().warn("Profile '" + p.getId() + "'already exists in Maven settings file '" + settingsXml + "'. Skipping.");
+									return;
+								}
+							}
+						}
+						if (!existingProfile) {
+							settings.getProfiles().add(p);
+						}
 
 						SettingsXpp3Writer writer = new SettingsXpp3Writer();
 						writer.write(new FileOutputStream(settingsXml), settings);
@@ -213,12 +243,17 @@ public abstract class CommonConfigurer extends CommonMojo {
         }
 	}
 
-	protected File getBestSettings() {
+	protected File getSettingsXml() {
 		if (!session.getRequest().getUserSettingsFile().exists() && !session.getRequest().getGlobalSettingsFile().exists()) {
 			return null;
 		}
 
-		if (session.getRequest().getUserSettingsFile().exists()) {
+		if (useGlobalSettings && !session.getRequest().getGlobalSettingsFile().exists()) {
+			getLog().warn("'" + InstallerMojosInformation.useGlobalSettings + "' was set to true but no Maven global settings was found. Defaulting to Maven user settings.");
+			useGlobalSettings = false;
+		}
+
+		if (session.getRequest().getUserSettingsFile().exists() && !useGlobalSettings) {
 			try {
 				return new File(session.getRequest().getUserSettingsFile().getCanonicalPath());
 			} catch (IOException e) {

@@ -41,6 +41,12 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 	public static final String environmentName_default = "TIBCO-HOME";
 	public static final String environmentName_description = "tibco.installation.environmentName";
 
+	public static final String overwriteExistingProfile = "tibco.configuration.overwriteExistingProfile";
+	public static final String overwriteExistingProfile_description = "tibco.configuration.overwriteExistingProfile";
+
+	public static final String useGlobalSettings = "tibco.configuration.useGlobalSettings";
+	public static final String useGlobalSettings_description = "tibco.configuration.useGlobalSettings";
+	
 	public static final String writeToSettings = "tibco.configuration.writeToSettings";
 	public static final String writeToSettings_description = "tibco.configuration.writeToSettings";
 

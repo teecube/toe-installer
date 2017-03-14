@@ -82,13 +82,13 @@ public abstract class CommonConfigurer extends CommonMojo {
 	@Parameter(property = InstallerMojosInformation.environmentName, defaultValue = InstallerMojosInformation.environmentName_default)
 	protected String environmentName;
 
-	@Parameter(property = InstallerMojosInformation.overwriteExistingProfile, defaultValue = "true", description = InstallerMojosInformation.overwriteExistingProfile_description)
+	@Parameter(property = InstallerMojosInformation.overwriteExistingProfile, defaultValue = InstallerMojosInformation.overwriteExistingProfile_default, description = InstallerMojosInformation.overwriteExistingProfile_description)
 	protected Boolean overwriteExistingProfile;
 
-	@Parameter(property = InstallerMojosInformation.useGlobalSettings, defaultValue = "false", description = InstallerMojosInformation.useGlobalSettings_description)
+	@Parameter(property = InstallerMojosInformation.useGlobalSettings, defaultValue = InstallerMojosInformation.useGlobalSettings_default, description = InstallerMojosInformation.useGlobalSettings_description)
 	protected Boolean useGlobalSettings;
 
-	@Parameter(property = InstallerMojosInformation.writeToSettings, defaultValue = "false", description = InstallerMojosInformation.writeToSettings_description)
+	@Parameter(property = InstallerMojosInformation.writeToSettings, defaultValue = InstallerMojosInformation.writeToSettings_description, description = InstallerMojosInformation.writeToSettings_description)
 	protected Boolean writeToSettings;
 	
 	protected abstract String getGroupId();
@@ -184,6 +184,7 @@ public abstract class CommonConfigurer extends CommonMojo {
 								existingProfile = true;
 								// a profile with same id already exists
 								if (overwriteExistingProfile) {
+									getLog().info("Profile '" + p.getId() + "'already exists in Maven settings file '" + settingsXml + "'. Overwriting.");
 									profile = p;
 									iterator.remove();
 									settings.addProfile(p);

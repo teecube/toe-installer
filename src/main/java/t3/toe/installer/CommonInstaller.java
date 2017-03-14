@@ -255,7 +255,9 @@ public abstract class CommonInstaller extends CommonMojo {
 	public abstract String getInstallationPackageRegex();
 	public abstract Integer getInstallationPackageVersionGroupIndex();
 	public abstract Integer getInstallationPackageArchGroupIndex();
+	public abstract String getInstallationPackageArchPropertyName();
 	public abstract Integer getInstallationPackageOsGroupIndex();
+	public abstract String getInstallationPackageOsPropertyName();
 	public abstract String getInstallationPackagePropertyName();
 	public abstract String getInstallationPackageVersionPropertyName();
 	public abstract String getInstallationPackageVersionMajorMinorPropertyName();
@@ -405,7 +407,11 @@ public abstract class CommonInstaller extends CommonMojo {
 		} else {
 			installationPackageArch = "Arch Not Found";
 		}
-		
+
+		if ("x86_64".equals(installationPackageArch)) {
+			installationPackageArch = "amd64";
+		}
+
 		return installationPackageArch;
 	}
 
@@ -428,7 +434,14 @@ public abstract class CommonInstaller extends CommonMojo {
 		} else {
 			installationPackageOs = "OS Not Found";
 		}
-		
+
+		if ("win".equals(installationPackageOs)) {
+			installationPackageOs = "windows";
+		} else if (installationPackageOs.contains("linux")) {
+			installationPackageOs = "unix";
+		} else if (installationPackageOs.contains("mac")) {
+			installationPackageOs = "mac";
+		}
 		return installationPackageOs;
 	}
 	
@@ -558,13 +571,11 @@ public abstract class CommonInstaller extends CommonMojo {
 
 		String packageArch = getInstallationPackageArch();
 		if (packageArch != null) {
-			System.out.println(packageArch);
-			session.getCurrentProject().getProperties().put("tibco.package.arch", packageArch);
+			session.getCurrentProject().getProperties().put(getInstallationPackageArchPropertyName(), packageArch);
 		}
 		String packageOs = getInstallationPackageOs();
 		if (packageOs != null) {
-			System.out.println(packageOs);
-			session.getCurrentProject().getProperties().put("tibco.package.os", packageOs);
+			session.getCurrentProject().getProperties().put(getInstallationPackageOsPropertyName(), packageOs);
 		}
 
 		if (getInstallationRoot() == null) {

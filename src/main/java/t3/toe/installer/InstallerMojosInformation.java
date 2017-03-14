@@ -80,6 +80,8 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String installationPackageVersion = "tibco.rv.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.rv.installation.package.versionMajorMinor";
+		public static final String installationPackageArch = "tibco.rv.installation.package.arch";
+		public static final String installationPackageOs = "tibco.rv.installation.package.os";
 
 		public static final String configDirectoryRoot = "tibco.rv.configDirectoryRoot";
 	}
@@ -105,6 +107,8 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		
 		public static final String installationPackageVersion = "tibco.tra.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.tra.installation.package.versionMajorMinor";
+		public static final String installationPackageArch = "tibco.tra.installation.package.arch";
+		public static final String installationPackageOs = "tibco.tra.installation.package.os";
 
 		public static final String configDirectory = "tibco.tra.configDirectory";
 	}
@@ -130,6 +134,8 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String installationPackageVersion = "tibco.ems.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.ems.installation.package.versionMajorMinor";
+		public static final String installationPackageArch = "tibco.ems.installation.package.arch";
+		public static final String installationPackageOs = "tibco.ems.installation.package.os";
 	}
 
 	public static class BW5 {
@@ -153,6 +159,8 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String installationPackageVersion = "tibco.bw5.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.bw5.installation.package.versionMajorMinor";
+		public static final String installationPackageArch = "tibco.bw5.installation.package.arch";
+		public static final String installationPackageOs = "tibco.bw5.installation.package.os";
 
 		public static final String pluginGroupId = "tibco.bw5.plugin.groupId";
 		public static final String pluginGroupId_default = "io.teecube.tic";
@@ -183,6 +191,8 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String installationPackageVersion = "tibco.bw6.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.bw6.installation.package.versionMajorMinor";
+		public static final String installationPackageArch = "tibco.bw6.installation.package.arch";
+		public static final String installationPackageOs = "tibco.bw6.installation.package.os";
 
 		public static final String pluginGroupId = "tibco.bw6.plugin.groupId";
 		public static final String pluginGroupId_default = "io.teecube.tic";
@@ -213,6 +223,8 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String installationPackageVersion = "tibco.admin.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.admin.installation.package.versionMajorMinor";
+		public static final String installationPackageArch = "tibco.admin.installation.package.arch";
+		public static final String installationPackageOs = "tibco.admin.installation.package.os";
 	}
 
 	public static class EnterpriseAdministrator {
@@ -236,6 +248,8 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String installationPackageVersion = "tibco.tea.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.tea.installation.package.versionMajorMinor";
+		public static final String installationPackageArch = "tibco.tea.installation.package.arch";
+		public static final String installationPackageOs = "tibco.tea.installation.package.os";
 
 		public static final String javaHomeDirectory = "tibco.tea.installation.javaHomeDirectory";
 		public static final String teaWindowsServiceType = "tibco.tea.installation.teaWindowsServiceType";

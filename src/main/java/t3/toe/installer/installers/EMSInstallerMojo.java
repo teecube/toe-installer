@@ -117,6 +117,16 @@ public class EMSInstallerMojo extends CommonInstaller {
 	}
 
 	@Override
+	public String getInstallationPackageArchPropertyName() {
+		return InstallerMojosInformation.BW6.installationPackageArch;
+	}
+
+	@Override
+	public String getInstallationPackageOsPropertyName() {
+		return InstallerMojosInformation.BW6.installationPackageOs;
+	}
+
+	@Override
 	public String getInstallationPackageVersionMajorMinor() {
 		return installationPackageVersionMajorMinor;
 	}

@@ -72,8 +72,11 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String installationPackageRegexVersionGroupIndex = "tibco.rv.installation.package.regex.versionGroupIndex";
 		public static final String installationPackageRegexVersionGroupIndex_default = "1";
 
-		public static final String installationPackageRegexPlatformGroupIndex = "tibco.rv.installation.package.regex.platformGroupIndex";
-		public static final String installationPackageRegexPlatformGroupIndex_default = "2";
+		public static final String installationPackageRegexOsGroupIndex = "tibco.rv.installation.package.regex.osGroupIndex";
+		public static final String installationPackageRegexOsGroupIndex_default = "2";
+
+		public static final String installationPackageRegexArchGroupIndex = "tibco.rv.installation.package.regex.archGroupIndex";
+		public static final String installationPackageRegexArchGroupIndex_default = "3";
 
 		public static final String installationPackageVersion = "tibco.rv.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.rv.installation.package.versionMajorMinor";
@@ -94,9 +97,12 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String installationPackageRegexVersionGroupIndex = "tibco.tra.installation.package.regex.versionGroupIndex";
 		public static final String installationPackageRegexVersionGroupIndex_default = "1";
 
-		public static final String installationPackageRegexPlatformGroupIndex = "tibco.tra.installation.package.regex.platformGroupIndex";
-		public static final String installationPackageRegexPlatformGroupIndex_default = "2";
+		public static final String installationPackageRegexOsGroupIndex = "tibco.tra.installation.package.regex.osGroupIndex";
+		public static final String installationPackageRegexOsGroupIndex_default = "2";
 
+		public static final String installationPackageRegexArchGroupIndex = "tibco.tra.installation.package.regex.archGroupIndex";
+		public static final String installationPackageRegexArchGroupIndex_default = "3";
+		
 		public static final String installationPackageVersion = "tibco.tra.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.tra.installation.package.versionMajorMinor";
 
@@ -116,8 +122,11 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String installationPackageRegexVersionGroupIndex = "tibco.ems.installation.package.regex.versionGroupIndex";
 		public static final String installationPackageRegexVersionGroupIndex_default = "1";
 
-		public static final String installationPackageRegexPlatformGroupIndex = "tibco.ems.installation.package.regex.platformGroupIndex";
-		public static final String installationPackageRegexPlatformGroupIndex_default = "2";
+		public static final String installationPackageRegexOsGroupIndex = "tibco.ems.installation.package.regex.osGroupIndex";
+		public static final String installationPackageRegexOsGroupIndex_default = "2";
+
+		public static final String installationPackageRegexArchGroupIndex = "tibco.ems.installation.package.regex.archGroupIndex";
+		public static final String installationPackageRegexArchGroupIndex_default = "3";
 
 		public static final String installationPackageVersion = "tibco.ems.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.ems.installation.package.versionMajorMinor";
@@ -136,8 +145,11 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String installationPackageRegexVersionGroupIndex = "tibco.bw5.installation.package.regex.versionGroupIndex";
 		public static final String installationPackageRegexVersionGroupIndex_default = "1";
 
-		public static final String installationPackageRegexPlatformGroupIndex = "tibco.bw5.installation.package.regex.platformGroupIndex";
-		public static final String installationPackageRegexPlatformGroupIndex_default = "2";
+		public static final String installationPackageRegexOsGroupIndex = "tibco.bw5.installation.package.regex.osGroupIndex";
+		public static final String installationPackageRegexOsGroupIndex_default = "2";
+
+		public static final String installationPackageRegexArchGroupIndex = "tibco.bw5.installation.package.regex.archGroupIndex";
+		public static final String installationPackageRegexArchGroupIndex_default = "3";
 
 		public static final String installationPackageVersion = "tibco.bw5.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.bw5.installation.package.versionMajorMinor";
@@ -158,13 +170,16 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String installationPackage_description = "tibco.bw6.installation.package";
 
 		public static final String installationPackageRegex = "tibco.bw6.installation.package.regex";
-		public static final String installationPackageRegex_default = "TIB_BW(-dev)?_(6.\\d+.\\d+)_(?!HF)(.*)_(.*).zip";
+		public static final String installationPackageRegex_default = "TIB_BW(-dev)?_(6.\\d+.\\d+)_(?!HF)([^_]*)_(.*).zip";
 
+		public static final String installationPackageRegexArchGroupIndex = "tibco.bw6.installation.package.regex.archGroupIndex";
+		public static final String installationPackageRegexArchGroupIndex_default = "4";
+		
+		public static final String installationPackageRegexOsGroupIndex = "tibco.bw6.installation.package.regex.osGroupIndex";
+		public static final String installationPackageRegexOsGroupIndex_default = "3";
+		
 		public static final String installationPackageRegexVersionGroupIndex = "tibco.bw6.installation.package.regex.versionGroupIndex";
 		public static final String installationPackageRegexVersionGroupIndex_default = "2";
-
-		public static final String installationPackageRegexPlatformGroupIndex = "tibco.bw6.installation.package.regex.platformGroupIndex";
-		public static final String installationPackageRegexPlatformGroupIndex_default = "4";
 
 		public static final String installationPackageVersion = "tibco.bw6.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.bw6.installation.package.versionMajorMinor";
@@ -190,8 +205,11 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String installationPackageRegexVersionGroupIndex = "tibco.admin.installation.package.regex.versionGroupIndex";
 		public static final String installationPackageRegexVersionGroupIndex_default = "1";
 
-		public static final String installationPackageRegexPlatformGroupIndex = "tibco.admin.installation.package.regex.platformGroupIndex";
-		public static final String installationPackageRegexPlatformGroupIndex_default = "2";
+		public static final String installationPackageRegexOsGroupIndex = "tibco.admin.installation.package.regex.osGroupIndex";
+		public static final String installationPackageRegexOsGroupIndex_default = "2";
+
+		public static final String installationPackageRegexArchGroupIndex = "tibco.admin.installation.package.regex.archGroupIndex";
+		public static final String installationPackageRegexArchGroupIndex_default = "3";
 
 		public static final String installationPackageVersion = "tibco.admin.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.admin.installation.package.versionMajorMinor";
@@ -210,8 +228,11 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String installationPackageRegexVersionGroupIndex = "tibco.tea.installation.package.regex.versionGroupIndex";
 		public static final String installationPackageRegexVersionGroupIndex_default = "1";
 
-		public static final String installationPackageRegexPlatformGroupIndex = "tibco.tea.installation.package.regex.platformGroupIndex";
-		public static final String installationPackageRegexPlatformGroupIndex_default = "2";
+		public static final String installationPackageRegexOsGroupIndex = "tibco.tea.installation.package.regex.osGroupIndex";
+		public static final String installationPackageRegexOsGroupIndex_default = "2";
+
+		public static final String installationPackageRegexArchGroupIndex = "tibco.tea.installation.package.regex.archGroupIndex";
+		public static final String installationPackageRegexArchGroupIndex_default = "3";
 
 		public static final String installationPackageVersion = "tibco.tea.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.tea.installation.package.versionMajorMinor";

@@ -48,12 +48,15 @@ public class BW6InstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.BW6.installationPackageRegex, defaultValue = InstallerMojosInformation.BW6.installationPackageRegex_default)
 	private String installationPackageRegex;
 
+	@Parameter(property = InstallerMojosInformation.BW6.installationPackageRegexArchGroupIndex, defaultValue = InstallerMojosInformation.BW6.installationPackageRegexArchGroupIndex_default)
+	private Integer installationPackageRegexArchGroupIndex;
+
+	@Parameter(property = InstallerMojosInformation.BW6.installationPackageRegexOsGroupIndex, defaultValue = InstallerMojosInformation.BW6.installationPackageRegexOsGroupIndex_default)
+	private Integer installationPackageRegexOsGroupIndex;
+
 	@Parameter(property = InstallerMojosInformation.BW6.installationPackageRegexVersionGroupIndex, defaultValue = InstallerMojosInformation.BW6.installationPackageRegexVersionGroupIndex_default)
 	private Integer installationPackageRegexVersionGroupIndex;
-
-	@Parameter(property = InstallerMojosInformation.BW6.installationPackageRegexPlatformGroupIndex, defaultValue = InstallerMojosInformation.BW6.installationPackageRegexPlatformGroupIndex_default)
-	private Integer installationPackageRegexPlatformGroupIndex;
-
+	
 	@Parameter(property = InstallerMojosInformation.BW6.installationPackageVersion, defaultValue = "")
 	private String installationPackageVersion;
 
@@ -85,13 +88,18 @@ public class BW6InstallerMojo extends CommonInstaller {
 	}
 
 	@Override
-	public Integer getInstallationPackageVersionGroupIndex() {
-		return installationPackageRegexVersionGroupIndex;
+	public Integer getInstallationPackageArchGroupIndex() {
+		return installationPackageRegexArchGroupIndex;
 	}
 
 	@Override
-	public Integer getInstallationPackagePlatformGroupIndex() {
-		return installationPackageRegexPlatformGroupIndex;
+	public Integer getInstallationPackageOsGroupIndex() {
+		return installationPackageRegexOsGroupIndex;
+	}
+
+	@Override
+	public Integer getInstallationPackageVersionGroupIndex() {
+		return installationPackageRegexVersionGroupIndex;
 	}
 
 	@Override

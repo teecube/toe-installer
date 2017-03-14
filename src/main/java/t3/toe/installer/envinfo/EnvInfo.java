@@ -63,7 +63,7 @@ public class EnvInfo extends CommonMojo {
 
 		try {
 			if (pluginManager != null) {
-				PropertiesEnforcer.enforceProperties(session, pluginManager, logger, new ArrayList<String>(), InstallerLifecycleParticipant.class); // check that all mandatory properties are correct
+				PropertiesEnforcer.enforceProperties(session, pluginManager, logger, new ArrayList<String>(), InstallerLifecycleParticipant.class, InstallerLifecycleParticipant.pluginKey); // check that all mandatory properties are correct
 			}
 		} catch (MavenExecutionException e) {
 			throw new MojoExecutionException(e.getLocalizedMessage(), e);

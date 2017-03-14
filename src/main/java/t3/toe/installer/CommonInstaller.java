@@ -102,7 +102,10 @@ public abstract class CommonInstaller extends CommonMojo {
 
 	protected String currentGoalName;
 
+	private String installationPackageArch;
+	private String installationPackageOs;
 	private String installationPackageVersion;
+
 	private Boolean installationRootChecked = false;
 
 	private static Boolean installationRootWasNotSet = false;
@@ -251,7 +254,8 @@ public abstract class CommonInstaller extends CommonMojo {
 	public abstract File getInstallationPackage();
 	public abstract String getInstallationPackageRegex();
 	public abstract Integer getInstallationPackageVersionGroupIndex();
-	public abstract Integer getInstallationPackagePlatformGroupIndex();
+	public abstract Integer getInstallationPackageArchGroupIndex();
+	public abstract Integer getInstallationPackageOsGroupIndex();
 	public abstract String getInstallationPackagePropertyName();
 	public abstract String getInstallationPackageVersionPropertyName();
 	public abstract String getInstallationPackageVersionMajorMinorPropertyName();
@@ -353,7 +357,6 @@ public abstract class CommonInstaller extends CommonMojo {
 	    });
 
 		if (result != null && result.length > 0) {
-            System.out.println(result[0].getAbsolutePath());
 			return result[0];
 		}
 
@@ -383,6 +386,52 @@ public abstract class CommonInstaller extends CommonMojo {
 		return installationPackageVersion;
 	}
 
+	public String getInstallationPackageArch() {
+		if (installationPackageArch != null && !installationPackageArch.isEmpty()) {
+			return installationPackageArch;
+		}
+
+		File installationPackage = getInstallationPackage();
+		if (installationPackage == null) {
+			return null;
+		}
+		
+		String name = installationPackage.getName();
+		
+		Pattern p = Pattern.compile(getInstallationPackageRegex(), Pattern.CASE_INSENSITIVE);
+		Matcher m = p.matcher(name);
+		if (m.matches()) {
+			installationPackageArch = m.group(getInstallationPackageArchGroupIndex());
+		} else {
+			installationPackageArch = "Arch Not Found";
+		}
+		
+		return installationPackageArch;
+	}
+
+	public String getInstallationPackageOs() {
+		if (installationPackageOs != null && !installationPackageOs.isEmpty()) {
+			return installationPackageOs;
+		}
+		
+		File installationPackage = getInstallationPackage();
+		if (installationPackage == null) {
+			return null;
+		}
+		
+		String name = installationPackage.getName();
+		
+		Pattern p = Pattern.compile(getInstallationPackageRegex(), Pattern.CASE_INSENSITIVE);
+		Matcher m = p.matcher(name);
+		if (m.matches()) {
+			installationPackageOs = m.group(getInstallationPackageOsGroupIndex());
+		} else {
+			installationPackageOs = "OS Not Found";
+		}
+		
+		return installationPackageOs;
+	}
+	
 	private File extractInstallationPackage(@NotNull File installationPackage) throws MojoExecutionException {
 		String version = getInstallationPackageVersion();
 		String productName = getProductName();
@@ -507,6 +556,17 @@ public abstract class CommonInstaller extends CommonMojo {
 			session.getCurrentProject().getProperties().put(getInstallationPackageVersionMajorMinorPropertyName(), packageVersionMajorMinor);
 		}
 
+		String packageArch = getInstallationPackageArch();
+		if (packageArch != null) {
+			System.out.println(packageArch);
+			session.getCurrentProject().getProperties().put("tibco.package.arch", packageArch);
+		}
+		String packageOs = getInstallationPackageOs();
+		if (packageOs != null) {
+			System.out.println(packageOs);
+			session.getCurrentProject().getProperties().put("tibco.package.os", packageOs);
+		}
+
 		if (getInstallationRoot() == null) {
 			// set "c:/tibco" if windows, "/opt/tibco" if *nix
 			installationRootWasNotSet = true;
@@ -576,7 +636,7 @@ public abstract class CommonInstaller extends CommonMojo {
 
 				try {
 					if (pluginManager != null && !_isDependency) {
-						PropertiesEnforcer.enforceProperties(session, pluginManager, logger, new ArrayList<String>(), InstallerLifecycleParticipant.class); // check that all mandatory properties are correct
+						PropertiesEnforcer.enforceProperties(session, pluginManager, logger, new ArrayList<String>(), InstallerLifecycleParticipant.class, InstallerLifecycleParticipant.pluginKey); // check that all mandatory properties are correct
 					}
 				} catch (MavenExecutionException e) {
 					throw new MojoExecutionException(e.getLocalizedMessage(), e);

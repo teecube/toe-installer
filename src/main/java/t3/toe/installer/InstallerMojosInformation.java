@@ -84,6 +84,17 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String installationPackageVersion = "tibco.rv.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.rv.installation.package.versionMajorMinor";
 
+		public static final String remoteInstallationPackageGroupId = "tibco.rv.installation.remotePackage.groupId";
+		public static final String remoteInstallationPackageGroupId_description = "tibco.rv.installation.remotePackage.groupId";
+		public static final String remoteInstallationPackageGroupId_default = "com.tibco.rv";
+
+		public static final String remoteInstallationPackageArtifactId = "tibco.rv.installation.remotePackage.artifactId";
+		public static final String remoteInstallationPackageArtifactId_description = "tibco.rv.installation.remotePackage.artifactId";
+		public static final String remoteInstallationPackageArtifactId_default = "rv-installer";
+
+		public static final String remoteInstallationPackageVersion = "tibco.rv.installation.remotePackage.version";
+		public static final String remoteInstallationPackageVersion_description = "tibco.rv.installation.remotePackage.version";
+
 		public static final String configDirectoryRoot = "tibco.rv.configDirectoryRoot";
 	}
 
@@ -103,6 +114,17 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String installationPackageVersion = "tibco.tra.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.tra.installation.package.versionMajorMinor";
 
+		public static final String remoteInstallationPackageGroupId = "tibco.tra.installation.remotePackage.groupId";
+		public static final String remoteInstallationPackageGroupId_description = "tibco.tra.installation.remotePackage.groupId";
+		public static final String remoteInstallationPackageGroupId_default = "com.tibco.tra";
+
+		public static final String remoteInstallationPackageArtifactId = "tibco.tra.installation.remotePackage.artifactId";
+		public static final String remoteInstallationPackageArtifactId_description = "tibco.tra.installation.remotePackage.artifactId";
+		public static final String remoteInstallationPackageArtifactId_default = "tra-installer";
+
+		public static final String remoteInstallationPackageVersion = "tibco.tra.installation.remotePackage.version";
+		public static final String remoteInstallationPackageVersion_description = "tibco.tra.installation.remotePackage.version";
+
 		public static final String configDirectory = "tibco.tra.configDirectory";
 	}
 
@@ -121,6 +143,17 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String installationPackageVersion = "tibco.ems.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.ems.installation.package.versionMajorMinor";
+
+		public static final String remoteInstallationPackageGroupId = "tibco.ems.installation.remotePackage.groupId";
+		public static final String remoteInstallationPackageGroupId_description = "tibco.ems.installation.remotePackage.groupId";
+		public static final String remoteInstallationPackageGroupId_default = "com.tibco.ems";
+
+		public static final String remoteInstallationPackageArtifactId = "tibco.ems.installation.remotePackage.artifactId";
+		public static final String remoteInstallationPackageArtifactId_description = "tibco.ems.installation.remotePackage.artifactId";
+		public static final String remoteInstallationPackageArtifactId_default = "ems-installer";
+
+		public static final String remoteInstallationPackageVersion = "tibco.ems.installation.remotePackage.version";
+		public static final String remoteInstallationPackageVersion_description = "tibco.ems.installation.remotePackage.version";
 	}
 
 	public static class BW5 {
@@ -138,6 +171,17 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String installationPackageVersion = "tibco.bw5.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.bw5.installation.package.versionMajorMinor";
+
+		public static final String remoteInstallationPackageGroupId = "tibco.bw5.installation.remotePackage.groupId";
+		public static final String remoteInstallationPackageGroupId_description = "tibco.bw5.installation.remotePackage.groupId";
+		public static final String remoteInstallationPackageGroupId_default = "com.tibco.bw5";
+
+		public static final String remoteInstallationPackageArtifactId = "tibco.bw5.installation.remotePackage.artifactId";
+		public static final String remoteInstallationPackageArtifactId_description = "tibco.bw5.installation.remotePackage.artifactId";
+		public static final String remoteInstallationPackageArtifactId_default = "bw5-installer";
+
+		public static final String remoteInstallationPackageVersion = "tibco.bw5.installation.remotePackage.version";
+		public static final String remoteInstallationPackageVersion_description = "tibco.bw5.installation.remotePackage.version";
 
 		public static final String pluginGroupId = "tibco.bw5.plugin.groupId";
 		public static final String pluginGroupId_default = "io.teecube.tic";
@@ -163,6 +207,17 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String installationPackageVersion = "tibco.bw6.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.bw6.installation.package.versionMajorMinor";
 
+		public static final String remoteInstallationPackageGroupId = "tibco.bw6.installation.remotePackage.groupId";
+		public static final String remoteInstallationPackageGroupId_description = "tibco.bw6.installation.remotePackage.groupId";
+		public static final String remoteInstallationPackageGroupId_default = "com.tibco.bw6";
+
+		public static final String remoteInstallationPackageArtifactId = "tibco.bw6.installation.remotePackage.artifactId";
+		public static final String remoteInstallationPackageArtifactId_description = "tibco.bw6.installation.remotePackage.artifactId";
+		public static final String remoteInstallationPackageArtifactId_default = "bw6-installer";
+		
+		public static final String remoteInstallationPackageVersion = "tibco.bw6.installation.remotePackage.version";
+		public static final String remoteInstallationPackageVersion_description = "tibco.bw6.installation.remotePackage.version";
+
 		public static final String pluginGroupId = "tibco.bw6.plugin.groupId";
 		public static final String pluginGroupId_default = "io.teecube.tic";
 		public static final String pluginArtifactId = "tibco.bw6.plugin.artifactId";
@@ -186,6 +241,17 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String installationPackageVersion = "tibco.admin.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.admin.installation.package.versionMajorMinor";
+
+		public static final String remoteInstallationPackageGroupId = "tibco.admin.installation.remotePackage.groupId";
+		public static final String remoteInstallationPackageGroupId_description = "tibco.admin.installation.remotePackage.groupId";
+		public static final String remoteInstallationPackageGroupId_default = "com.tibco.admin";
+
+		public static final String remoteInstallationPackageArtifactId = "tibco.admin.installation.remotePackage.artifactId";
+		public static final String remoteInstallationPackageArtifactId_description = "tibco.admin.installation.remotePackage.artifactId";
+		public static final String remoteInstallationPackageArtifactId_default = "admin-installer";
+
+		public static final String remoteInstallationPackageVersion = "tibco.admin.installation.remotePackage.version";
+		public static final String remoteInstallationPackageVersion_description = "tibco.admin.installation.remotePackage.version";
 	}
 
 	public static class EnterpriseAdministrator {
@@ -203,6 +269,17 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String installationPackageVersion = "tibco.tea.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.tea.installation.package.versionMajorMinor";
+
+		public static final String remoteInstallationPackageGroupId = "tibco.tea.installation.remotePackage.groupId";
+		public static final String remoteInstallationPackageGroupId_description = "tibco.tea.installation.remotePackage.groupId";
+		public static final String remoteInstallationPackageGroupId_default = "com.tibco.tea";
+
+		public static final String remoteInstallationPackageArtifactId = "tibco.tea.installation.remotePackage.artifactId";
+		public static final String remoteInstallationPackageArtifactId_description = "tibco.tea.installation.remotePackage.artifactId";
+		public static final String remoteInstallationPackageArtifactId_default = "tea-installer";
+
+		public static final String remoteInstallationPackageVersion = "tibco.tea.installation.remotePackage.version";
+		public static final String remoteInstallationPackageVersion_description = "tibco.tea.installation.remotePackage.version";
 
 		public static final String javaHomeDirectory = "tibco.tea.installation.javaHomeDirectory";
 		public static final String teaWindowsServiceType = "tibco.tea.installation.teaWindowsServiceType";

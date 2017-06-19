@@ -64,6 +64,15 @@ public class BW5InstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.BW5.installationPackageVersionMajorMinor, defaultValue = "")
 	private String installationPackageVersionMajorMinor;
 
+	@Parameter(property = InstallerMojosInformation.BW5.remoteInstallationPackageGroupId, defaultValue = InstallerMojosInformation.BW5.remoteInstallationPackageGroupId_default, description = InstallerMojosInformation.BW5.remoteInstallationPackageGroupId_description)
+	protected String remoteInstallationPackageGroupId;
+
+	@Parameter(property = InstallerMojosInformation.BW5.remoteInstallationPackageArtifactId, defaultValue = InstallerMojosInformation.BW5.remoteInstallationPackageArtifactId_default, description = InstallerMojosInformation.BW5.remoteInstallationPackageArtifactId_description)
+	protected String remoteInstallationPackageArtifactId;
+
+	@Parameter(property = InstallerMojosInformation.BW5.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.BW5.remoteInstallationPackageVersion_description)
+	protected String remoteInstallationPackageVersion;
+
 	@Override
 	public List<String> getDependenciesGoals() {
 		List<String> dependenciesGoals = new ArrayList<String>();
@@ -95,7 +104,7 @@ public class BW5InstallerMojo extends CommonInstaller {
 	}
 
 	@Override
-	public File getInstallationPackage() {
+	public File getInstallationPackage() throws MojoExecutionException {
 		if (installationPackage == null || !installationPackage.exists()) {
 			installationPackage = findInstallationPackage();
 		}
@@ -135,6 +144,21 @@ public class BW5InstallerMojo extends CommonInstaller {
 	@Override
 	public void setInstallationPackageVersionMajorMinor(String version) {
 		this.installationPackageVersionMajorMinor = version;
+	}
+
+	@Override
+	public String getRemotePackageGroupId() {
+		return remoteInstallationPackageGroupId;
+	}
+
+	@Override
+	public String getRemotePackageArtifactId() {
+		return remoteInstallationPackageArtifactId;
+	}
+
+	@Override
+	public String getRemotePackageVersion() {
+		return remoteInstallationPackageVersion;
 	}
 
 	@Override

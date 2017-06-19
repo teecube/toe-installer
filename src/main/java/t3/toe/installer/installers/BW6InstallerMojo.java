@@ -57,6 +57,15 @@ public class BW6InstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.BW6.installationPackageVersionMajorMinor, defaultValue = "")
 	private String installationPackageVersionMajorMinor;
 
+	@Parameter(property = InstallerMojosInformation.BW6.remoteInstallationPackageGroupId, defaultValue = InstallerMojosInformation.BW6.remoteInstallationPackageGroupId_default, description = InstallerMojosInformation.BW6.remoteInstallationPackageGroupId_description)
+	protected String remoteInstallationPackageGroupId;
+
+	@Parameter(property = InstallerMojosInformation.BW6.remoteInstallationPackageArtifactId, defaultValue = InstallerMojosInformation.BW6.remoteInstallationPackageArtifactId_default, description = InstallerMojosInformation.BW6.remoteInstallationPackageArtifactId_description)
+	protected String remoteInstallationPackageArtifactId;
+
+	@Parameter(property = InstallerMojosInformation.BW6.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.BW6.remoteInstallationPackageVersion_description)
+	protected String remoteInstallationPackageVersion;
+
 	@Override
 	public List<String> getDependenciesGoals() {
 		return new ArrayList<String>();
@@ -69,7 +78,7 @@ public class BW6InstallerMojo extends CommonInstaller {
 	}
 
 	@Override
-	public File getInstallationPackage() {
+	public File getInstallationPackage() throws MojoExecutionException {
 		if (installationPackage == null || !installationPackage.exists()) {
 			installationPackage = findInstallationPackage();
 		}
@@ -109,6 +118,21 @@ public class BW6InstallerMojo extends CommonInstaller {
 	@Override
 	public void setInstallationPackageVersionMajorMinor(String version) {
 		this.installationPackageVersionMajorMinor = version;
+	}
+
+	@Override
+	public String getRemotePackageGroupId() {
+		return remoteInstallationPackageGroupId;
+	}
+
+	@Override
+	public String getRemotePackageArtifactId() {
+		return remoteInstallationPackageArtifactId;
+	}
+
+	@Override
+	public String getRemotePackageVersion() {
+		return remoteInstallationPackageVersion;
 	}
 
 	@Override

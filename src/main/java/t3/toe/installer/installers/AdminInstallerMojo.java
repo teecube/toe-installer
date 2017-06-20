@@ -73,6 +73,9 @@ public class AdminInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.Administrator.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.Administrator.remoteInstallationPackageVersion_description)
 	protected String remoteInstallationPackageVersion;
 
+	@Parameter(property = InstallerMojosInformation.Administrator.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.Administrator.remoteInstallationPackageClassifier_description)
+	protected String remoteInstallationPackageClassifier;
+
 	@Override
 	public List<String> getDependenciesGoals() {
 		List<String> dependenciesGoals = new ArrayList<String>();
@@ -158,6 +161,11 @@ public class AdminInstallerMojo extends CommonInstaller {
 	@Override
 	public String getRemotePackageVersion() {
 		return remoteInstallationPackageVersion;
+	}
+
+	@Override
+	public String getRemotePackageClassifier() {
+		return remoteInstallationPackageClassifier;
 	}
 
 	@Override

@@ -260,6 +260,12 @@ public abstract class CommonInstaller extends CommonMojo {
 	public abstract String getRemotePackageGroupId();
 	public abstract String getRemotePackageArtifactId();
 	public abstract String getRemotePackageVersion();
+	public abstract String getRemotePackageClassifier();
+	public String getRemotePackageCoordinates() {
+		String classifier = getRemotePackageClassifier();
+
+		return getRemotePackageGroupId() + ":" + getRemotePackageArtifactId() + ":" + getRemotePackageVersion() + ":zip" + (classifier != null ? ":" + classifier : "");
+	}
 
 	public abstract void setInstallationPackageVersionMajorMinor(String version);
 	public abstract boolean hasDependencies();
@@ -347,8 +353,9 @@ public abstract class CommonInstaller extends CommonMojo {
 		String groupId = getRemotePackageGroupId();
 		String artifactId = getRemotePackageArtifactId();
 		String version = getRemotePackageVersion();
+		String classifier = getRemotePackageClassifier();
 
-		return getDependency(groupId, artifactId, version, "zip", "win_x86_64");
+		return getDependency(groupId, artifactId, version, "zip", classifier);
 	}
 
 	/**
@@ -367,7 +374,8 @@ public abstract class CommonInstaller extends CommonMojo {
 	 */
 	protected File findInstallationPackage() throws MojoExecutionException {
 		String remoteInstallationPackageVersion = getRemotePackageVersion();
-		if (!StringUtils.isEmpty(remoteInstallationPackageVersion)) {
+		String remoteInstallationPackageClassifier = getRemotePackageClassifier();
+		if (!StringUtils.isEmpty(remoteInstallationPackageVersion) && !StringUtils.isEmpty(remoteInstallationPackageClassifier)) {
 			File remoteInstallationPacakge;
 			try {
 				remoteInstallationPacakge = findRemoteInstallationPackage();
@@ -379,6 +387,7 @@ public abstract class CommonInstaller extends CommonMojo {
 				}
 			} catch (MojoExecutionException | FileNotFoundException e) {
 				getLog().error("This goal is configured to retrieve a remote installation package but this package cannot be found.");
+				getLog().error("The Maven coordinates for the remote installation package are: " + this.getRemotePackageCoordinates());
 
 				// TODO : add remote package coordinates
 

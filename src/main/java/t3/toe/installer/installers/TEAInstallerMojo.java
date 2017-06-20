@@ -65,6 +65,9 @@ public class TEAInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageVersion_description)
 	protected String remoteInstallationPackageVersion;
 
+	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageClassifier_description)
+	protected String remoteInstallationPackageClassifier;
+
 	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.javaHomeDirectory, defaultValue = "c:\\Program Files\\Java\\jdk1.7.0_71") // default value is the one found in default .silent file
 	private File javaHomeDirectory;
 
@@ -141,6 +144,11 @@ public class TEAInstallerMojo extends CommonInstaller {
 	@Override
 	public String getRemotePackageVersion() {
 		return remoteInstallationPackageVersion;
+	}
+
+	@Override
+	public String getRemotePackageClassifier() {
+		return remoteInstallationPackageClassifier;
 	}
 
 	@Override

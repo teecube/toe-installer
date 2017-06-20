@@ -95,6 +95,9 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String remoteInstallationPackageVersion = "tibco.rv.installation.remotePackage.version";
 		public static final String remoteInstallationPackageVersion_description = "tibco.rv.installation.remotePackage.version";
 
+		public static final String remoteInstallationPackageClassifier = "tibco.rv.installation.remotePackage.classifier";
+		public static final String remoteInstallationPackageClassifier_description = "tibco.rv.installation.remotePackage.classifier";
+
 		public static final String configDirectoryRoot = "tibco.rv.configDirectoryRoot";
 	}
 
@@ -125,6 +128,9 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String remoteInstallationPackageVersion = "tibco.tra.installation.remotePackage.version";
 		public static final String remoteInstallationPackageVersion_description = "tibco.tra.installation.remotePackage.version";
 
+		public static final String remoteInstallationPackageClassifier = "tibco.tra.installation.remotePackage.classifier";
+		public static final String remoteInstallationPackageClassifier_description = "tibco.tra.installation.remotePackage.classifier";
+
 		public static final String configDirectory = "tibco.tra.configDirectory";
 	}
 
@@ -154,6 +160,9 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String remoteInstallationPackageVersion = "tibco.ems.installation.remotePackage.version";
 		public static final String remoteInstallationPackageVersion_description = "tibco.ems.installation.remotePackage.version";
+
+		public static final String remoteInstallationPackageClassifier = "tibco.ems.installation.remotePackage.classifier";
+		public static final String remoteInstallationPackageClassifier_description = "tibco.ems.installation.remotePackage.classifier";
 	}
 
 	public static class BW5 {
@@ -182,6 +191,9 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String remoteInstallationPackageVersion = "tibco.bw5.installation.remotePackage.version";
 		public static final String remoteInstallationPackageVersion_description = "tibco.bw5.installation.remotePackage.version";
+
+		public static final String remoteInstallationPackageClassifier = "tibco.bw5.installation.remotePackage.classifier";
+		public static final String remoteInstallationPackageClassifier_description = "tibco.bw5.installation.remotePackage.classifier";
 
 		public static final String pluginGroupId = "tibco.bw5.plugin.groupId";
 		public static final String pluginGroupId_default = "io.teecube.tic";
@@ -218,6 +230,9 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String remoteInstallationPackageVersion = "tibco.bw6.installation.remotePackage.version";
 		public static final String remoteInstallationPackageVersion_description = "tibco.bw6.installation.remotePackage.version";
 
+		public static final String remoteInstallationPackageClassifier = "tibco.bw6.installation.remotePackage.classifier";
+		public static final String remoteInstallationPackageClassifier_description = "tibco.bw6.installation.remotePackage.classifier";
+
 		public static final String pluginGroupId = "tibco.bw6.plugin.groupId";
 		public static final String pluginGroupId_default = "io.teecube.tic";
 		public static final String pluginArtifactId = "tibco.bw6.plugin.artifactId";
@@ -252,6 +267,9 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String remoteInstallationPackageVersion = "tibco.admin.installation.remotePackage.version";
 		public static final String remoteInstallationPackageVersion_description = "tibco.admin.installation.remotePackage.version";
+
+		public static final String remoteInstallationPackageClassifier = "tibco.admin.installation.remotePackage.classifier";
+		public static final String remoteInstallationPackageClassifier_description = "tibco.admin.installation.remotePackage.classifier";
 	}
 
 	public static class EnterpriseAdministrator {
@@ -280,6 +298,9 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String remoteInstallationPackageVersion = "tibco.tea.installation.remotePackage.version";
 		public static final String remoteInstallationPackageVersion_description = "tibco.tea.installation.remotePackage.version";
+
+		public static final String remoteInstallationPackageClassifier = "tibco.tea.installation.remotePackage.classifier";
+		public static final String remoteInstallationPackageClassifier_description = "tibco.tea.installation.remotePackage.classifier";
 
 		public static final String javaHomeDirectory = "tibco.tea.installation.javaHomeDirectory";
 		public static final String teaWindowsServiceType = "tibco.tea.installation.teaWindowsServiceType";

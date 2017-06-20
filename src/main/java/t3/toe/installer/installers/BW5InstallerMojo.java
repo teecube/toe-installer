@@ -73,6 +73,9 @@ public class BW5InstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.BW5.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.BW5.remoteInstallationPackageVersion_description)
 	protected String remoteInstallationPackageVersion;
 
+	@Parameter(property = InstallerMojosInformation.BW5.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.BW5.remoteInstallationPackageClassifier_description)
+	protected String remoteInstallationPackageClassifier;
+
 	@Override
 	public List<String> getDependenciesGoals() {
 		List<String> dependenciesGoals = new ArrayList<String>();
@@ -159,6 +162,11 @@ public class BW5InstallerMojo extends CommonInstaller {
 	@Override
 	public String getRemotePackageVersion() {
 		return remoteInstallationPackageVersion;
+	}
+
+	@Override
+	public String getRemotePackageClassifier() {
+		return remoteInstallationPackageClassifier;
 	}
 
 	@Override

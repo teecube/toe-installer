@@ -65,6 +65,9 @@ public class EMSInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.EMS.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.EMS.remoteInstallationPackageVersion_description)
 	protected String remoteInstallationPackageVersion;
 
+	@Parameter(property = InstallerMojosInformation.EMS.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.EMS.remoteInstallationPackageClassifier_description)
+	protected String remoteInstallationPackageClassifier;
+
 	@Override
 	public List<String> getDependenciesGoals() {
 		return new ArrayList<String>();
@@ -132,6 +135,11 @@ public class EMSInstallerMojo extends CommonInstaller {
 	@Override
 	public String getRemotePackageVersion() {
 		return remoteInstallationPackageVersion;
+	}
+
+	@Override
+	public String getRemotePackageClassifier() {
+		return remoteInstallationPackageClassifier;
 	}
 
 	@Override

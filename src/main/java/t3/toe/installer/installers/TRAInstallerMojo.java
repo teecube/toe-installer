@@ -73,6 +73,9 @@ public class TRAInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.TRA.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.TRA.remoteInstallationPackageVersion_description)
 	protected String remoteInstallationPackageVersion;
 
+	@Parameter(property = InstallerMojosInformation.TRA.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.TRA.remoteInstallationPackageClassifier_description)
+	protected String remoteInstallationPackageClassifier;
+
 	@Parameter(property = InstallerMojosInformation.TRA.configDirectory, defaultValue = "${user.home}/tibco_cfg")
 	private File configDirectoryRoot;
 
@@ -162,6 +165,11 @@ public class TRAInstallerMojo extends CommonInstaller {
 	@Override
 	public String getRemotePackageVersion() {
 		return remoteInstallationPackageVersion;
+	}
+
+	@Override
+	public String getRemotePackageClassifier() {
+		return remoteInstallationPackageClassifier;
 	}
 
 	@Override

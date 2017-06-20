@@ -63,6 +63,9 @@ import org.codehaus.plexus.archiver.manager.ArchiverManager;
 import org.codehaus.plexus.archiver.manager.NoSuchArchiverException;
 import org.twdata.maven.mojoexecutor.MojoExecutor.Element;
 
+import com.google.common.io.Files;
+import com.tibco.envinfo.TIBCOEnvironment.Environment;
+
 import t3.AdvancedMavenLifecycleParticipant;
 import t3.CommonMojo;
 import t3.NoOpLogger;
@@ -71,9 +74,6 @@ import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.envinfo.EnvInfo;
 import t3.toe.installer.envinfo.RemoveEnvInfoMojo;
-
-import com.google.common.io.Files;
-import com.tibco.envinfo.TIBCOEnvironment.Environment;
 
 /**
 *

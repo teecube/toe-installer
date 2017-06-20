@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>io.teecube.toe</groupId>
 		<artifactId>toe</artifactId>
-		<version>0.0.3</version>
+		<version>0.0.4</version>
 	</parent>
 
 	<artifactId>toe-installer-plugin</artifactId>
@@ -38,6 +38,18 @@
 				<configuration>
 					<goalPrefix>toe</goalPrefix>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.jvnet.jaxb2.maven2</groupId>
+				<artifactId>maven-jaxb2-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>xjc</id>
+						<configuration>
+							<generatePackage>t3.toe.installer.environments</generatePackage>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

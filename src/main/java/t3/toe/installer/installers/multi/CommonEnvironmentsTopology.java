@@ -53,10 +53,13 @@ import t3.toe.installer.environments.Property;
 public class CommonEnvironmentsTopology extends CommonMojo {
 
 	public enum TIBCOProduct {
+		ADMIN ("admin-install", "Administrator"),
 		BW5 ("bw5-install", "BusinessWorks 5"),
 		BW6 ("bw6-install", "BusinessWorks 6"),
 		EMS ("ems-install", "EMS"),
-		TEA ("tea-install", "TEA");
+		RV ("rv-install", "RV"),
+		TEA ("tea-install", "TEA"),
+		TRA ("tra-install", "TRA");
 
 	    private final String goal;
 	    private final String name;
@@ -175,37 +178,5 @@ public class CommonEnvironmentsTopology extends CommonMojo {
 		}
 		return null;
 	}
-
-//	protected void createDomain(Domain domain) throws MojoExecutionException, MojoFailureException {
-//		getLog().info(Messages.MESSAGE_SPACE);
-//		getLog().info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + bw6CreateGoal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
-//
-//		BW6DomainCreateMojo bw6DomainCreateMojo = new BW6DomainCreateMojo(this);
-//		List<Map.Entry<String,String>> ignoredParameters = new ArrayList<Map.Entry<String,String>>();
-//		ignoredParameters.add(new AbstractMap.SimpleEntry<>("domainName", BW6DomainCreateMojo.class.getCanonicalName()));
-//		bw6DomainCreateMojo.setIgnoredParameters(ignoredParameters);
-//		bw6DomainCreateMojo.domainName = domain.name;
-//		bw6DomainCreateMojo.execute();
-//
-//		getLog().info(Messages.MESSAGE_SPACE);
-//		getLog().info("<<< " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + bw6CreateGoal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " <<<");
-//		getLog().info(Messages.MESSAGE_SPACE);
-//	}
-//
-//	protected void deleteDomain(Domain domain) throws MojoExecutionException, MojoFailureException {
-//		getLog().info(Messages.MESSAGE_SPACE);
-//		getLog().info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + bw6DeleteGoal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
-//
-//		BW6DomainDeleteMojo bw6DomainDeleteMojo = new BW6DomainDeleteMojo(this);
-//		List<Map.Entry<String,String>> ignoredParameters = new ArrayList<Map.Entry<String,String>>();
-//		ignoredParameters.add(new AbstractMap.SimpleEntry<>("domainName", BW6DomainDeleteMojo.class.getCanonicalName()));
-//		bw6DomainDeleteMojo.setIgnoredParameters(ignoredParameters);
-//		bw6DomainDeleteMojo.domainName = domain.name;
-//		bw6DomainDeleteMojo.execute();
-//
-//		getLog().info(Messages.MESSAGE_SPACE);
-//		getLog().info("<<< " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + bw6DeleteGoal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " <<<");
-//		getLog().info(Messages.MESSAGE_SPACE);
-//	}
 
 }

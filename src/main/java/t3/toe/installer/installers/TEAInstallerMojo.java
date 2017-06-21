@@ -172,6 +172,13 @@ public class TEAInstallerMojo extends CommonInstaller {
 			return;
 		}
 
+		if (!javaHomeDirectory.exists()) {
+			String javaHome = System.getProperty("java.home");
+			if (new File(javaHome).exists()) {
+				javaHomeDirectory = new File(javaHome);
+			}
+		}
+
 		props.setProperty("configDirectoryRoot", configDirectoryRoot);
 		props.setProperty("java.home.directory", javaHomeDirectory.getAbsolutePath());
 		props.setProperty("teaWindowsServiceType", teaWindowsServiceType);

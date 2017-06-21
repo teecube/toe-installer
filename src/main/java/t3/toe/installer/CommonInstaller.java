@@ -108,7 +108,7 @@ public abstract class CommonInstaller extends CommonMojo {
 
 	private static Boolean installationRootWasNotSet = false;
 	private static EnvInfo envInfo = null;
-
+ 
 	public Boolean getCreateNewEnvironment() {
 		if (createNewEnvironment != _createNewEnvironment && _createNewEnvironment != null) {
 			return _createNewEnvironment;
@@ -234,7 +234,7 @@ public abstract class CommonInstaller extends CommonMojo {
 			}
 			return true;
 		} else {
-			if (session.getGoals().subList(1, session.getGoals().size()).contains("toe:" + currentGoalName)) { // current goal is after the first one : most likely that the first goal created an environment (tibco.installation.createNew=true) and we want to continue on the same
+			if (session.getGoals().subList(1, session.getGoals().size()).contains(InstallerMojosInformation.pluginPrefix + "" + currentGoalName)) { // current goal is after the first one : most likely that the first goal created an environment (tibco.installation.createNew=true) and we want to continue on the same
 				return true;
 			}
 
@@ -389,8 +389,6 @@ public abstract class CommonInstaller extends CommonMojo {
 				getLog().error("This goal is configured to retrieve a remote installation package but this package cannot be found.");
 				getLog().error("The Maven coordinates for the remote installation package are: " + this.getRemotePackageCoordinates());
 
-				// TODO : add remote package coordinates
-
 				throw new MojoExecutionException("Remote installation package not found", new FileNotFoundException());
 			}
 		}
@@ -504,8 +502,6 @@ public abstract class CommonInstaller extends CommonMojo {
 	}
 
 	private void installDependency(String goal) throws MojoExecutionException {
-//		InstallerPluginManager.registerCustomPluginManager(pluginManager, new InstallerMojosFactory());
-
 		getLog().info("Detected a dependency. Installing...");
 		getLog().info("");
 		getLog().info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
@@ -536,12 +532,12 @@ public abstract class CommonInstaller extends CommonMojo {
 	}
 
 	protected void installRV() throws MojoExecutionException {
-		session.getRequest().getGoals().add("toe:rv-install");
+		session.getRequest().getGoals().add(InstallerMojosInformation.pluginPrefix + "rv-install");
 		installDependency("rv-install");
 	}
 
 	protected void installTRA() throws MojoExecutionException {
-		session.getRequest().getGoals().add("toe:tra-install");
+		session.getRequest().getGoals().add(InstallerMojosInformation.pluginPrefix + "tra-install");
 		installDependency("tra-install");
 	}
 

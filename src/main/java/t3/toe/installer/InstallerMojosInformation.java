@@ -33,6 +33,8 @@ import t3.plugin.annotations.Category;
 })
 public class InstallerMojosInformation extends CommonMojoInformation {
 
+	public final static String pluginPrefix = "toe:";
+
 	public static final String installationRoot = "tibco.installation.root";
 	public static final String installationRoot_description = "tibco.installation.root";
 	public static final String installationRoot_default = "";

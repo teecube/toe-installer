@@ -80,8 +80,8 @@ public class AdminInstallerMojo extends CommonInstaller {
 	public List<String> getDependenciesGoals() {
 		List<String> dependenciesGoals = new ArrayList<String>();
 
-		dependenciesGoals.add("toe:rv-install");
-		dependenciesGoals.add("toe:tra-install");
+		dependenciesGoals.add(InstallerMojosInformation.pluginPrefix + "rv-install");
+		dependenciesGoals.add(InstallerMojosInformation.pluginPrefix + "tra-install");
 		return dependenciesGoals;
 	}
 

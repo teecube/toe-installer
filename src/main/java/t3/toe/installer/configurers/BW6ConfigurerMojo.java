@@ -108,7 +108,7 @@ public class BW6ConfigurerMojo extends CommonConfigurer {
 
 	@Override
 	protected String getProductInstallationGoal() {
-		return "toe:bw6-install";
+		return InstallerMojosInformation.pluginPrefix + "bw6-install";
 	}
 
 	@Override

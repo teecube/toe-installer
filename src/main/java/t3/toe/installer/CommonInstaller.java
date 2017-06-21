@@ -53,6 +53,7 @@ import org.apache.commons.exec.ShutdownHookProcessDestroyer;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -63,6 +64,9 @@ import org.codehaus.plexus.archiver.manager.ArchiverManager;
 import org.codehaus.plexus.archiver.manager.NoSuchArchiverException;
 import org.twdata.maven.mojoexecutor.MojoExecutor.Element;
 
+import com.google.common.io.Files;
+import com.tibco.envinfo.TIBCOEnvironment.Environment;
+
 import t3.AdvancedMavenLifecycleParticipant;
 import t3.CommonMojo;
 import t3.NoOpLogger;
@@ -71,9 +75,6 @@ import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.envinfo.EnvInfo;
 import t3.toe.installer.envinfo.RemoveEnvInfoMojo;
-
-import com.google.common.io.Files;
-import com.tibco.envinfo.TIBCOEnvironment.Environment;
 
 /**
 *
@@ -107,7 +108,7 @@ public abstract class CommonInstaller extends CommonMojo {
 
 	private static Boolean installationRootWasNotSet = false;
 	private static EnvInfo envInfo = null;
-
+ 
 	public Boolean getCreateNewEnvironment() {
 		if (createNewEnvironment != _createNewEnvironment && _createNewEnvironment != null) {
 			return _createNewEnvironment;
@@ -233,7 +234,7 @@ public abstract class CommonInstaller extends CommonMojo {
 			}
 			return true;
 		} else {
-			if (session.getGoals().subList(1, session.getGoals().size()).contains("toe:" + currentGoalName)) { // current goal is after the first one : most likely that the first goal created an environment (tibco.installation.createNew=true) and we want to continue on the same
+			if (session.getGoals().subList(1, session.getGoals().size()).contains(InstallerMojosInformation.pluginPrefix + "" + currentGoalName)) { // current goal is after the first one : most likely that the first goal created an environment (tibco.installation.createNew=true) and we want to continue on the same
 				return true;
 			}
 
@@ -248,13 +249,24 @@ public abstract class CommonInstaller extends CommonMojo {
 	protected static Boolean _removeExistingEnvironment = null;
 
 	public abstract String getProductName();
-	public abstract File getInstallationPackage();
+	public abstract File getInstallationPackage() throws MojoExecutionException;
 	public abstract String getInstallationPackageRegex();
 	public abstract Integer getInstallationPackageVersionGroupIndex();
 	public abstract String getInstallationPackagePropertyName();
 	public abstract String getInstallationPackageVersionPropertyName();
 	public abstract String getInstallationPackageVersionMajorMinorPropertyName();
 	public abstract String getInstallationPackageVersionMajorMinor();
+
+	public abstract String getRemotePackageGroupId();
+	public abstract String getRemotePackageArtifactId();
+	public abstract String getRemotePackageVersion();
+	public abstract String getRemotePackageClassifier();
+	public String getRemotePackageCoordinates() {
+		String classifier = getRemotePackageClassifier();
+
+		return getRemotePackageGroupId() + ":" + getRemotePackageArtifactId() + ":" + getRemotePackageVersion() + ":zip" + (classifier != null ? ":" + classifier : "");
+	}
+
 	public abstract void setInstallationPackageVersionMajorMinor(String version);
 	public abstract boolean hasDependencies();
 	public abstract boolean dependenciesExist() throws MojoExecutionException;
@@ -337,7 +349,50 @@ public abstract class CommonInstaller extends CommonMojo {
 		return executableFile;
 	}
 
-	protected File findInstallationPackage() {
+	private File findRemoteInstallationPackage() throws MojoExecutionException {
+		String groupId = getRemotePackageGroupId();
+		String artifactId = getRemotePackageArtifactId();
+		String version = getRemotePackageVersion();
+		String classifier = getRemotePackageClassifier();
+
+		return getDependency(groupId, artifactId, version, "zip", classifier);
+	}
+
+	/**
+	 * <p>
+	 * This method tries to find the installation package (i.e. the official TIBCO archive of the software to install).
+	 * This package can be in the {@code installationPacakgeDirectory} following the regular expression retrieved with
+	 * {@code getInstallationPackageRegex()} or "remotely" from a Maven repository (can be also the local repository)
+	 * based on {@code getRemotePackageGroupId()}, {@code getRemotePackageArtifactId()} and
+	 * {@code getRemotePackageVersion()} methods to retrieve the coordinates of artefact to use as the installation
+	 * package. 
+	 * </p>
+	 *
+	 * @return the installation package found, null otherwise
+	 *
+	 * @throws MojoExecutionException 
+	 */
+	protected File findInstallationPackage() throws MojoExecutionException {
+		String remoteInstallationPackageVersion = getRemotePackageVersion();
+		String remoteInstallationPackageClassifier = getRemotePackageClassifier();
+		if (!StringUtils.isEmpty(remoteInstallationPackageVersion) && !StringUtils.isEmpty(remoteInstallationPackageClassifier)) {
+			File remoteInstallationPacakge;
+			try {
+				remoteInstallationPacakge = findRemoteInstallationPackage();
+				if (remoteInstallationPacakge == null || !remoteInstallationPacakge.exists()) {
+					throw new FileNotFoundException();
+				} else {
+					installationPackageVersion = remoteInstallationPackageVersion;
+					return remoteInstallationPacakge;
+				}
+			} catch (MojoExecutionException | FileNotFoundException e) {
+				getLog().error("This goal is configured to retrieve a remote installation package but this package cannot be found.");
+				getLog().error("The Maven coordinates for the remote installation package are: " + this.getRemotePackageCoordinates());
+
+				throw new MojoExecutionException("Remote installation package not found", new FileNotFoundException());
+			}
+		}
+
 		if (installationPackageDirectory == null || !installationPackageDirectory.exists() || !installationPackageDirectory.isDirectory()) {
 			return null;
 		}
@@ -358,7 +413,7 @@ public abstract class CommonInstaller extends CommonMojo {
 		return null;
 	}
 
-	public String getInstallationPackageVersion() {
+	public String getInstallationPackageVersion() throws MojoExecutionException {
 		if (installationPackageVersion != null && !installationPackageVersion.isEmpty()) {
 			return installationPackageVersion;
 		}
@@ -366,6 +421,10 @@ public abstract class CommonInstaller extends CommonMojo {
 		File installationPackage = getInstallationPackage();
 		if (installationPackage == null) {
 			return null;
+		}
+
+		if (installationPackageVersion != null && !installationPackageVersion.isEmpty()) {
+			return installationPackageVersion;
 		}
 
 		String name = installationPackage.getName();
@@ -443,8 +502,6 @@ public abstract class CommonInstaller extends CommonMojo {
 	}
 
 	private void installDependency(String goal) throws MojoExecutionException {
-//		InstallerPluginManager.registerCustomPluginManager(pluginManager, new InstallerMojosFactory());
-
 		getLog().info("Detected a dependency. Installing...");
 		getLog().info("");
 		getLog().info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
@@ -475,12 +532,12 @@ public abstract class CommonInstaller extends CommonMojo {
 	}
 
 	protected void installRV() throws MojoExecutionException {
-		session.getRequest().getGoals().add("toe:rv-install");
+		session.getRequest().getGoals().add(InstallerMojosInformation.pluginPrefix + "rv-install");
 		installDependency("rv-install");
 	}
 
 	protected void installTRA() throws MojoExecutionException {
-		session.getRequest().getGoals().add("toe:tra-install");
+		session.getRequest().getGoals().add(InstallerMojosInformation.pluginPrefix + "tra-install");
 		installDependency("tra-install");
 	}
 

@@ -238,7 +238,7 @@ public abstract class CommonConfigurer extends CommonMojo {
 				getLog().info("Available environments on this system are:");
 				getLog().info("  " + availableEnvironments);
 				getLog().info("");
-				getLog().info("Run 'mvn toe:envinfo-list' for environments details.");
+				getLog().info("Run 'mvn " + InstallerMojosInformation.pluginPrefix + "envinfo-list' for environments details.");
 				getLog().info("Run 'mvn " + getProductInstallationGoal() + "' to install " + getProductName() + ".");
 			}
         }

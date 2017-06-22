@@ -64,12 +64,24 @@ public class AdminInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.Administrator.installationPackageVersionMajorMinor, defaultValue = "")
 	private String installationPackageVersionMajorMinor;
 
+	@Parameter(property = InstallerMojosInformation.Administrator.remoteInstallationPackageGroupId, defaultValue = InstallerMojosInformation.Administrator.remoteInstallationPackageGroupId_default, description = InstallerMojosInformation.Administrator.remoteInstallationPackageGroupId_description)
+	protected String remoteInstallationPackageGroupId;
+
+	@Parameter(property = InstallerMojosInformation.Administrator.remoteInstallationPackageArtifactId, defaultValue = InstallerMojosInformation.Administrator.remoteInstallationPackageArtifactId_default, description = InstallerMojosInformation.Administrator.remoteInstallationPackageArtifactId_description)
+	protected String remoteInstallationPackageArtifactId;
+
+	@Parameter(property = InstallerMojosInformation.Administrator.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.Administrator.remoteInstallationPackageVersion_description)
+	protected String remoteInstallationPackageVersion;
+
+	@Parameter(property = InstallerMojosInformation.Administrator.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.Administrator.remoteInstallationPackageClassifier_description)
+	protected String remoteInstallationPackageClassifier;
+
 	@Override
 	public List<String> getDependenciesGoals() {
 		List<String> dependenciesGoals = new ArrayList<String>();
 
-		dependenciesGoals.add("toe:rv-install");
-		dependenciesGoals.add("toe:tra-install");
+		dependenciesGoals.add(InstallerMojosInformation.pluginPrefix + "rv-install");
+		dependenciesGoals.add(InstallerMojosInformation.pluginPrefix + "tra-install");
 		return dependenciesGoals;
 	}
 
@@ -94,7 +106,7 @@ public class AdminInstallerMojo extends CommonInstaller {
 	}
 
 	@Override
-	public File getInstallationPackage() {
+	public File getInstallationPackage() throws MojoExecutionException {
 		if (installationPackage == null || !installationPackage.exists()) {
 			installationPackage = findInstallationPackage();
 		}
@@ -134,6 +146,26 @@ public class AdminInstallerMojo extends CommonInstaller {
 	@Override
 	public void setInstallationPackageVersionMajorMinor(String version) {
 		this.installationPackageVersionMajorMinor = version;
+	}
+
+	@Override
+	public String getRemotePackageGroupId() {
+		return remoteInstallationPackageGroupId;
+	}
+
+	@Override
+	public String getRemotePackageArtifactId() {
+		return remoteInstallationPackageArtifactId;
+	}
+
+	@Override
+	public String getRemotePackageVersion() {
+		return remoteInstallationPackageVersion;
+	}
+
+	@Override
+	public String getRemotePackageClassifier() {
+		return remoteInstallationPackageClassifier;
 	}
 
 	@Override

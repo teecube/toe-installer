@@ -379,6 +379,7 @@ public abstract class CommonInstaller extends CommonMojo {
 			File remoteInstallationPacakge;
 			try {
 				remoteInstallationPacakge = findRemoteInstallationPackage();
+				getLog().info("");
 				if (remoteInstallationPacakge == null || !remoteInstallationPacakge.exists()) {
 					throw new FileNotFoundException();
 				} else {

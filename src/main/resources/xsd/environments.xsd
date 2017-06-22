@@ -21,7 +21,7 @@
 	targetNamespace="http://teecu.be/toe-installer/environments"
 	elementFormDefault="qualified" attributeFormDefault="unqualified">
 
-	<xs:simpleType name="productName">
+	<xs:simpleType name="ProductName">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="admin" />
 			<xs:enumeration value="bw5" />
@@ -33,16 +33,32 @@
 		</xs:restriction>
 	</xs:simpleType>
 
-	<xs:complexType name="property">
+	<xs:complexType name="Property">
 		<xs:sequence>
 			<xs:element name="key" type="xs:string"/>
 			<xs:element name="value" type="xs:string"/>
 		</xs:sequence>
 	</xs:complexType>
 
-	<xs:complexType name="product">
+	<xs:complexType name="LocalPackage">
 		<xs:sequence>
-			<xs:element name="packageDirectory" type="xs:string" minOccurs="0"/>
+			<xs:element name="directory" type="xs:string" minOccurs="0"/>
+			<xs:element name="file" type="xs:string" minOccurs="0"/>
+			<xs:element name="pattern" type="xs:string" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="RemotePackage">
+		<xs:sequence>
+			<xs:element name="groupId" type="xs:string" minOccurs="0"/>
+			<xs:element name="artifactId" type="xs:string" minOccurs="0"/>
+			<xs:element name="version" type="xs:string"/>
+			<xs:element name="classifier" type="xs:string"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="Product">
+		<xs:sequence>
 			<xs:element name="hotfixes" minOccurs="0">
 				<xs:complexType>
 					<xs:sequence>
@@ -50,18 +66,28 @@
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
+			<xs:element name="package" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:choice>
+							<xs:element name="local" type="LocalPackage"/>
+							<xs:element name="remote" type="RemotePackage"/>
+						</xs:choice>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
 			<xs:element name="properties" minOccurs="0">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element name="property" type="property" minOccurs="0" maxOccurs="unbounded"/>
+						<xs:element name="property" type="Property" minOccurs="0" maxOccurs="unbounded"/>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
 		</xs:sequence>
-		<xs:attribute name="name" type="productName" use="required"/>
+		<xs:attribute name="name" type="ProductName" use="required"/>
 	</xs:complexType>
 
-	<xs:complexType name="environment">
+	<xs:complexType name="Environment">
 		<xs:sequence>
 			<xs:element name="environmentName" type="xs:string"/>
 			<xs:element name="tibcoRoot" type="xs:string"/>
@@ -69,7 +95,7 @@
 			<xs:element name="products">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element name="product" type="product" minOccurs="1" maxOccurs="unbounded"/>
+						<xs:element name="product" type="Product" minOccurs="1" maxOccurs="unbounded"/>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
@@ -79,7 +105,7 @@
 	<xs:element name="environments">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element name="environment" minOccurs="1" maxOccurs="unbounded" type="environment"/>
+				<xs:element name="environment" minOccurs="1" maxOccurs="unbounded" type="Environment"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>

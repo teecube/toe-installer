@@ -35,11 +35,13 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.twdata.maven.mojoexecutor.MojoExecutor.Element;
 
+import t3.AdvancedMavenLifecycleParticipant;
 import t3.CommonMojo;
 import t3.Messages;
 import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.CommonInstaller;
+import t3.toe.installer.InstallerLifecycleParticipant;
 import t3.toe.installer.InstallerMojosFactory;
 import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.Environment;
@@ -80,6 +82,11 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 	protected EnvironmentsMarshaller environmentsMarshaller;
 	private boolean firstDependency = true;
+
+	@Override
+	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() throws MojoExecutionException {
+		return new InstallerLifecycleParticipant();
+	}
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException  {
@@ -125,30 +132,35 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		getLog().info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
 
 		ArrayList<Element> configuration = new ArrayList<Element>();
+		ArrayList<Element> ignoredParameters = new ArrayList<Element>();
+
 		if (!firstDependency) {
-			configuration.add(element("createNewEnvironment", "false"));
+//			configuration.add(element("createNewEnvironment", "false"));
+			addProperty(configuration, ignoredParameters, "createNewEnvironment", "false", CommonInstaller.class);
 		} else {
 			firstDependency = false;
 		}
 
-		ArrayList<Element> ignoredParameters = new ArrayList<Element>();
+		addProperty(configuration, ignoredParameters, "environmentName", environment.getEnvironmentName(), CommonInstaller.class);
+		addProperty(configuration, ignoredParameters, "installationRoot", environment.getTibcoRoot(), CommonInstaller.class);
+		addProperty(configuration, ignoredParameters, "installationPackageDirectory", getInstallationPackageDirectory(environment, product), CommonInstaller.class);
 
-		configuration.add(element("environmentName", environment.getEnvironmentName()));
-		configuration.add(element("installationRoot", environment.getTibcoRoot()));
-		configuration.add(element("installationPackageDirectory", getInstallationPackageDirectory(environment, product)));
-
-		ignoredParameters.add(element("createNewEnvironment", CommonInstaller.class.getCanonicalName()));
-		ignoredParameters.add(element("environmentName", CommonInstaller.class.getCanonicalName()));
-		ignoredParameters.add(element("installationRoot", CommonInstaller.class.getCanonicalName()));
-		ignoredParameters.add(element("installationPackageDirectory", CommonInstaller.class.getCanonicalName()));
+//		configuration.add(element("environmentName", environment.getEnvironmentName()));
+//		configuration.add(element("installationRoot", environment.getTibcoRoot()));
+//		configuration.add(element("installationPackageDirectory", getInstallationPackageDirectory(environment, product)));
+//
+//		ignoredParameters.add(element("createNewEnvironment", CommonInstaller.class.getCanonicalName()));
+//		ignoredParameters.add(element("environmentName", CommonInstaller.class.getCanonicalName()));
+//		ignoredParameters.add(element("installationRoot", CommonInstaller.class.getCanonicalName()));
+//		ignoredParameters.add(element("installationPackageDirectory", CommonInstaller.class.getCanonicalName()));
 
 		CommonInstaller mojo = InstallerMojosFactory.getInstallerMojo("toe:" + goal);
-		String propertyClassName = mojo.getClass().getCanonicalName();
+		String mojoClassName = mojo.getClass().getCanonicalName();
 
 		if (product.getProperties() != null && product.getProperties().getProperty() != null) {
 			for (Property property : product.getProperties().getProperty()) {
 				configuration.add(element(property.getKey(), property.getValue()));
-				ignoredParameters.add(element(property.getKey(), propertyClassName));
+				ignoredParameters.add(element(property.getKey(), mojoClassName));
 			}
 		}
 
@@ -172,9 +184,14 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		getLog().info("");
 	}
 
+	private void addProperty(ArrayList<Element> configuration, ArrayList<Element> ignoredParameters, String key, String value, Class<?> clazz) {
+		configuration.add(element(key, value));
+		ignoredParameters.add(element(key, clazz.getCanonicalName()));
+	}
+
 	private String getInstallationPackageDirectory(Environment environment, Product product) {
-		if (product != null && product.getPackageDirectory() != null) {
-			return product.getPackageDirectory();
+		if (product != null && product.getPackage() != null && product.getPackage().getLocal() != null && product.getPackage().getLocal().getDirectory() != null) {
+			return product.getPackage().getLocal().getDirectory();
 		} else if (environment != null && environment.getPackagesDirectory() != null) {
 			return environment.getPackagesDirectory();
 		}

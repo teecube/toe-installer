@@ -91,7 +91,7 @@
 		<xs:sequence>
 			<xs:element name="environmentName" type="xs:string"/>
 			<xs:element name="tibcoRoot" type="xs:string"/>
-			<xs:element name="packagesDirectory" type="xs:string"/>
+			<xs:element name="packagesDirectory" type="xs:string" minOccurs="0"/>
 			<xs:element name="products">
 				<xs:complexType>
 					<xs:sequence>

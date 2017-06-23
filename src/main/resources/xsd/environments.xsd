@@ -21,7 +21,7 @@
 	targetNamespace="http://teecu.be/toe-installer/environments"
 	elementFormDefault="qualified" attributeFormDefault="unqualified">
 
-	<xs:simpleType name="ProductName">
+	<xs:simpleType name="ProductType">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="admin" />
 			<xs:enumeration value="bw5" />
@@ -84,7 +84,8 @@
 				</xs:complexType>
 			</xs:element>
 		</xs:sequence>
-		<xs:attribute name="name" type="ProductName" use="required"/>
+		<xs:attribute name="name" type="xs:string" use="optional" default="@type"/>
+		<xs:attribute name="type" type="ProductType" use="required"/>
 	</xs:complexType>
 
 	<xs:complexType name="Environment">

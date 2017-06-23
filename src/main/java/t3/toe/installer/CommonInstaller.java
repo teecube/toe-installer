@@ -395,10 +395,11 @@ public abstract class CommonInstaller extends CommonMojo {
 					return remoteInstallationPacakge;
 				}
 			} catch (MojoExecutionException | FileNotFoundException | ArtifactNotFoundException e) {
+				getLog().info("");
 				getLog().error("This goal is configured to retrieve a remote installation package but this package cannot be found.");
-				getLog().error("The Maven coordinates for the remote installation package are: " + this.getRemotePackageCoordinates());
+				getLog().error("The Maven coordinates configured for the remote installation package are: " + this.getRemotePackageCoordinates());
 
-				throw new MojoExecutionException("Remote installation package not found", new FileNotFoundException());
+				throw new MojoExecutionException("Remote installation package not found", e);
 			}
 		}
 

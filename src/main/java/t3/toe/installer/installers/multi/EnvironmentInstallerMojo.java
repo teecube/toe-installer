@@ -27,6 +27,7 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import javax.xml.bind.JAXBException;
@@ -35,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.twdata.maven.mojoexecutor.MojoExecutor.Element;
+import org.xml.sax.SAXException;
 
 import t3.AdvancedMavenLifecycleParticipant;
 import t3.CommonMojo;
@@ -118,9 +120,12 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		getLog().info(Messages.MESSAGE_SPACE);
 
 		try {
-			environmentsMarshaller = new EnvironmentsMarshaller(environmentsTopology);
-		} catch (JAXBException e) {
-			throw new MojoExecutionException("Unable to load topology from file '" + environmentsTopology.getAbsolutePath() + "'");
+			String filename = "/xsd/environments.xsd";
+			InputStream configStream = EnvironmentInstallerMojo.class.getResourceAsStream(filename);
+
+			environmentsMarshaller = new EnvironmentsMarshaller(environmentsTopology, configStream);
+		} catch (JAXBException | SAXException e) {
+			throw new MojoExecutionException("Unable to load topology from file '" + environmentsTopology.getAbsolutePath() + "'", e);
 		}
 		if (environmentsMarshaller == null) {
 			throw new MojoExecutionException("Unable to load topology from file '" + environmentsTopology.getAbsolutePath() + "'");
@@ -129,9 +134,9 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 	}
 
 	private void installDependency(Environment environment, Product product, int productIndex) throws MojoExecutionException {
-//		InstallerPluginManager.registerCustomPluginManager(pluginManager, new InstallerMojosFactory());
+		getLog().info("");
 
-		TIBCOProduct tibcoProduct = TIBCOProduct.valueOf(product.getName().value().toUpperCase());
+		TIBCOProduct tibcoProduct = TIBCOProduct.valueOf(product.getType().value().toUpperCase());
 
 		String goal = tibcoProduct.goal();
 
@@ -206,7 +211,6 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 		getLog().info("");
 		getLog().info("<<< " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " <<<");
-		getLog().info("");
 	}
 
 	private void addProperty(ArrayList<Element> configuration, ArrayList<Element> ignoredParameters, String key, String value, Class<?> clazz) {

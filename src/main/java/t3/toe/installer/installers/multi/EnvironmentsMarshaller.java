@@ -17,8 +17,11 @@
 package t3.toe.installer.installers.multi;
 
 import java.io.File;
+import java.io.InputStream;
 
 import javax.xml.bind.JAXBException;
+
+import org.xml.sax.SAXException;
 
 import t3.toe.installer.environments.Environments;
 import t3.toe.installer.environments.ObjectFactory;
@@ -28,8 +31,8 @@ public class EnvironmentsMarshaller extends XMLMarshall<Environments, ObjectFact
 
 	public static final String NAMESPACE = "http://teecu.be/toe-installer/environments";
 
-	public EnvironmentsMarshaller(File xmlFile) throws JAXBException {
-		super(xmlFile);
+	public EnvironmentsMarshaller(File xmlFile, InputStream xsdStream) throws JAXBException, SAXException {
+		super(xmlFile, xsdStream);
 	}
 
 }

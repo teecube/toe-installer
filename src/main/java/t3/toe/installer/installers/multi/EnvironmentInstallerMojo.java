@@ -52,6 +52,11 @@ import t3.toe.installer.environments.Property;
 import t3.toe.installer.environments.RemotePackage;
 
 /**
+* <p>
+* This goal installs a full TIBCO environment composed of several TIBCO products.<br /><br />
+* The configuration is specified in an XML file. By default, this file is located in <em>${basedir}</em> and is  named
+* <em>tibco-environments.xml</em>.
+* </p>
 *
 * @author Mathieu Debove &lt;mad@teecu.be&gt;
 *

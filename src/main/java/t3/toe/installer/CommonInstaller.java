@@ -289,7 +289,7 @@ public abstract class CommonInstaller extends CommonMojo {
 	private List<File> logDirectories;
 
 	private boolean firstDependency = true;
-	private static boolean firstGoal = true;
+	public static boolean firstGoal = true;
 
 	private File getSilentFile(File directory) {
 		if (silentFile != null) {
@@ -380,7 +380,9 @@ public abstract class CommonInstaller extends CommonMojo {
 			File remoteInstallationPacakge;
 			try {
 				remoteInstallationPacakge = findRemoteInstallationPackage();
-				getLog().info("");
+				if (!firstGoal) {
+					getLog().info("");
+				}
 				if (remoteInstallationPacakge == null || !remoteInstallationPacakge.exists()) {
 					throw new FileNotFoundException();
 				} else {

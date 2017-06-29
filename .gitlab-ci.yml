@@ -7,6 +7,6 @@ before_script:
 
 release:
     script:
-        - mvn -gs /home/m2/settings.xml -DdevelopmentVersion=$DEV_VERSION -DreleaseVersion=$RELEASE_VERSION -Dmessage="[maven-release-plugin] [ci skip] Updating parent version" -P additional,maven,site,t3-release release:clean versions:update-parent scm:checkin release:prepare release:perform
+        - mvn -gs /home/m2/settings.xml -Dunleash.developmentVersion=$DEV_VERSION -Dunleash.releaseVersion=$RELEASE_VERSION -Dunleash.scmUsername=debovema -Dunleash.scmPasswordEnvVar=GIT_PASSWORD -Dunleash.profiles=release-profile,t3-archive -P release-profile,t3-archive unleash:perform
     only:
         - release

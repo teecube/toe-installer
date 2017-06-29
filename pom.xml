@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -9,14 +8,14 @@
 	</parent>
 
 	<artifactId>toe-installer-plugin</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.0.3</version>
 
 	<packaging>maven-plugin</packaging>
 
-	<name>${projectName}</name> <!-- unleash: 2=<name>${projectName}</name> 3=<name>&#36;{projectName}</name> -->
-	<description>${projectDescription}</description> <!-- unleash: 2=<description>${projectDescription}</description> 3=<description>&#36;{projectDescription}</description> -->
+	<name>T³ - TOE - Products Installer</name> <!-- unleash: 2=<name>${projectName}</name> 3=<name>&#36;{projectName}</name> -->
+	<description>TOE - Products Installer is used to install TIBCO products automatically.</description> <!-- unleash: 2=<description>${projectDescription}</description> 3=<description>&#36;{projectDescription}</description> -->
 
-	<url>${siteTopLink}</url> <!-- unleash: 2=<url>${siteTopLink}</url> 3=<url>&#36;{siteTopLink}</url> -->
+	<url>https://teecu.be/t3/0.0.8//../toe-installer/${toeInstallerVersion}</url> <!-- unleash: 2=<url>${siteTopLink}</url> 3=<url>&#36;{siteTopLink}</url> -->
 	<distributionManagement>
 		<site>
 			<id>t3.site</id>
@@ -152,7 +151,7 @@
 		<connection>scm:git:https://git.teecu.be/teecube/toe-installer.git</connection>
 		<developerConnection>scm:git:https://git.teecu.be/teecube/toe-installer.git</developerConnection>
 		<url>https://git.teecu.be/teecube/toe-installer</url>
-		<tag>HEAD</tag>
+		<tag>v0.0.3</tag>
 	</scm>
 
 </project>

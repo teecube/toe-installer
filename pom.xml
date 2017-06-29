@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>io.teecube.toe</groupId>
 		<artifactId>toe</artifactId>
-		<version>0.0.5</version>
+		<version>0.0.6</version>
 	</parent>
 
 	<artifactId>toe-installer-plugin</artifactId>
@@ -16,7 +16,7 @@
 	<name>${projectName}</name> <!-- unleash: 2=<name>${projectName}</name> 3=<name>&#36;{projectName}</name> -->
 	<description>${projectDescription}</description> <!-- unleash: 2=<description>${projectDescription}</description> 3=<description>&#36;{projectDescription}</description> -->
 
-	<url>${siteDisplayURL}/${toeInstallerURLBase}</url> <!-- unleash: 2=<url>${siteDisplayURL}/${toeInstallerURLBase}</url> 3=<url>&#36;{siteDisplayURL}/&#36;{toeInstallerURLBase}</url> -->
+	<url>${siteTopLink}</url> <!-- unleash: 2=<url>${siteTopLink}</url> 3=<url>&#36;{siteTopLink}</url> -->
 	<distributionManagement>
 		<site>
 			<id>t3.site</id>
@@ -28,7 +28,7 @@
 		<projectName>${ecosystemName} - ${toeName} - ${toeInstallerName}</projectName>
 		<projectDescription>${toeName} - ${toeInstallerName} is used to install TIBCO products automatically.</projectDescription>
 		<siteTopCaption>${toeDisplayedInstallerName}</siteTopCaption>
-		<siteTopLink />
+		<siteTopLink>${siteDisplayURL}/${toeInstallerURLBase}</siteTopLink>
 
 		<t3.site.globalDocumentation.bootstrapClass>t3.toe.installer.InstallerLifecycleParticipant</t3.site.globalDocumentation.bootstrapClass>
 	</properties>

@@ -1,0 +1,16 @@
+storeScmRevision
+checkProjectVersions
+checkParentVersions
+prepareVersions
+setReleaseVersions
+checkAether
+genericReplacer[1]
+buildReleaseArtifacts
+checkForScmChanges
+genericReplacer[2, true]
+detectReleaseArtifacts
+tagScm
+genericReplacer[3]
+setDevVersion
+installArtifacts
+deployArtifacts

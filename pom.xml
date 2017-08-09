@@ -53,6 +53,110 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>io.teecube.t3</groupId>
+				<artifactId>t3-site-enhancer</artifactId>
+				<configuration>
+					<commandLines>
+						<commandLine>
+							<property>fullEnvironmentInstallCommand_BW6</property>
+							<title>&amp;nbsp;</title>
+							<commandLine>mvn toe:env-install</commandLine>
+							<arguments>
+								<argument>-Dtibco.multi.installationTopology=bw6-full.xml</argument>
+							</arguments>
+						</commandLine>
+						<commandLine>
+							<property>fullEnvironmentInstallCommand_BW5</property>
+							<title>&amp;nbsp;</title>
+							<commandLine>mvn toe:env-install</commandLine>
+							<arguments>
+								<argument>-Dtibco.multi.installationTopology=bw5-full.xml</argument>
+							</arguments>
+						</commandLine>
+					</commandLines>
+					<samples>
+						<sample>
+							<property>fullEnvironmentFileSample_BW6-TEA-EMS_Windows</property>
+							<title><![CDATA[<strong>bw6-full.xml</strong> (BW6 with TEA &amp; EMS on Windows)]]></title>
+							<content><![CDATA[
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?>
+&lt;environments xmlns=&quot;http://teecu.be/toe-installer/environments&quot;>
+	&lt;environment>
+		&lt;environmentName>BW640-test&lt;/environmentName>
+		&lt;tibcoRoot>C:/tibco/BW640-test&lt;/tibcoRoot>
+		&lt;products>
+			&lt;product type=&quot;tea&quot;>
+				&lt;package>
+					&lt;remote>
+						&lt;version>2.2.0&lt;/version>
+						&lt;classifier>win_x86_64&lt;/classifier>
+					&lt;/remote>
+				&lt;/package>
+			&lt;/product>
+			&lt;product type=&quot;ems&quot;>
+				&lt;package>
+					&lt;remote>
+						&lt;version>8.3.0&lt;/version>
+						&lt;classifier>win_x86_64&lt;/classifier>
+					&lt;/remote>
+				&lt;/package>
+			&lt;/product>
+			&lt;product type=&quot;bw6&quot;>
+				&lt;package>
+					&lt;remote>
+						&lt;version>6.4.0&lt;/version>
+						&lt;classifier>win_x86_64&lt;/classifier>
+					&lt;/remote>
+				&lt;/package>
+			&lt;/product>
+		&lt;/products>
+	&lt;/environment>
+&lt;/environments>
+							]]></content>
+						</sample>
+						<sample>
+							<property>fullEnvironmentFileSample_BW5-Admin-EMS_Windows</property>
+							<title><![CDATA[<strong>bw6-full.xml</strong> (BW5 with Administrator &amp; EMS on Windows)]]></title>
+							<content><![CDATA[
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?>
+&lt;environments xmlns=&quot;http://teecu.be/toe-installer/environments&quot;>
+	&lt;environment>
+		&lt;environmentName>BW5130-test&lt;/environmentName>
+		&lt;tibcoRoot>C:/tibco/BW5130-test&lt;/tibcoRoot>
+		&lt;products>
+			&lt;product type=&quot;admin&quot;>
+				&lt;package>
+					&lt;remote>
+						&lt;version>5.10.0&lt;/version>
+						&lt;classifier>win_x86_64&lt;/classifier>
+					&lt;/remote>
+				&lt;/package>
+			&lt;/product>
+			&lt;product type=&quot;ems&quot;>
+				&lt;package>
+					&lt;remote>
+						&lt;version>8.3.0&lt;/version>
+						&lt;classifier>win_x86_64&lt;/classifier>
+					&lt;/remote>
+				&lt;/package>
+			&lt;/product>
+			&lt;product type=&quot;bw5&quot;>
+				&lt;package>
+					&lt;remote>
+						&lt;version>5.13.0&lt;/version>
+						&lt;classifier>win_x86_64&lt;/classifier>
+					&lt;/remote>
+				&lt;/package>
+			&lt;/product>
+		&lt;/products>
+	&lt;/environment>
+&lt;/environments>
+							]]></content>
+						</sample>
+					</samples>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<reporting>

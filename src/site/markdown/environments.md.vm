@@ -1,0 +1,37 @@
+#set($h1 = '#')
+#set($h2 = '##')
+#set($h3 = '###')
+#set($h4 = '####')
+
+$h2 Full environment installation
+
+${toeDisplayedName} - ${toeDisplayedInstallerName} is able to install a full
+TIBCO environment (different products including their potential dependencies).
+
+For instance, it could be :
+
+<ul>
+	<li>BusinessWorks 6 + TEA + EMS</li>
+	<li>BusinessWorks 5 (with RV, TRA) + Administrator + EMS</li>
+</ul>
+
+$h3 Install BusinessWorks 6 + TEA + EMS on Windows from remote dependencies
+
+${fullEnvironmentFileSample_BW6-TEA-EMS_Windows}
+
+${fullEnvironmentInstallCommand_BW6}
+
+$h3 Install BusinessWorks 5 (with RV, TRA) + Administrator + EMS on Windows from local dependencies
+
+${fullEnvironmentFileSample_BW5-Admin-EMS_Windows}
+
+${fullEnvironmentInstallCommand_BW5}
+
+---
+
+$h2 Examples
+
+<ul class="fa-ul">
+  <li><span class="fa-li fa fa-plug"></span> <a href="#Install_BusinessWorks_6__TEA__EMS_on_Windows_from_remote_dependencies">BusinessWorks 6</a></li>
+  <li><span class="fa-li fa fa-plug"></span> <a href="#Install_BusinessWorks_5_with_RV_TRA__Administrator__EMS_on_Windows_from_local_dependencies">BusinessWorks 5</a></li>
+</ul>

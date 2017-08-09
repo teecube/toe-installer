@@ -7,6 +7,7 @@
 	<body>
 		<menu name="${toeName} - ${toeInstallerName}">
 			<item name="Plugin documentation" href="./plugin-info.html" />
+			<item name="Full environment installation" href="./environments.html" />
 			<item name="#reports" />
 			<item name="#infos" />
 		</menu>
@@ -48,6 +49,12 @@
 						<sidebar />
 					</sections>
 				</index>
+				<environments>
+					<sections>
+						<body />
+						<sidebar />
+					</sections>
+				</environments>
 			</pages>
 		</reflowSkin>
 	</custom>

@@ -291,16 +291,16 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String installationPackage_description = "tibco.admin.installation.package";
 
 		public static final String installationPackageRegex = "tibco.admin.installation.package.regex";
-		public static final String installationPackageRegex_default = "TIB_tibcoadmin_(5.\\d+.\\d+)_([^_]*)_(.*).zip";
+		public static final String installationPackageRegex_default = "TIB_(tibcoa|TIBCOA)dmin_(5.\\d+.\\d+)_([^_]*)_(.*).zip";
 
 		public static final String installationPackageRegexVersionGroupIndex = "tibco.admin.installation.package.regex.versionGroupIndex";
-		public static final String installationPackageRegexVersionGroupIndex_default = "1";
+		public static final String installationPackageRegexVersionGroupIndex_default = "2";
 
 		public static final String installationPackageRegexOsGroupIndex = "tibco.admin.installation.package.regex.osGroupIndex";
-		public static final String installationPackageRegexOsGroupIndex_default = "2";
+		public static final String installationPackageRegexOsGroupIndex_default = "3";
 
 		public static final String installationPackageRegexArchGroupIndex = "tibco.admin.installation.package.regex.archGroupIndex";
-		public static final String installationPackageRegexArchGroupIndex_default = "3";
+		public static final String installationPackageRegexArchGroupIndex_default = "4";
 
 		public static final String installationPackageVersion = "tibco.admin.installation.package.version";
 		public static final String installationPackageVersionMajorMinor = "tibco.admin.installation.package.versionMajorMinor";

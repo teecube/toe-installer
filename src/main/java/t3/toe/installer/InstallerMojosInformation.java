@@ -365,8 +365,8 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String configDirectoryRoot = "tibco.tea.installation.configDirectoryRoot";
 	}
 
-	public static class MultiInstall {
-		public static final String environmentsTopologyFile = "tibco.multi.installationTopology";
+	public static class FullEnvironment {
+		public static final String environmentsTopologyFile = "tibco.environments.topology";
 		public static final String environmentsTopologyFile_default = "${basedir}/tibco-environments.xml";
 	}
 

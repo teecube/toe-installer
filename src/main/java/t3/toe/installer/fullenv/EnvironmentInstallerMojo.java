@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package t3.toe.installer.installers.multi;
+package t3.toe.installer.fullenv;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
@@ -87,7 +87,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 	    protected String productName() { return "TIBCO " + name; }
 	}
 
-	@Parameter (property = InstallerMojosInformation.MultiInstall.environmentsTopologyFile, defaultValue = InstallerMojosInformation.MultiInstall.environmentsTopologyFile_default)
+	@Parameter (property = InstallerMojosInformation.FullEnvironment.environmentsTopologyFile, defaultValue = InstallerMojosInformation.FullEnvironment.environmentsTopologyFile_default)
 	protected File environmentsTopology;
 
 	protected EnvironmentsMarshaller environmentsMarshaller;

@@ -16,11 +16,16 @@
  */
 package t3.toe.installer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.maven.plugin.AbstractMojo;
 
+import t3.CommonMojo;
 import t3.MojosFactory;
 import t3.toe.installer.envinfo.ListEnvInfoMojo;
 import t3.toe.installer.envinfo.RemoveEnvInfoMojo;
+import t3.toe.installer.fullenv.EnvironmentInstallerMojo;
 import t3.toe.installer.installers.AdminInstallerMojo;
 import t3.toe.installer.installers.BW5InstallerMojo;
 import t3.toe.installer.installers.BW6InstallerMojo;
@@ -28,6 +33,8 @@ import t3.toe.installer.installers.EMSInstallerMojo;
 import t3.toe.installer.installers.RVInstallerMojo;
 import t3.toe.installer.installers.TEAInstallerMojo;
 import t3.toe.installer.installers.TRAInstallerMojo;
+import t3.toe.installer.packages.DisplayPackages;
+import t3.toe.installer.packages.InstallPackages;
 
 /**
  *
@@ -61,6 +68,12 @@ public class InstallerMojosFactory extends MojosFactory {
 			return (T) new ListEnvInfoMojo();
 		case "RemoveEnvInfoMojo":
 			return (T) new RemoveEnvInfoMojo();
+
+		case "EnvironmentInstallerMojo":
+			return (T) new EnvironmentInstallerMojo();
+
+		case "DisplayPackages":
+			return (T) new DisplayPackages();
 		default:
 			return super.getMojo(type);
 		}
@@ -68,12 +81,14 @@ public class InstallerMojosFactory extends MojosFactory {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T extends CommonInstaller> T getInstallerMojo(String goal) {
+	public static <T extends CommonMojo> T getInstallerMojo(String goal) {
 		if (goal == null) {
 			return null;
 		}
 
 		switch (goal) {
+		case InstallerMojosInformation.pluginPrefix + "admin-install":
+			return (T) new AdminInstallerMojo();
 		case InstallerMojosInformation.pluginPrefix + "bw5-install":
 			return (T) new BW5InstallerMojo();
 		case InstallerMojosInformation.pluginPrefix + "bw6-install":
@@ -86,12 +101,28 @@ public class InstallerMojosFactory extends MojosFactory {
 			return (T) new TEAInstallerMojo();
 		case InstallerMojosInformation.pluginPrefix + "tra-install":
 			return (T) new TRAInstallerMojo();
-		case InstallerMojosInformation.pluginPrefix + "admin-install":
-			return (T) new AdminInstallerMojo();
+		case InstallerMojosInformation.pluginPrefix + "env-install":
+			return (T) new EnvironmentInstallerMojo();
+		case InstallerMojosInformation.pluginPrefix + "display-local-packages":
+			return (T) new DisplayPackages();
+		case InstallerMojosInformation.pluginPrefix + "install-local-packages":
+			return (T) new InstallPackages();
 
 		default:
 			return null;
 		}
 	}
 
+	public static List<Class<? extends CommonInstaller>> getInstallersClasses() {
+		List<Class<? extends CommonInstaller>> installersClasses = new ArrayList<>();
+		installersClasses.add(AdminInstallerMojo.class);
+		installersClasses.add(BW5InstallerMojo.class);
+		installersClasses.add(BW6InstallerMojo.class);
+		installersClasses.add(EMSInstallerMojo.class);
+		installersClasses.add(RVInstallerMojo.class);
+		installersClasses.add(TEAInstallerMojo.class);
+		installersClasses.add(TRAInstallerMojo.class);
+
+		return installersClasses;
+	}
 }

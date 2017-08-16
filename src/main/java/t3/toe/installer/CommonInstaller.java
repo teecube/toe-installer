@@ -671,6 +671,10 @@ public abstract class CommonInstaller extends CommonMojo {
 		}
 	}
 
+	public <T> void initStandalonePOMNoDefaultParameters() throws MojoExecutionException {
+		super.initStandalonePOM();
+	}
+
 	@Override
 	protected <T> void initStandalonePOM() throws MojoExecutionException {
 		super.initStandalonePOM();
@@ -963,6 +967,10 @@ public abstract class CommonInstaller extends CommonMojo {
 
 	private boolean ignoreError(String line) {
 		return line.contains("Unable to install::product_tibco_rv_runtime");
+	}
+
+	public void setInstallationPackageDirectory(File installationPackageDirectory) {
+		this.installationPackageDirectory = installationPackageDirectory;
 	}
 
 }

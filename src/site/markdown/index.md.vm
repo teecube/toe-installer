@@ -3,8 +3,8 @@
 #set($h3 = '###')
 #set($h4 = '####')
 
-${toeDisplayedName} - ${toeDisplayedInstallerName} is a Maven plugin defining
-the TIBCO products automatic installation goals.
+${toeDisplayedName} - ${toeDisplayedInstallerName} is a Maven plugin to
+automate installation & management of TIBCO products.
 
 $h3 5-minute user guide*
 
@@ -73,7 +73,12 @@ launch the command:
 $h2 Documentation
 
 <ul class="fa-ul">
-  <li><span class="fa-li fa fa-plug"></span> <a href="./plugin-info.html">Plugin documentation</a></li>
+  <li><span class="fa-li fa fa-plug"></span> <a href="./plugin-info.html">Plugin documentation</a>
+    <ul class="fa-ul">
+      <li><span class="fa-li fa fa-cog"></span> <a href="./environments.html">Full environment installation</a></li>
+      <li><span class="fa-li fa fa-cog"></span> <a href="./packages-resolution.html">Automatic packages resolution</a></li>
+    </ul>
+  </li>
   <li>Source <span class="fa-li fa fa-git"></span> <a href="./source-repository.html">repository</a> / <span class="fa-li fa fa-git"></span> <a href="./xref/index.html">reference</a></li>
   <li><span class="fa-li fa fa-coffee"></span> <a href="./apidocs/index.html">Javadoc</a></li>
 </ul>

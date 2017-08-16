@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package t3.toe.installer.installers.multi;
+package t3.toe.installer.fullenv;
 
 import java.io.File;
 import java.io.InputStream;

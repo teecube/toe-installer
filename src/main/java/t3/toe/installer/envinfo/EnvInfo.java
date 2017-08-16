@@ -30,6 +30,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.xml.sax.SAXException;
 
 import com.tibco.envinfo.TIBCOEnvironment.Environment;
 
@@ -122,7 +123,7 @@ public class EnvInfo extends CommonMojo {
 						result.put(env.getName(), env);
 					}
 				}
-			} catch (JAXBException e) {
+			} catch (JAXBException | SAXException e) {
 				throw new MojoExecutionException(e.getLocalizedMessage(), e);
 			}
 		}
@@ -140,7 +141,7 @@ public class EnvInfo extends CommonMojo {
 				marshaller.getObject().getEnvironment().clear();
 				marshaller.getObject().getEnvironment().addAll(environments.values());
 				marshaller.save();
-			} catch (JAXBException | UnsupportedEncodingException | FileNotFoundException e) {
+			} catch (JAXBException | UnsupportedEncodingException | FileNotFoundException | SAXException e) {
 				throw new MojoExecutionException(e.getLocalizedMessage(), e);
 			}
 		}

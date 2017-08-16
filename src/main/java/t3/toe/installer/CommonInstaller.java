@@ -56,6 +56,7 @@ import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.MavenExecutionException;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -356,7 +357,7 @@ public abstract class CommonInstaller extends CommonMojo {
 		return executableFile;
 	}
 
-	private File findRemoteInstallationPackage() throws MojoExecutionException {
+	private File findRemoteInstallationPackage() throws MojoExecutionException, ArtifactNotFoundException {
 		String groupId = getRemotePackageGroupId();
 		String artifactId = getRemotePackageArtifactId();
 		String version = getRemotePackageVersion();
@@ -392,7 +393,7 @@ public abstract class CommonInstaller extends CommonMojo {
 					installationPackageVersion = remoteInstallationPackageVersion;
 					return remoteInstallationPacakge;
 				}
-			} catch (MojoExecutionException | FileNotFoundException e) {
+			} catch (MojoExecutionException | FileNotFoundException | ArtifactNotFoundException e) {
 				getLog().error("This goal is configured to retrieve a remote installation package but this package cannot be found.");
 				getLog().error("The Maven coordinates for the remote installation package are: " + this.getRemotePackageCoordinates());
 
@@ -447,7 +448,7 @@ public abstract class CommonInstaller extends CommonMojo {
 		return installationPackageVersion;
 	}
 
-	public String getInstallationPackageArch() {
+	public String getInstallationPackageArch() throws MojoExecutionException {
 		if (installationPackageArch != null && !installationPackageArch.isEmpty()) {
 			return installationPackageArch;
 		}
@@ -474,7 +475,7 @@ public abstract class CommonInstaller extends CommonMojo {
 		return installationPackageArch;
 	}
 
-	public String getInstallationPackageOs() {
+	public String getInstallationPackageOs() throws MojoExecutionException {
 		if (installationPackageOs != null && !installationPackageOs.isEmpty()) {
 			return installationPackageOs;
 		}

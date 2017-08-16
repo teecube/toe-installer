@@ -47,6 +47,12 @@ public class RVInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.RV.installationPackageRegex, defaultValue = InstallerMojosInformation.RV.installationPackageRegex_default)
 	private String installationPackageRegex;
 
+	@Parameter(property = InstallerMojosInformation.RV.installationPackageRegexArchGroupIndex, defaultValue = InstallerMojosInformation.RV.installationPackageRegexArchGroupIndex_default)
+	private Integer installationPackageRegexArchGroupIndex;
+
+	@Parameter(property = InstallerMojosInformation.RV.installationPackageRegexOsGroupIndex, defaultValue = InstallerMojosInformation.RV.installationPackageRegexOsGroupIndex_default)
+	private Integer installationPackageRegexOsGroupIndex;
+
 	@Parameter(property = InstallerMojosInformation.RV.installationPackageRegexVersionGroupIndex, defaultValue = InstallerMojosInformation.RV.installationPackageRegexVersionGroupIndex_default)
 	private Integer installationPackageRegexVersionGroupIndex;
 
@@ -93,6 +99,16 @@ public class RVInstallerMojo extends CommonInstaller {
 	}
 
 	@Override
+	public Integer getInstallationPackageArchGroupIndex() {
+		return installationPackageRegexArchGroupIndex;
+	}
+
+	@Override
+	public Integer getInstallationPackageOsGroupIndex() {
+		return installationPackageRegexOsGroupIndex;
+	}
+
+	@Override
 	public Integer getInstallationPackageVersionGroupIndex() {
 		return installationPackageRegexVersionGroupIndex;
 	}
@@ -110,6 +126,16 @@ public class RVInstallerMojo extends CommonInstaller {
 	@Override
 	public String getInstallationPackageVersionMajorMinorPropertyName() {
 		return InstallerMojosInformation.RV.installationPackageVersionMajorMinor;
+	}
+
+	@Override
+	public String getInstallationPackageArchPropertyName() {
+		return InstallerMojosInformation.BW6.installationPackageArch;
+	}
+
+	@Override
+	public String getInstallationPackageOsPropertyName() {
+		return InstallerMojosInformation.BW6.installationPackageOs;
 	}
 
 	@Override

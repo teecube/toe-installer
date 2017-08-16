@@ -56,6 +56,7 @@ import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.MavenExecutionException;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -103,7 +104,10 @@ public abstract class CommonInstaller extends CommonMojo {
 
 	protected String currentGoalName;
 
+	private String installationPackageArch;
+	private String installationPackageOs;
 	private String installationPackageVersion;
+
 	private Boolean installationRootChecked = false;
 
 	private static Boolean installationRootWasNotSet = false;
@@ -252,6 +256,10 @@ public abstract class CommonInstaller extends CommonMojo {
 	public abstract File getInstallationPackage() throws MojoExecutionException;
 	public abstract String getInstallationPackageRegex();
 	public abstract Integer getInstallationPackageVersionGroupIndex();
+	public abstract Integer getInstallationPackageArchGroupIndex();
+	public abstract String getInstallationPackageArchPropertyName();
+	public abstract Integer getInstallationPackageOsGroupIndex();
+	public abstract String getInstallationPackageOsPropertyName();
 	public abstract String getInstallationPackagePropertyName();
 	public abstract String getInstallationPackageVersionPropertyName();
 	public abstract String getInstallationPackageVersionMajorMinorPropertyName();
@@ -349,7 +357,7 @@ public abstract class CommonInstaller extends CommonMojo {
 		return executableFile;
 	}
 
-	private File findRemoteInstallationPackage() throws MojoExecutionException {
+	private File findRemoteInstallationPackage() throws MojoExecutionException, ArtifactNotFoundException {
 		String groupId = getRemotePackageGroupId();
 		String artifactId = getRemotePackageArtifactId();
 		String version = getRemotePackageVersion();
@@ -385,7 +393,7 @@ public abstract class CommonInstaller extends CommonMojo {
 					installationPackageVersion = remoteInstallationPackageVersion;
 					return remoteInstallationPacakge;
 				}
-			} catch (MojoExecutionException | FileNotFoundException e) {
+			} catch (MojoExecutionException | FileNotFoundException | ArtifactNotFoundException e) {
 				getLog().error("This goal is configured to retrieve a remote installation package but this package cannot be found.");
 				getLog().error("The Maven coordinates for the remote installation package are: " + this.getRemotePackageCoordinates());
 
@@ -440,6 +448,63 @@ public abstract class CommonInstaller extends CommonMojo {
 		return installationPackageVersion;
 	}
 
+	public String getInstallationPackageArch() throws MojoExecutionException {
+		if (installationPackageArch != null && !installationPackageArch.isEmpty()) {
+			return installationPackageArch;
+		}
+
+		File installationPackage = getInstallationPackage();
+		if (installationPackage == null) {
+			return null;
+		}
+		
+		String name = installationPackage.getName();
+		
+		Pattern p = Pattern.compile(getInstallationPackageRegex(), Pattern.CASE_INSENSITIVE);
+		Matcher m = p.matcher(name);
+		if (m.matches()) {
+			installationPackageArch = m.group(getInstallationPackageArchGroupIndex());
+		} else {
+			installationPackageArch = "Arch Not Found";
+		}
+
+		if ("x86_64".equals(installationPackageArch)) {
+			installationPackageArch = "amd64";
+		}
+
+		return installationPackageArch;
+	}
+
+	public String getInstallationPackageOs() throws MojoExecutionException {
+		if (installationPackageOs != null && !installationPackageOs.isEmpty()) {
+			return installationPackageOs;
+		}
+		
+		File installationPackage = getInstallationPackage();
+		if (installationPackage == null) {
+			return null;
+		}
+		
+		String name = installationPackage.getName();
+		
+		Pattern p = Pattern.compile(getInstallationPackageRegex(), Pattern.CASE_INSENSITIVE);
+		Matcher m = p.matcher(name);
+		if (m.matches()) {
+			installationPackageOs = m.group(getInstallationPackageOsGroupIndex());
+		} else {
+			installationPackageOs = "OS Not Found";
+		}
+
+		if ("win".equals(installationPackageOs)) {
+			installationPackageOs = "windows";
+		} else if (installationPackageOs.contains("linux")) {
+			installationPackageOs = "unix";
+		} else if (installationPackageOs.contains("mac")) {
+			installationPackageOs = "mac";
+		}
+		return installationPackageOs;
+	}
+	
 	private File extractInstallationPackage(@NotNull File installationPackage) throws MojoExecutionException {
 		String version = getInstallationPackageVersion();
 		String productName = getProductName();
@@ -560,6 +625,15 @@ public abstract class CommonInstaller extends CommonMojo {
 
 			this.setInstallationPackageVersionMajorMinor(packageVersionMajorMinor);
 			session.getCurrentProject().getProperties().put(getInstallationPackageVersionMajorMinorPropertyName(), packageVersionMajorMinor);
+		}
+
+		String packageArch = getInstallationPackageArch();
+		if (packageArch != null) {
+			session.getCurrentProject().getProperties().put(getInstallationPackageArchPropertyName(), packageArch);
+		}
+		String packageOs = getInstallationPackageOs();
+		if (packageOs != null) {
+			session.getCurrentProject().getProperties().put(getInstallationPackageOsPropertyName(), packageOs);
 		}
 
 		if (getInstallationRoot() == null) {

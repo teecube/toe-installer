@@ -21,6 +21,14 @@
 	<version>1.4.1</version>
 	<configuration>
 		<rules combine.children="append">
+			<requireOS>
+				<message>The package archive architecture (${tibco.bw6.installation.package.arch}) is not compatible with current architecture (${platform.arch})</message>
+				<arch>${tibco.bw6.installation.package.arch}</arch>
+			</requireOS>
+			<requireOS>
+				<message>The package archive OS (${tibco.bw6.installation.package.os}) is not compatible with current OS (${platform.os})</message>
+				<family>${tibco.bw6.installation.package.os}</family>
+			</requireOS>
 			<requireFilesExist>
 				<files>
 					<file>${tibco.bw6.installation.package}</file>

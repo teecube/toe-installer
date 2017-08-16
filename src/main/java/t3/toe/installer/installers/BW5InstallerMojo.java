@@ -55,6 +55,12 @@ public class BW5InstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.BW5.installationPackageRegex, defaultValue = InstallerMojosInformation.BW5.installationPackageRegex_default)
 	private String installationPackageRegex;
 
+	@Parameter(property = InstallerMojosInformation.BW5.installationPackageRegexArchGroupIndex, defaultValue = InstallerMojosInformation.BW5.installationPackageRegexArchGroupIndex_default)
+	private Integer installationPackageRegexArchGroupIndex;
+
+	@Parameter(property = InstallerMojosInformation.BW5.installationPackageRegexOsGroupIndex, defaultValue = InstallerMojosInformation.BW5.installationPackageRegexOsGroupIndex_default)
+	private Integer installationPackageRegexOsGroupIndex;
+
 	@Parameter(property = InstallerMojosInformation.BW5.installationPackageRegexVersionGroupIndex, defaultValue = InstallerMojosInformation.BW5.installationPackageRegexVersionGroupIndex_default)
 	private Integer installationPackageRegexVersionGroupIndex;
 
@@ -120,6 +126,16 @@ public class BW5InstallerMojo extends CommonInstaller {
 	}
 
 	@Override
+	public Integer getInstallationPackageArchGroupIndex() {
+		return installationPackageRegexArchGroupIndex;
+	}
+
+	@Override
+	public Integer getInstallationPackageOsGroupIndex() {
+		return installationPackageRegexOsGroupIndex;
+	}
+
+	@Override
 	public Integer getInstallationPackageVersionGroupIndex() {
 		return installationPackageRegexVersionGroupIndex;
 	}
@@ -137,6 +153,16 @@ public class BW5InstallerMojo extends CommonInstaller {
 	@Override
 	public String getInstallationPackageVersionMajorMinorPropertyName() {
 		return InstallerMojosInformation.BW5.installationPackageVersionMajorMinor;
+	}
+
+	@Override
+	public String getInstallationPackageArchPropertyName() {
+		return InstallerMojosInformation.BW6.installationPackageArch;
+	}
+
+	@Override
+	public String getInstallationPackageOsPropertyName() {
+		return InstallerMojosInformation.BW6.installationPackageOs;
 	}
 
 	@Override

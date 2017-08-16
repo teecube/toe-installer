@@ -48,9 +48,15 @@ public class BW6InstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.BW6.installationPackageRegex, defaultValue = InstallerMojosInformation.BW6.installationPackageRegex_default)
 	private String installationPackageRegex;
 
+	@Parameter(property = InstallerMojosInformation.BW6.installationPackageRegexArchGroupIndex, defaultValue = InstallerMojosInformation.BW6.installationPackageRegexArchGroupIndex_default)
+	private Integer installationPackageRegexArchGroupIndex;
+
+	@Parameter(property = InstallerMojosInformation.BW6.installationPackageRegexOsGroupIndex, defaultValue = InstallerMojosInformation.BW6.installationPackageRegexOsGroupIndex_default)
+	private Integer installationPackageRegexOsGroupIndex;
+
 	@Parameter(property = InstallerMojosInformation.BW6.installationPackageRegexVersionGroupIndex, defaultValue = InstallerMojosInformation.BW6.installationPackageRegexVersionGroupIndex_default)
 	private Integer installationPackageRegexVersionGroupIndex;
-
+	
 	@Parameter(property = InstallerMojosInformation.BW6.installationPackageVersion, defaultValue = "")
 	private String installationPackageVersion;
 
@@ -94,6 +100,16 @@ public class BW6InstallerMojo extends CommonInstaller {
 	}
 
 	@Override
+	public Integer getInstallationPackageArchGroupIndex() {
+		return installationPackageRegexArchGroupIndex;
+	}
+
+	@Override
+	public Integer getInstallationPackageOsGroupIndex() {
+		return installationPackageRegexOsGroupIndex;
+	}
+
+	@Override
 	public Integer getInstallationPackageVersionGroupIndex() {
 		return installationPackageRegexVersionGroupIndex;
 	}
@@ -111,6 +127,16 @@ public class BW6InstallerMojo extends CommonInstaller {
 	@Override
 	public String getInstallationPackageVersionMajorMinorPropertyName() {
 		return InstallerMojosInformation.BW6.installationPackageVersionMajorMinor;
+	}
+
+	@Override
+	public String getInstallationPackageArchPropertyName() {
+		return InstallerMojosInformation.BW6.installationPackageArch;
+	}
+
+	@Override
+	public String getInstallationPackageOsPropertyName() {
+		return InstallerMojosInformation.BW6.installationPackageOs;
 	}
 
 	@Override

@@ -34,6 +34,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.twdata.maven.mojoexecutor.MojoExecutor.Element;
+import org.xml.sax.SAXException;
 
 import t3.CommonMojo;
 import t3.Messages;
@@ -104,7 +105,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 		try {
 			environmentsMarshaller = new EnvironmentsMarshaller(environmentsTopology);
-		} catch (JAXBException e) {
+		} catch (JAXBException | SAXException e) {
 			throw new MojoExecutionException("Unable to load topology from file '" + environmentsTopology.getAbsolutePath() + "'");
 		}
 		if (environmentsMarshaller == null) {

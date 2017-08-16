@@ -20,6 +20,8 @@ import java.io.File;
 
 import javax.xml.bind.JAXBException;
 
+import org.xml.sax.SAXException;
+
 import com.tibco.envinfo.ObjectFactory;
 import com.tibco.envinfo.TIBCOEnvironment;
 
@@ -29,7 +31,7 @@ public class TIBCOEnvironmentMarshaller extends XMLMarshall<TIBCOEnvironment, Ob
 
 	public static final String NAMESPACE = "http://tibco.com/envInfo";
 
-	public TIBCOEnvironmentMarshaller(File xmlFile) throws JAXBException {
+	public TIBCOEnvironmentMarshaller(File xmlFile) throws JAXBException, SAXException {
 		super(xmlFile);
 	}
 

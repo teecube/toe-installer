@@ -55,6 +55,12 @@ public class AdminInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.Administrator.installationPackageRegex, defaultValue = InstallerMojosInformation.Administrator.installationPackageRegex_default)
 	private String installationPackageRegex;
 
+	@Parameter(property = InstallerMojosInformation.Administrator.installationPackageRegexArchGroupIndex, defaultValue = InstallerMojosInformation.Administrator.installationPackageRegexArchGroupIndex_default)
+	private Integer installationPackageRegexArchGroupIndex;
+
+	@Parameter(property = InstallerMojosInformation.Administrator.installationPackageRegexOsGroupIndex, defaultValue = InstallerMojosInformation.Administrator.installationPackageRegexOsGroupIndex_default)
+	private Integer installationPackageRegexOsGroupIndex;
+
 	@Parameter(property = InstallerMojosInformation.Administrator.installationPackageRegexVersionGroupIndex, defaultValue = InstallerMojosInformation.Administrator.installationPackageRegexVersionGroupIndex_default)
 	private Integer installationPackageRegexVersionGroupIndex;
 
@@ -119,6 +125,16 @@ public class AdminInstallerMojo extends CommonInstaller {
 	}
 
 	@Override
+	public Integer getInstallationPackageArchGroupIndex() {
+		return installationPackageRegexArchGroupIndex;
+	}
+
+	@Override
+	public Integer getInstallationPackageOsGroupIndex() {
+		return installationPackageRegexOsGroupIndex;
+	}
+
+	@Override
 	public Integer getInstallationPackageVersionGroupIndex() {
 		return installationPackageRegexVersionGroupIndex;
 	}
@@ -136,6 +152,16 @@ public class AdminInstallerMojo extends CommonInstaller {
 	@Override
 	public String getInstallationPackageVersionMajorMinorPropertyName() {
 		return InstallerMojosInformation.Administrator.installationPackageVersionMajorMinor;
+	}
+
+	@Override
+	public String getInstallationPackageArchPropertyName() {
+		return InstallerMojosInformation.BW6.installationPackageArch;
+	}
+
+	@Override
+	public String getInstallationPackageOsPropertyName() {
+		return InstallerMojosInformation.BW6.installationPackageOs;
 	}
 
 	@Override

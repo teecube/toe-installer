@@ -1,0 +1,55 @@
+#set($h1 = '#')
+#set($h2 = '##')
+#set($h3 = '###')
+#set($h4 = '####')
+
+$h2 Automatic packages resolution
+
+${toeDisplayedName} - ${toeDisplayedInstallerName} has a state-of-the-art
+system to resolve the required <em>TIBCO installation packages</em>.
+It can retrieve the installation packages from a local directory with a
+zero-configuration approach or from a Maven repository (local or remote).
+
+<div class="well" style="padding-top: 12px;">
+	<h4><span class="fa fa-lightbulb-o"></span> What is a TIBCO installation
+package ?</h4> 
+
+A TIBCO installation package is a zipped file containing a TIBCO product to be
+installed and its installation program. For instance:<br/>
+<blockquote style="margin: 15px;"><em>TIB_</em><span class="color-highlight"><strong>BW</strong></span>_<strong>6.4.0</strong><span>_</span><em>win_x86_64</em><u>.zip</u></blockquote>
+is the installation package for TIBCO
+<span class="color-highlight"><strong>B</strong></span>usiness
+<span class="color-highlight"><strong>W</strong></span>orks
+version <strong>6.4.0</strong>
+for <em>Win</em>dows platform <span>(<em>x86_64</em> architecture)</span>.
+<br />
+Notice that these installation packages filenames are always prefixed by
+<em>TIB_</em> and suffixed by the <u>.zip</u> file extension, that they contain
+a short name of the product, the version and the system/architecture.
+</div>
+
+$h3 Local
+
+Local resolution looks for TIBCO installation packages in a filesystem directory
+based on the official naming convention.
+The default location is the current directory where this Maven plugin is run
+(${basedir}).
+
+$h3 Remote
+
+Remote resolution is based on Maven dependency mechanism. It requires that
+the TIBCO installation packages are available in a Maven repository. It does not
+matter whether the Maven repository is remote or local even though this
+resolution method is called remote as opposed as local resolution which is based
+on simple local directories only.
+
+$h4 Install or deploy installation packages in Maven
+
+---
+
+$h2 Resolution policies
+
+<ul class="fa-ul">
+  <li><span class="fa-li fa fa-plug"></span> <a href="#Local">local</a></li>
+  <li><span class="fa-li fa fa-plug"></span> <a href="#Remote">remote</a></li>
+</ul>

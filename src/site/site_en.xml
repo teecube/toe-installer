@@ -8,6 +8,7 @@
 		<menu name="${toeName} - ${toeInstallerName}">
 			<item name="Plugin documentation" href="./plugin-info.html" />
 			<item name="Full environment installation" href="./environments.html" />
+			<item name="Installation packages resolution" href="./packages-resolution.html" />
 			<item name="#reports" />
 			<item name="#infos" />
 		</menu>
@@ -55,6 +56,12 @@
 						<sidebar />
 					</sections>
 				</environments>
+				<packages-resolution>
+					<sections>
+						<body />
+						<sidebar />
+					</sections>
+				</packages-resolution>
 			</pages>
 		</reflowSkin>
 	</custom>

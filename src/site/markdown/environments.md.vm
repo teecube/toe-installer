@@ -5,23 +5,29 @@
 
 $h2 Full environment installation
 
-${toeDisplayedName} - ${toeDisplayedInstallerName} is able to install a full
-TIBCO environment (different products including their potential dependencies).
+${toeDisplayedName} - ${toeDisplayedInstallerName} is able to [install a full
+TIBCO environment](./env-install-mojo.html) (different products including their potential dependencies)
+with advanced features such as:
 
-For instance, it could be :
+* fail-fast/fail-at-last strategies when an error occurs in one of the
+installation
+* retry environment installation skipping already installed products
+* [automatic resolution of installation packages](./packages-resolution.html)
+(from local or remote locations)
 
-<ul>
-	<li>BusinessWorks 6 + TEA + EMS</li>
-	<li>BusinessWorks 5 (with RV, TRA) + Administrator + EMS</li>
-</ul>
+Examples of environment installation could be:
 
-$h3 Install BusinessWorks 6 + TEA + EMS on Windows from remote dependencies
+* BusinessWorks 6 + TEA + EMS on Windows from remote dependencies
+* BusinessWorks 5 (with RV, TRA) + Administrator + EMS on Windows from local
+dependencies
+
+$h3 BusinessWorks 6 + TEA + EMS on Windows from remote dependencies
 
 ${fullEnvironmentFileSample_BW6-TEA-EMS_Windows}
 
 ${fullEnvironmentInstallCommand_BW6}
 
-$h3 Install BusinessWorks 5 (with RV, TRA) + Administrator + EMS on Windows from local dependencies
+$h3 BusinessWorks 5 (with RV, TRA) + Administrator + EMS on Windows from local dependencies
 
 ${fullEnvironmentFileSample_BW5-Admin-EMS_Windows}
 

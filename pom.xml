@@ -63,7 +63,7 @@
 							<title>&amp;nbsp;</title>
 							<commandLine>mvn toe:env-install</commandLine>
 							<arguments>
-								<argument>-Dtibco.multi.installationTopology=bw6-full.xml</argument>
+								<argument>-Dtibco.environments.topology=bw6-full.xml</argument>
 							</arguments>
 						</commandLine>
 						<commandLine>
@@ -71,7 +71,7 @@
 							<title>&amp;nbsp;</title>
 							<commandLine>mvn toe:env-install</commandLine>
 							<arguments>
-								<argument>-Dtibco.multi.installationTopology=bw5-full.xml</argument>
+								<argument>-Dtibco.environments.topology=bw5-full.xml</argument>
 							</arguments>
 						</commandLine>
 					</commandLines>

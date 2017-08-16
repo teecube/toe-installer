@@ -16,6 +16,7 @@
  */
 package t3.toe.installer.packages;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
@@ -45,8 +46,11 @@ public class InstallPackages extends AbstractPackagesResolver {
 			getLog().info("Installing " + installers.size() + " TIBCO installation packages...");
 			getLog().info("");
 			for (CommonInstaller installer : installers) {
-				// TODO : replace installer.getRemotePackageClassifier() by installer.getInstallationPackageArch() after merging 'platform-check' branch
-				this.installDependency(installer.getRemotePackageGroupId(), installer.getRemotePackageArtifactId(), installer.getInstallationPackageVersion(), "zip", installer.getRemotePackageClassifier(), installer.getInstallationPackage());
+				String classifier = null;
+				if (StringUtils.isNotEmpty(installer.getInstallationPackageArch()) && StringUtils.isNotEmpty(installer.getInstallationPackageOs(false))) {
+					classifier = installer.getInstallationPackageOs(false) + "_" + installer.getInstallationPackageArch();
+				}
+				this.installDependency(installer.getRemotePackageGroupId(), installer.getRemotePackageArtifactId(), installer.getInstallationPackageVersion(), "zip", classifier, installer.getInstallationPackage());
 			}
 		} else {
 			getLog().info("No TIBCO installation package was found.");

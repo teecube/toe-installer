@@ -48,8 +48,8 @@ public class DisplayPackages extends AbstractPackagesResolver {
 			}
 			getLog().info("");
 			getLog().info("These TIBCO installation packages can be automatically:");
-			getLog().info("  installed to the local Maven repository by running 'mvn toe:install-packages'");
-			getLog().info("  deployed to a remote Maven repository by running 'mvn toe:deploy-packages -Dtibco.remote=<repo>'");
+			getLog().info("  installed to the local Maven repository by running 'mvn toe:install-local-packages'");
+			getLog().info("  deployed to a remote Maven repository by running 'mvn toe:deploy-local-packages -Dtibco.remote=<repo>'");
 		} else {
 			getLog().info("No TIBCO installation package was found.");
 		}

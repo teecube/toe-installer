@@ -472,16 +472,28 @@ public abstract class CommonInstaller extends CommonMojo {
 			installationPackageArch = "Arch Not Found";
 		}
 
-		if ("x86_64".equals(installationPackageArch)) {
-			installationPackageArch = "amd64";
-		}
+//		if ("x86_64".equals(installationPackageArch)) {
+//			installationPackageArch = "amd64";
+//		}
 
 		return installationPackageArch;
 	}
 
-	public String getInstallationPackageOs() throws MojoExecutionException {
+	private String getNormalizedInstallationPackageOs(String packageOs) {
+		if ("win".equals(packageOs)) {
+			return "windows";
+		} else if (packageOs.contains("linux")) {
+			return "unix";
+		} else if (packageOs.contains("mac")) {
+			return "mac";
+		}
+
+		return packageOs;
+	}
+
+	public String getInstallationPackageOs(boolean normalized) throws MojoExecutionException {
 		if (installationPackageOs != null && !installationPackageOs.isEmpty()) {
-			return installationPackageOs;
+			return normalized ? getNormalizedInstallationPackageOs(installationPackageOs) : installationPackageOs;
 		}
 		
 		File installationPackage = getInstallationPackage();
@@ -499,14 +511,7 @@ public abstract class CommonInstaller extends CommonMojo {
 			installationPackageOs = "OS Not Found";
 		}
 
-		if ("win".equals(installationPackageOs)) {
-			installationPackageOs = "windows";
-		} else if (installationPackageOs.contains("linux")) {
-			installationPackageOs = "unix";
-		} else if (installationPackageOs.contains("mac")) {
-			installationPackageOs = "mac";
-		}
-		return installationPackageOs;
+		return normalized ? getNormalizedInstallationPackageOs(installationPackageOs) : installationPackageOs;
 	}
 	
 	private File extractInstallationPackage(@NotNull File installationPackage) throws MojoExecutionException {
@@ -635,7 +640,7 @@ public abstract class CommonInstaller extends CommonMojo {
 		if (packageArch != null) {
 			session.getCurrentProject().getProperties().put(getInstallationPackageArchPropertyName(), packageArch);
 		}
-		String packageOs = getInstallationPackageOs();
+		String packageOs = getInstallationPackageOs(true);
 		if (packageOs != null) {
 			session.getCurrentProject().getProperties().put(getInstallationPackageOsPropertyName(), packageOs);
 		}

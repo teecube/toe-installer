@@ -70,6 +70,18 @@ public class TRAInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.TRA.installationPackageVersionMajorMinor, defaultValue = "")
 	private String installationPackageVersionMajorMinor;
 
+	@Parameter(property = InstallerMojosInformation.TRA.remoteInstallationPackageGroupId, defaultValue = InstallerMojosInformation.TRA.remoteInstallationPackageGroupId_default, description = InstallerMojosInformation.TRA.remoteInstallationPackageGroupId_description)
+	protected String remoteInstallationPackageGroupId;
+
+	@Parameter(property = InstallerMojosInformation.TRA.remoteInstallationPackageArtifactId, defaultValue = InstallerMojosInformation.TRA.remoteInstallationPackageArtifactId_default, description = InstallerMojosInformation.TRA.remoteInstallationPackageArtifactId_description)
+	protected String remoteInstallationPackageArtifactId;
+
+	@Parameter(property = InstallerMojosInformation.TRA.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.TRA.remoteInstallationPackageVersion_description)
+	protected String remoteInstallationPackageVersion;
+
+	@Parameter(property = InstallerMojosInformation.TRA.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.TRA.remoteInstallationPackageClassifier_description)
+	protected String remoteInstallationPackageClassifier;
+
 	@Parameter(property = InstallerMojosInformation.TRA.configDirectory, defaultValue = "${user.home}/tibco_cfg")
 	private File configDirectoryRoot;
 
@@ -104,7 +116,7 @@ public class TRAInstallerMojo extends CommonInstaller {
 	}
 
 	@Override
-	public File getInstallationPackage() {
+	public File getInstallationPackage() throws MojoExecutionException {
 		if (installationPackage == null || !installationPackage.exists()) {
 			installationPackage = findInstallationPackage();
 		}
@@ -164,6 +176,26 @@ public class TRAInstallerMojo extends CommonInstaller {
 	@Override
 	public void setInstallationPackageVersionMajorMinor(String version) {
 		this.installationPackageVersionMajorMinor = version;
+	}
+
+	@Override
+	public String getRemotePackageGroupId() {
+		return remoteInstallationPackageGroupId;
+	}
+
+	@Override
+	public String getRemotePackageArtifactId() {
+		return remoteInstallationPackageArtifactId;
+	}
+
+	@Override
+	public String getRemotePackageVersion() {
+		return remoteInstallationPackageVersion;
+	}
+
+	@Override
+	public String getRemotePackageClassifier() {
+		return remoteInstallationPackageClassifier;
 	}
 
 	@Override

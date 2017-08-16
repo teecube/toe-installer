@@ -62,6 +62,18 @@ public class EMSInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.EMS.installationPackageVersionMajorMinor, defaultValue = "")
 	private String installationPackageVersionMajorMinor;
 
+	@Parameter(property = InstallerMojosInformation.EMS.remoteInstallationPackageGroupId, defaultValue = InstallerMojosInformation.EMS.remoteInstallationPackageGroupId_default, description = InstallerMojosInformation.EMS.remoteInstallationPackageGroupId_description)
+	protected String remoteInstallationPackageGroupId;
+
+	@Parameter(property = InstallerMojosInformation.EMS.remoteInstallationPackageArtifactId, defaultValue = InstallerMojosInformation.EMS.remoteInstallationPackageArtifactId_default, description = InstallerMojosInformation.EMS.remoteInstallationPackageArtifactId_description)
+	protected String remoteInstallationPackageArtifactId;
+
+	@Parameter(property = InstallerMojosInformation.EMS.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.EMS.remoteInstallationPackageVersion_description)
+	protected String remoteInstallationPackageVersion;
+
+	@Parameter(property = InstallerMojosInformation.EMS.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.EMS.remoteInstallationPackageClassifier_description)
+	protected String remoteInstallationPackageClassifier;
+
 	@Override
 	public List<String> getDependenciesGoals() {
 		return new ArrayList<String>();
@@ -74,7 +86,7 @@ public class EMSInstallerMojo extends CommonInstaller {
 	}
 
 	@Override
-	public File getInstallationPackage() {
+	public File getInstallationPackage() throws MojoExecutionException {
 		if (installationPackage == null || !installationPackage.exists()) {
 			installationPackage = findInstallationPackage();
 		}
@@ -134,6 +146,26 @@ public class EMSInstallerMojo extends CommonInstaller {
 	@Override
 	public void setInstallationPackageVersionMajorMinor(String version) {
 		this.installationPackageVersionMajorMinor = version;
+	}
+
+	@Override
+	public String getRemotePackageGroupId() {
+		return remoteInstallationPackageGroupId;
+	}
+
+	@Override
+	public String getRemotePackageArtifactId() {
+		return remoteInstallationPackageArtifactId;
+	}
+
+	@Override
+	public String getRemotePackageVersion() {
+		return remoteInstallationPackageVersion;
+	}
+
+	@Override
+	public String getRemotePackageClassifier() {
+		return remoteInstallationPackageClassifier;
 	}
 
 	@Override

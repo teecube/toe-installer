@@ -74,19 +74,19 @@ public class InstallerMojosFactory extends MojosFactory {
 		}
 
 		switch (goal) {
-		case "toe:bw5-install":
+		case InstallerMojosInformation.pluginPrefix + "bw5-install":
 			return (T) new BW5InstallerMojo();
-		case "toe:bw6-install":
+		case InstallerMojosInformation.pluginPrefix + "bw6-install":
 			return (T) new BW6InstallerMojo();
-		case "toe:ems-install":
+		case InstallerMojosInformation.pluginPrefix + "ems-install":
 			return (T) new EMSInstallerMojo();
-		case "toe:rv-install":
+		case InstallerMojosInformation.pluginPrefix + "rv-install":
 			return (T) new RVInstallerMojo();
-		case "toe:tea-install":
+		case InstallerMojosInformation.pluginPrefix + "tea-install":
 			return (T) new TEAInstallerMojo();
-		case "toe:tra-install":
+		case InstallerMojosInformation.pluginPrefix + "tra-install":
 			return (T) new TRAInstallerMojo();
-		case "toe:admin-install":
+		case InstallerMojosInformation.pluginPrefix + "admin-install":
 			return (T) new AdminInstallerMojo();
 
 		default:

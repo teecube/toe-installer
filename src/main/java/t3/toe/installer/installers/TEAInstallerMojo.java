@@ -62,6 +62,18 @@ public class TEAInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.installationPackageVersionMajorMinor, defaultValue = "")
 	private String installationPackageVersionMajorMinor;
 
+	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageGroupId, defaultValue = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageGroupId_default, description = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageGroupId_description)
+	protected String remoteInstallationPackageGroupId;
+
+	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageArtifactId, defaultValue = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageArtifactId_default, description = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageArtifactId_description)
+	protected String remoteInstallationPackageArtifactId;
+
+	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageVersion_description)
+	protected String remoteInstallationPackageVersion;
+
+	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageClassifier_description)
+	protected String remoteInstallationPackageClassifier;
+
 	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.javaHomeDirectory, defaultValue = "c:\\Program Files\\Java\\jdk1.7.0_71") // default value is the one found in default .silent file
 	private File javaHomeDirectory;
 
@@ -83,7 +95,7 @@ public class TEAInstallerMojo extends CommonInstaller {
 	}
 
 	@Override
-	public File getInstallationPackage() {
+	public File getInstallationPackage() throws MojoExecutionException {
 		if (installationPackage == null || !installationPackage.exists()) {
 			installationPackage = findInstallationPackage();
 		}
@@ -146,6 +158,26 @@ public class TEAInstallerMojo extends CommonInstaller {
 	}
 
 	@Override
+	public String getRemotePackageGroupId() {
+		return remoteInstallationPackageGroupId;
+	}
+
+	@Override
+	public String getRemotePackageArtifactId() {
+		return remoteInstallationPackageArtifactId;
+	}
+
+	@Override
+	public String getRemotePackageVersion() {
+		return remoteInstallationPackageVersion;
+	}
+
+	@Override
+	public String getRemotePackageClassifier() {
+		return remoteInstallationPackageClassifier;
+	}
+
+	@Override
 	public boolean dependenciesExist() {
 		return true;
 	}
@@ -164,6 +196,13 @@ public class TEAInstallerMojo extends CommonInstaller {
 	public void setProperties(Properties props) {
 		if (props == null) {
 			return;
+		}
+
+		if (!javaHomeDirectory.exists()) {
+			String javaHome = System.getProperty("java.home");
+			if (new File(javaHome).exists()) {
+				javaHomeDirectory = new File(javaHome);
+			}
 		}
 
 		props.setProperty("configDirectoryRoot", configDirectoryRoot);

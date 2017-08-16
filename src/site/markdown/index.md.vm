@@ -81,4 +81,5 @@ $h2 Documentation
   </li>
   <li>Source <span class="fa-li fa fa-git"></span> <a href="./source-repository.html">repository</a> / <span class="fa-li fa fa-git"></span> <a href="./xref/index.html">reference</a></li>
   <li><span class="fa-li fa fa-coffee"></span> <a href="./apidocs/index.html">Javadoc</a></li>
+  <li><span class="fa-li fa fa-history"></span> <a href="./changelog.html">Changelog</a></li>
 </ul>

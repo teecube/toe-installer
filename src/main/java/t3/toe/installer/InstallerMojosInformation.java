@@ -365,6 +365,32 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String configDirectoryRoot = "tibco.tea.installation.configDirectoryRoot";
 	}
 
+	public static class Packages {
+		public static final String localRepositoryPath = "tibco.packages.install.localRepositoryPath";
+		public static final String localRepositoryPath_default = "${localRepository}";
+
+		public static final String archiveLocalRepositoryPath = "tibco.packages.install.archiveLocalRepositoryPath";
+		public static final String archiveLocalRepositoryPath_default = "${project.build.directory}/local-packages";
+
+		public static final String generateArchive = "tibco.packages.install.generateArchive";
+		public static final String generateArchive_default = "false";
+
+		public static final String includePluginsInArchive = "tibco.packages.install.includePluginsInArchive";
+		public static final String includePluginsInArchive_default = "true";
+
+		public static final String pluginsToIncludeInArchive = "tibco.packages.install.pluginsToIncludeInArchive";
+		public static final String pluginsToIncludeInArchive_default = "TOE_DOMAINS,TOE_INSTALLER,TIC_BW5,TIC_BW6";
+
+		public static final String toeDomainsVersion = "tibco.packages.install.toeDomainsVersion";
+		public static final String toeDomainsVersion_default = "";
+		public static final String toeInstallerVersion = "tibco.packages.install.toeInstallerVersion";
+		public static final String toeInstallerVersion_default = "";
+		public static final String ticBW5Version = "tibco.packages.install.ticBW5Version";
+		public static final String ticBW5Version_default = "";
+		public static final String ticBW6Version = "tibco.packages.install.ticBW6Version";
+		public static final String ticBW6Version_default = "";
+	}
+
 	public static class FullEnvironment {
 		public static final String environmentsTopologyFile = "tibco.environments.topology";
 		public static final String environmentsTopologyFile_default = "${basedir}/tibco-environments.xml";

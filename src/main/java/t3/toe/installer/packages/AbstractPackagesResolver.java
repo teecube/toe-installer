@@ -18,10 +18,29 @@ package t3.toe.installer.packages;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.DefaultArtifact;
+import org.apache.maven.artifact.handler.DefaultArtifactHandler;
+import org.apache.maven.artifact.manager.WagonManager;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.artifact.versioning.ArtifactVersion;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
+import org.apache.maven.model.Build;
+import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.MavenProjectBuilder;
+import org.apache.maven.settings.Settings;
+import org.codehaus.mojo.versions.api.ArtifactVersions;
+import org.codehaus.mojo.versions.api.DefaultVersionsHelper;
 
 import t3.AdvancedMavenLifecycleParticipant;
 import t3.CommonMojo;
@@ -42,11 +61,28 @@ import t3.toe.installer.InstallerMojosInformation;
 */
 public abstract class AbstractPackagesResolver extends CommonMojo {
 
+	private enum T3Plugins { TOE_INSTALLER, TOE_DOMAINS, TIC_BW5, TIC_BW6 };
+
+	@org.apache.maven.plugins.annotations.Parameter(property = InstallerMojosInformation.Packages.pluginsToIncludeInArchive, defaultValue = InstallerMojosInformation.Packages.pluginsToIncludeInArchive_default)
+	private List<T3Plugins> plugins;
+
 	protected List<CommonInstaller> installers;
 
 	@Parameter(property = InstallerMojosInformation.installationPackageDirectory, defaultValue = "${basedir}")
 	protected File installationPackageDirectory;
 
+	@Parameter(property = InstallerMojosInformation.Packages.toeDomainsVersion, defaultValue = InstallerMojosInformation.Packages.toeDomainsVersion_default)
+	protected String toeDomainsVersion;
+
+	@Parameter(property = InstallerMojosInformation.Packages.toeInstallerVersion, defaultValue = InstallerMojosInformation.Packages.toeInstallerVersion_default)
+	protected String toeInstallerVersion;
+	
+	@Parameter(property = InstallerMojosInformation.Packages.ticBW5Version, defaultValue = InstallerMojosInformation.Packages.ticBW5Version_default)
+	protected String ticBW5Version;
+	
+	@Parameter(property = InstallerMojosInformation.Packages.ticBW6Version, defaultValue = InstallerMojosInformation.Packages.ticBW6Version_default)
+	protected String ticBW6Version;
+	
 	@Override
 	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() throws MojoExecutionException {
 		return new InstallerLifecycleParticipant();
@@ -74,6 +110,173 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 				installers.add(installer);
 			}
 		}
+	}
+
+	@SuppressWarnings("deprecation")
+	private Artifact getPluginArtifact(DefaultVersionsHelper helper, String groupId, String artifactId, String version) throws MojoExecutionException {
+		DefaultArtifactHandler mavenPluginArtifactHandler = new DefaultArtifactHandler("jar");
+		mavenPluginArtifactHandler.getExtension(); // force loading of extension
+
+		Artifact pluginArtifact = new DefaultArtifact(groupId, artifactId, "", Artifact.SCOPE_COMPILE, "maven-plugin", null, mavenPluginArtifactHandler);
+
+		if (version == null || version.isEmpty()) {
+			ArtifactVersions artifactVersions;
+			try {
+				artifactVersions = helper.lookupArtifactVersions(pluginArtifact, true);
+			} catch (org.apache.maven.artifact.metadata.ArtifactMetadataRetrievalException e) {
+				throw new MojoExecutionException(e.getLocalizedMessage(), e);
+			}
+			ArtifactVersion lowerBound = new DefaultArtifactVersion("0.0.0");
+			ArtifactVersion upperBound = new DefaultArtifactVersion("10.0.0"); // upper bound : we have time
+			ArtifactVersion newest = artifactVersions.getNewestVersion(lowerBound, upperBound);
+			if (newest != null) {
+				getLog().debug("Newest version for " + pluginArtifact.getGroupId() + ":" + pluginArtifact.getArtifactId() + " is " + newest.toString());
+				version = newest.toString();			
+			} else {
+				version = "0.0.1";
+			}
+		}
+
+		pluginArtifact.setVersion(version);
+		return pluginArtifact;
+	}
+
+	private Plugin getPluginFromArtifact(Artifact artifact) {
+		Plugin plugin = new Plugin();
+		plugin.setGroupId(artifact.getGroupId());
+		plugin.setArtifactId(artifact.getArtifactId());
+		plugin.setVersion(artifact.getVersion());
+
+		List<PluginExecution> executions = new ArrayList<PluginExecution>();
+		plugin.setExecutions(executions);
+
+		return plugin;
+	}
+
+	private Plugin getToeDomainsPluginArtifact(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
+		return getPlugin(helper, "io.teecube.toe", "toe-domains-plugin", version, "toe-domains", "bw6-domain-create", false);
+	}
+
+	private Plugin getToeInstallerPluginArtifact(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
+		return getPlugin(helper, InstallerLifecycleParticipant.pluginGroupId, InstallerLifecycleParticipant.pluginArtifactId, version, "toe", "envinfo-list", false);
+	}
+
+	private Plugin getTicBW5PluginArtifact(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
+		return getPlugin(helper, "io.teecube.tic", "tic-bw5", version, "bw5", "properties-merge", true);
+	}
+	
+	private Plugin getTicBW6PluginArtifact(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
+		return getPlugin(helper, "io.teecube.tic", "tic-bw6", version, "bw6", "studio-proxy-uninstall", false);
+	}
+
+	private Plugin getPlugin(DefaultVersionsHelper helper, String groupId, String artifactId, String version, String prefix, String goal, boolean extensions) throws MojoExecutionException {
+		Artifact artifact = getPluginArtifact(helper, groupId, artifactId, version);
+		Plugin result = getPluginFromArtifact(artifact);
+
+		List<String> goals = new ArrayList<String>();
+		goals.add(goal);
+
+		PluginExecution pluginExecution = new PluginExecution();
+		pluginExecution.setId(prefix);
+		pluginExecution.setPhase("validate");
+		pluginExecution.setGoals(goals);
+
+		result.addExecution(pluginExecution);
+		result.setExtensions(extensions);
+
+		return result;
+	}
+
+	/* @Component and @Parameter for DefaultVersionsHelper */
+    @SuppressWarnings("deprecation")
+	@Component
+    protected org.apache.maven.artifact.factory.ArtifactFactory artifactFactory;
+
+    @Component
+    protected org.apache.maven.artifact.resolver.ArtifactResolver resolver;
+
+    @Component
+    protected MavenProjectBuilder projectBuilder;
+
+    @org.apache.maven.plugins.annotations.Parameter( defaultValue = "${reactorProjects}", required = true, readonly = true )
+    protected List<?> reactorProjects;
+
+    @SuppressWarnings("deprecation")
+	@Component
+    protected org.apache.maven.artifact.metadata.ArtifactMetadataSource artifactMetadataSource;
+
+    @org.apache.maven.plugins.annotations.Parameter( defaultValue = "${project.remoteArtifactRepositories}", readonly = true )
+    protected List<?> remoteArtifactRepositories;
+
+    @org.apache.maven.plugins.annotations.Parameter( defaultValue = "${project.pluginArtifactRepositories}", readonly = true )
+    protected List<?> remotePluginRepositories;
+
+    @org.apache.maven.plugins.annotations.Parameter( defaultValue = "${localRepository}", readonly = true )
+    protected ArtifactRepository localRepository;
+
+    @Component
+    private WagonManager wagonManager;
+
+    @org.apache.maven.plugins.annotations.Parameter( defaultValue = "${settings}", readonly = true )
+    protected Settings settings;
+
+    @org.apache.maven.plugins.annotations.Parameter( property = "maven.version.rules.serverId", defaultValue = "serverId" )
+    private String serverId;
+
+    @org.apache.maven.plugins.annotations.Parameter( property = "maven.version.rules" )
+    private String rulesUri;
+
+    @SuppressWarnings("deprecation")
+	@Component
+    protected org.apache.maven.project.path.PathTranslator pathTranslator;
+
+    @Component
+    protected ArtifactResolver artifactResolver;
+
+    /* end of @Component & @Parameter for DefaultVersionsHelper */
+
+	private Set<Plugin> getPluginArtifacts() throws MojoExecutionException {
+		HashSet<Plugin> result = new HashSet<Plugin>();
+
+		DefaultVersionsHelper helper = new DefaultVersionsHelper(artifactFactory, artifactResolver, artifactMetadataSource, remoteArtifactRepositories, remotePluginRepositories, localRepository, wagonManager, settings, serverId, rulesUri, getLog(), session, pathTranslator);
+
+		if (plugins.contains(T3Plugins.TOE_DOMAINS)) {
+			result.add(getToeDomainsPluginArtifact(helper, toeDomainsVersion));
+		}
+		if (plugins.contains(T3Plugins.TOE_INSTALLER)) {
+			result.add(getToeInstallerPluginArtifact(helper, toeInstallerVersion));
+		}
+		if (plugins.contains(T3Plugins.TIC_BW5)) {
+			result.add(getTicBW5PluginArtifact(helper, ticBW5Version));
+		}
+		if (plugins.contains(T3Plugins.TIC_BW6)) {
+			result.add(getTicBW6PluginArtifact(helper, ticBW6Version));
+		}
+
+		return result;
+	}
+
+	protected MavenProject generateGoOfflineProject() throws MojoExecutionException {
+		MavenProject result = new MavenProject();
+
+		result.setModelVersion("4.0.0");
+		result.setGroupId("go-offline");
+		result.setArtifactId("go-offline");
+		result.setVersion("1");
+		result.setPackaging("pom");
+
+		Build build = new Build();
+		for (Plugin plugin : getPluginArtifacts()) {			
+			if (plugin.getArtifactId().equals("tic-bw5")) {
+				plugin.setExtensions(true);
+				result.setPackaging("bw5-ear");
+			}
+			build.addPlugin(plugin);
+		}
+
+		result.setBuild(build);
+
+		return result;
 	}
 
 }

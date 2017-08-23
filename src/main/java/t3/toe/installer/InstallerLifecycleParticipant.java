@@ -65,7 +65,7 @@ public class InstallerLifecycleParticipant extends AbstractMavenLifecyclePartici
 	protected PluginDescriptor pluginDescriptor; // plugin descriptor of this plugin
 
 	public final static String pluginGroupId = "io.teecube.toe";
-	public final static String pluginArtifactId = "toe-installer";
+	public final static String pluginArtifactId = "toe-installer-plugin";
 	public final static String pluginKey = InstallerLifecycleParticipant.pluginGroupId + ":" + InstallerLifecycleParticipant.pluginArtifactId;
 
 	@Override

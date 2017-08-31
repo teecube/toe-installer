@@ -30,19 +30,19 @@ import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.settings.Profile;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.io.xpp3.SettingsXpp3Reader;
 import org.apache.maven.settings.io.xpp3.SettingsXpp3Writer;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.eclipse.aether.RepositorySystem;
-import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.graph.DependencyFilter;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.resolution.ArtifactRequest;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
@@ -72,12 +72,6 @@ public abstract class CommonConfigurer extends CommonMojo {
 
 	@org.apache.maven.plugins.annotations.Parameter (defaultValue = "${localRepository}", readonly = true, required = true)
 	protected ArtifactRepository localRepository;
-
-	@Component
-	private RepositorySystem system;
-
-	@org.apache.maven.plugins.annotations.Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
-    private RepositorySystemSession systemSession;
 
 	@Parameter(property = InstallerMojosInformation.environmentName, defaultValue = InstallerMojosInformation.environmentName_default)
 	protected String environmentName;
@@ -137,6 +131,13 @@ public abstract class CommonConfigurer extends CommonMojo {
 			} 
 		}
 
+		if (session.isOffline()) {
+			RemoteRepository localAsRemoteRepository = new RemoteRepository.Builder("local", "default", session.getLocalRepository().getUrl().replace("\\", "/")).build();
+			project.getRemotePluginRepositories().clear();
+			project.getRemotePluginRepositories().add(localAsRemoteRepository);
+			localAsRemoteRepository = new RemoteRepository.Builder("central", "default", session.getLocalRepository().getUrl().replace("\\", "/")).build();
+			project.getRemotePluginRepositories().add(localAsRemoteRepository);
+		}
 		List<ArtifactResult> artifactResults = getPlugin(getGroupId() + ":" + getArtifactId(), version);
 
 		List<File> files = new ArrayList<File>();
@@ -272,19 +273,26 @@ public abstract class CommonConfigurer extends CommonMojo {
 	protected List<ArtifactResult> getPlugin(String pluginKey, String version) {
         Artifact artifact = new DefaultArtifact(pluginKey + ":" + version);
 
-        DependencyFilter classpathFlter = DependencyFilterUtils.classpathFilter( JavaScopes.COMPILE );
+        DependencyFilter classpathFlter = DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE);
 
         CollectRequest collectRequest = new CollectRequest();
-        collectRequest.setRoot(new Dependency( artifact, JavaScopes.COMPILE));
+        collectRequest.setRoot(new Dependency(artifact, JavaScopes.COMPILE));
         collectRequest.setRepositories(project.getRemotePluginRepositories());
 
         DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, classpathFlter);
 
-        List<ArtifactResult> artifactResults = null;
+        List<ArtifactResult> artifactResults = new ArrayList<ArtifactResult>();
 		try {
-			artifactResults = system.resolveDependencies(systemSession, dependencyRequest).getArtifactResults();
-		} catch (DependencyResolutionException e) {
-			//
+			ArtifactRequest artifactRequest = new ArtifactRequest(artifact, project.getRemotePluginRepositories(), "");
+			artifactResults.add(system.resolveArtifact(systemSession, artifactRequest));
+			artifactResults.addAll(system.resolveDependencies(systemSession, dependencyRequest).getArtifactResults());
+		} catch (DependencyResolutionException | ArtifactResolutionException e) {
+			try {
+				// same player shoots again (sometimes two resolutions are required)
+				artifactResults.addAll(system.resolveDependencies(systemSession, dependencyRequest).getArtifactResults());
+			} catch (DependencyResolutionException e1) {
+				//
+			}
 		}
 
 		return artifactResults;

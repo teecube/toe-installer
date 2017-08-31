@@ -64,6 +64,7 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 	public static final String removeExistingEnvironment_description = "tibco.installation.removeExisting";
 
 	public static final String installationPackageDirectory = "tibco.installation.packages.directory";
+	public static final String installationPackageDirectory_default = "${basedir}";
 	public static final String installationPackageDirectory_description = "tibco.installation.packages.directory";
 
 	public static final String dotTIBCOHome = "tibco.dothome.directory";
@@ -379,7 +380,7 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String includePluginsInArchive_default = "true";
 
 		public static final String pluginsToIncludeInArchive = "tibco.packages.install.pluginsToIncludeInArchive";
-		public static final String pluginsToIncludeInArchive_default = "TOE_DOMAINS,TOE_INSTALLER,TIC_BW5,TIC_BW6";
+		public static final String pluginsToIncludeInArchive_default = "TOE_DOMAINS,TOE_INSTALLER,TIC_BW5,TIC_BW6,TAC_ARCHETYPES";
 
 		public static final String toeDomainsVersion = "tibco.packages.install.toeDomainsVersion";
 		public static final String toeDomainsVersion_default = "";
@@ -389,6 +390,8 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String ticBW5Version_default = "";
 		public static final String ticBW6Version = "tibco.packages.install.ticBW6Version";
 		public static final String ticBW6Version_default = "";
+		public static final String tacArchetypesVersion = "tibco.packages.install.tacArchetypesVersion";
+		public static final String tacArchetypesVersion_default = "";
 	}
 
 	public static class FullEnvironment {

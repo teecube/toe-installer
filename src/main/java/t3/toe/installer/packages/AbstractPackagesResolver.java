@@ -61,14 +61,14 @@ import t3.toe.installer.InstallerMojosInformation;
 */
 public abstract class AbstractPackagesResolver extends CommonMojo {
 
-	private enum T3Plugins { TOE_INSTALLER, TOE_DOMAINS, TIC_BW5, TIC_BW6 };
+	private enum T3Plugins { TOE_INSTALLER, TOE_DOMAINS, TIC_BW5, TIC_BW6, TAC_ARCHETYPES };
 
 	@org.apache.maven.plugins.annotations.Parameter(property = InstallerMojosInformation.Packages.pluginsToIncludeInArchive, defaultValue = InstallerMojosInformation.Packages.pluginsToIncludeInArchive_default)
 	private List<T3Plugins> plugins;
 
 	protected List<CommonInstaller> installers;
 
-	@Parameter(property = InstallerMojosInformation.installationPackageDirectory, defaultValue = "${basedir}")
+	@Parameter(property = InstallerMojosInformation.installationPackageDirectory, defaultValue = InstallerMojosInformation.installationPackageDirectory_default)
 	protected File installationPackageDirectory;
 
 	@Parameter(property = InstallerMojosInformation.Packages.toeDomainsVersion, defaultValue = InstallerMojosInformation.Packages.toeDomainsVersion_default)
@@ -82,7 +82,10 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 	
 	@Parameter(property = InstallerMojosInformation.Packages.ticBW6Version, defaultValue = InstallerMojosInformation.Packages.ticBW6Version_default)
 	protected String ticBW6Version;
-	
+
+	@Parameter(property = InstallerMojosInformation.Packages.tacArchetypesVersion, defaultValue = InstallerMojosInformation.Packages.tacArchetypesVersion_default)
+	protected String tacArchetypesVersion;
+
 	@Override
 	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() throws MojoExecutionException {
 		return new InstallerLifecycleParticipant();
@@ -113,11 +116,11 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 	}
 
 	@SuppressWarnings("deprecation")
-	private Artifact getPluginArtifact(DefaultVersionsHelper helper, String groupId, String artifactId, String version) throws MojoExecutionException {
+	private Artifact getArtifact(DefaultVersionsHelper helper, String groupId, String artifactId, String version, String type) throws MojoExecutionException {
 		DefaultArtifactHandler mavenPluginArtifactHandler = new DefaultArtifactHandler("jar");
 		mavenPluginArtifactHandler.getExtension(); // force loading of extension
 
-		Artifact pluginArtifact = new DefaultArtifact(groupId, artifactId, "", Artifact.SCOPE_COMPILE, "maven-plugin", null, mavenPluginArtifactHandler);
+		Artifact pluginArtifact = new DefaultArtifact(groupId, artifactId, "", Artifact.SCOPE_COMPILE, type, null, mavenPluginArtifactHandler);
 
 		if (version == null || version.isEmpty()) {
 			ArtifactVersions artifactVersions;
@@ -153,28 +156,55 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 		return plugin;
 	}
 
-	private Plugin getToeDomainsPluginArtifact(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
-		return getPlugin(helper, "io.teecube.toe", "toe-domains-plugin", version, "toe-domains", "bw6-domain-create", false);
+	private Plugin getToeDomainsPlugin(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
+		List<String> goals = new ArrayList<String>();
+		goals.add("bw6-domain-create");
+		return getPlugin(helper, "io.teecube.toe", "toe-domains-plugin", version, "toe-domains", goals);
 	}
 
-	private Plugin getToeInstallerPluginArtifact(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
-		return getPlugin(helper, InstallerLifecycleParticipant.pluginGroupId, InstallerLifecycleParticipant.pluginArtifactId, version, "toe", "envinfo-list", false);
+	private Plugin getToeInstallerPlugin(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
+		List<String> goals = new ArrayList<String>();
+		goals.add("envinfo-list");
+		return getPlugin(helper, InstallerLifecycleParticipant.pluginGroupId, InstallerLifecycleParticipant.pluginArtifactId, version, "toe", goals);
 	}
 
-	private Plugin getTicBW5PluginArtifact(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
-		return getPlugin(helper, "io.teecube.tic", "tic-bw5", version, "bw5", "properties-merge", true);
+	private Plugin getTicBW5Plugin(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
+		List<String> goals = new ArrayList<String>();
+		goals.add("properties-merge");
+		return getPlugin(helper, "io.teecube.tic", "tic-bw5", version, "bw5", goals);
 	}
 	
-	private Plugin getTicBW6PluginArtifact(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
-		return getPlugin(helper, "io.teecube.tic", "tic-bw6", version, "bw6", "studio-proxy-uninstall", false);
+	private Plugin getTicBW6Plugin(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
+		List<String> goals = new ArrayList<String>();
+		goals.add("studio-proxy-uninstall");
+		return getPlugin(helper, "io.teecube.tic", "tic-bw6", version, "bw6", goals);
 	}
 
-	private Plugin getPlugin(DefaultVersionsHelper helper, String groupId, String artifactId, String version, String prefix, String goal, boolean extensions) throws MojoExecutionException {
-		Artifact artifact = getPluginArtifact(helper, groupId, artifactId, version);
-		Plugin result = getPluginFromArtifact(artifact);
+	private Plugin getMavenInstallPlugin() {
+		Plugin plugin = new Plugin();
+		plugin.setGroupId("org.apache.maven.plugins");
+		plugin.setArtifactId("maven-install-plugin");
+		plugin.setVersion("2.5.2"); // must be in sync with POM !
 
-		List<String> goals = new ArrayList<String>();
-		goals.add(goal);
+		return plugin;
+	}
+
+	private Plugin getTacArchetypeBW5EAR(DefaultVersionsHelper helper, String tacArchetypesVersion) throws MojoExecutionException {
+		Artifact artifact = getArtifact(helper, "io.teecube.tac.archetypes", "default-bw5-ear", tacArchetypesVersion, "maven-archetype");
+		Plugin plugin = getPluginFromArtifact(artifact);
+
+		return plugin;
+	}
+
+	private List<Plugin> getTacArchetypes(DefaultVersionsHelper helper, String tacArchetypesVersion) throws MojoExecutionException {
+		List<Plugin> result = new ArrayList<Plugin>();
+		result.add(getTacArchetypeBW5EAR(helper, tacArchetypesVersion));
+		return result;
+	}
+
+	private Plugin getPlugin(DefaultVersionsHelper helper, String groupId, String artifactId, String version, String prefix, List<String> goals) throws MojoExecutionException {
+		Artifact artifact = getArtifact(helper, groupId, artifactId, version, "maven-plugin");
+		Plugin result = getPluginFromArtifact(artifact);
 
 		PluginExecution pluginExecution = new PluginExecution();
 		pluginExecution.setId(prefix);
@@ -182,7 +212,6 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 		pluginExecution.setGoals(goals);
 
 		result.addExecution(pluginExecution);
-		result.setExtensions(extensions);
 
 		return result;
 	}
@@ -241,17 +270,21 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 		DefaultVersionsHelper helper = new DefaultVersionsHelper(artifactFactory, artifactResolver, artifactMetadataSource, remoteArtifactRepositories, remotePluginRepositories, localRepository, wagonManager, settings, serverId, rulesUri, getLog(), session, pathTranslator);
 
 		if (plugins.contains(T3Plugins.TOE_DOMAINS)) {
-			result.add(getToeDomainsPluginArtifact(helper, toeDomainsVersion));
+			result.add(getToeDomainsPlugin(helper, toeDomainsVersion));
 		}
 		if (plugins.contains(T3Plugins.TOE_INSTALLER)) {
-			result.add(getToeInstallerPluginArtifact(helper, toeInstallerVersion));
+			result.add(getToeInstallerPlugin(helper, toeInstallerVersion));
 		}
 		if (plugins.contains(T3Plugins.TIC_BW5)) {
-			result.add(getTicBW5PluginArtifact(helper, ticBW5Version));
+			result.add(getTicBW5Plugin(helper, ticBW5Version));
 		}
 		if (plugins.contains(T3Plugins.TIC_BW6)) {
-			result.add(getTicBW6PluginArtifact(helper, ticBW6Version));
+			result.add(getTicBW6Plugin(helper, ticBW6Version));
 		}
+		if (plugins.contains(T3Plugins.TAC_ARCHETYPES)) {
+			result.addAll(getTacArchetypes(helper, tacArchetypesVersion));
+		}
+		result.add(getMavenInstallPlugin());
 
 		return result;
 	}
@@ -266,11 +299,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 		result.setPackaging("pom");
 
 		Build build = new Build();
-		for (Plugin plugin : getPluginArtifacts()) {			
-			if (plugin.getArtifactId().equals("tic-bw5")) {
-				plugin.setExtensions(true);
-				result.setPackaging("bw5-ear");
-			}
+		for (Plugin plugin : getPluginArtifacts()) {
 			build.addPlugin(plugin);
 		}
 

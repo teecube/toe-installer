@@ -84,7 +84,7 @@ import t3.toe.installer.envinfo.RemoveEnvInfoMojo;
 */
 public abstract class CommonInstaller extends CommonMojo {
 
-	@Parameter(property = InstallerMojosInformation.installationPackageDirectory, defaultValue = "${basedir}")
+	@Parameter(property = InstallerMojosInformation.installationPackageDirectory, defaultValue = InstallerMojosInformation.installationPackageDirectory_default)
 	protected File installationPackageDirectory;
 
 	@Parameter(property = InstallerMojosInformation.installationRoot, defaultValue = "")
@@ -452,9 +452,16 @@ public abstract class CommonInstaller extends CommonMojo {
 		return installationPackageVersion;
 	}
 
-	public String getInstallationPackageArch() throws MojoExecutionException {
+	private String getNormalizedInstallationPackageArch(String packageArch) {
+		if ("x86_64".equals(packageArch)) {
+			packageArch = "amd64";
+		}
+		return packageArch;
+	}
+
+	public String getInstallationPackageArch(boolean normalized) throws MojoExecutionException {
 		if (installationPackageArch != null && !installationPackageArch.isEmpty()) {
-			return installationPackageArch;
+			return normalized ? getNormalizedInstallationPackageArch(installationPackageArch) : installationPackageArch;
 		}
 
 		File installationPackage = getInstallationPackage();
@@ -472,11 +479,7 @@ public abstract class CommonInstaller extends CommonMojo {
 			installationPackageArch = "Arch Not Found";
 		}
 
-//		if ("x86_64".equals(installationPackageArch)) {
-//			installationPackageArch = "amd64";
-//		}
-
-		return installationPackageArch;
+		return normalized ? getNormalizedInstallationPackageArch(installationPackageArch) : installationPackageArch;
 	}
 
 	private String getNormalizedInstallationPackageOs(String packageOs) {
@@ -636,7 +639,7 @@ public abstract class CommonInstaller extends CommonMojo {
 			session.getCurrentProject().getProperties().put(getInstallationPackageVersionMajorMinorPropertyName(), packageVersionMajorMinor);
 		}
 
-		String packageArch = getInstallationPackageArch();
+		String packageArch = getInstallationPackageArch(true);
 		if (packageArch != null) {
 			session.getCurrentProject().getProperties().put(getInstallationPackageArchPropertyName(), packageArch);
 		}

@@ -25,7 +25,7 @@ import t3.CommonMojo;
 import t3.MojosFactory;
 import t3.toe.installer.envinfo.ListEnvInfoMojo;
 import t3.toe.installer.envinfo.RemoveEnvInfoMojo;
-import t3.toe.installer.fullenv.EnvironmentInstallerMojo;
+import t3.toe.installer.environments.EnvironmentInstallerMojo;
 import t3.toe.installer.installers.AdminInstallerMojo;
 import t3.toe.installer.installers.BW5InstallerMojo;
 import t3.toe.installer.installers.BW6InstallerMojo;

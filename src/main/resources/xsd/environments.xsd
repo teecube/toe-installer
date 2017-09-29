@@ -86,6 +86,8 @@
 		</xs:sequence>
 		<xs:attribute name="name" type="xs:string" use="optional" default="@type"/>
 		<xs:attribute name="type" type="ProductType" use="required"/>
+		<xs:attribute name="priority" type="xs:int" use="optional"/>
+		<xs:attribute name="skip" type="xs:boolean" use="optional" default="false"/>
 	</xs:complexType>
 
 	<xs:complexType name="Environment">

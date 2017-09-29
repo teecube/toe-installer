@@ -86,7 +86,7 @@ public class TRAInstallerMojo extends CommonInstaller {
 	private File configDirectoryRoot;
 
 	@Override
-	protected void initDefaultParameters() throws MojoExecutionException {
+	public void initDefaultParameters() throws MojoExecutionException {
 		super.initDefaultParameters();
 
 		if (configDirectoryRoot == null) {
@@ -179,23 +179,43 @@ public class TRAInstallerMojo extends CommonInstaller {
 	}
 
 	@Override
-	public String getRemotePackageGroupId() {
+	public String getRemoteInstallationPackageGroupId() {
 		return remoteInstallationPackageGroupId;
 	}
 
 	@Override
-	public String getRemotePackageArtifactId() {
+	public String getRemoteInstallationPackageArtifactId() {
 		return remoteInstallationPackageArtifactId;
 	}
 
 	@Override
-	public String getRemotePackageVersion() {
+	public String getRemoteInstallationPackageVersion() {
 		return remoteInstallationPackageVersion;
 	}
 
 	@Override
-	public String getRemotePackageClassifier() {
+	public String getRemoteInstallationPackageClassifier() {
 		return remoteInstallationPackageClassifier;
+	}
+
+	@Override
+	public void setRemoteInstallationPackageGroupId(String remoteInstallationPackageGroupId) {
+		this.remoteInstallationPackageGroupId = remoteInstallationPackageGroupId;
+	}
+
+	@Override
+	public void setRemoteInstallationPackageArtifactId(String remoteInstallationPackageArtifactId) {
+		this.remoteInstallationPackageArtifactId = remoteInstallationPackageArtifactId;
+	}
+
+	@Override
+	public void setRemoteInstallationPackageVersion(String remoteInstallationPackageVersion) {
+		this.remoteInstallationPackageVersion = remoteInstallationPackageVersion;
+	}
+
+	@Override
+	public void setRemoteInstallationPackageClassifier(String remoteInstallationPackageClassifier) {
+		this.remoteInstallationPackageClassifier = remoteInstallationPackageClassifier;
 	}
 
 	@Override

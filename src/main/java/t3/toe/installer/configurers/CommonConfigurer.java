@@ -163,7 +163,8 @@ public abstract class CommonConfigurer extends CommonMojo {
 
 			GenerateGlobalParametersDocMojo standaloneGenerator = GenerateGlobalParametersDocMojo.standaloneGenerator(session.getCurrentProject(), getBootstrapClass(), files);
 
-			getLog().info("\n" + standaloneGenerator.getFullSampleProfileForCommandLine(getArtifactId(), profileProperties));
+			String profileId = getArtifactId();
+			getLog().info("\n" + standaloneGenerator.getFullSampleProfileForCommandLine(profileId, profileProperties));
 
 			File settingsXml = getSettingsXml();
 
@@ -185,13 +186,14 @@ public abstract class CommonConfigurer extends CommonMojo {
 								existingProfile = true;
 								// a profile with same id already exists
 								if (overwriteExistingProfile) {
-									getLog().info("Profile '" + p.getId() + "'already exists in Maven settings file '" + settingsXml + "'. Overwriting.");
+									getLog().info("Profile '" + p.getId() + "' already exists in Maven settings file '" + settingsXml + "'. Overwriting.");
+									getLog().info("");
 									profile = p;
 									iterator.remove();
 									settings.addProfile(p);
 									break;
 								} else {
-									getLog().warn("Profile '" + p.getId() + "'already exists in Maven settings file '" + settingsXml + "'. Skipping.");
+									getLog().warn("Profile '" + p.getId() + "' already exists in Maven settings file '" + settingsXml + "'. Skipping.");
 									return;
 								}
 							}
@@ -205,17 +207,17 @@ public abstract class CommonConfigurer extends CommonMojo {
 					} catch (IOException | XmlPullParserException e) {
 						// nothing
 					}
-					getLog().info("Adding sample profile in the 'settings.xml' file of current");
-					getLog().info("Maven installation:");
+					getLog().info("Adding sample profile in the Maven settings.");
+					getLog().info("Current Maven settings is:");
 				} else {
-					getLog().info("This sample profile must be added in the 'settings.xml' file of current");
-					getLog().info("Maven installation:");
+					getLog().info("This sample profile must be added in the Maven settings.");
+					getLog().info("Current Maven settings is:");
 				}
 				getLog().info("  " + settingsXml.getAbsolutePath());
 
 				if (!writeToSettings) {
 					getLog().info("");
-					getLog().info("To persist the sample profile in 'settings.xml',");
+					getLog().info("To persist the sample profile in the Maven settings,");
 					getLog().info("set '" + InstallerMojosInformation.writeToSettings + "' to 'true'.");
 				}
 			}

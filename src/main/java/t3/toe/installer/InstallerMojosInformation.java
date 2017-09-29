@@ -63,6 +63,10 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 	public static final String removeExistingEnvironment_default = "false";
 	public static final String removeExistingEnvironment_description = "tibco.installation.removeExisting";
 
+	public static final String ignoreDependencies = "tibco.installation.ignoreDependencies";
+	public static final String ignoreDependencies_default = "false";
+	public static final String ignoreDependencies_description = "tibco.installation.ignoreDependencies";
+	
 	public static final String installationPackageDirectory = "tibco.installation.packages.directory";
 	public static final String installationPackageDirectory_default = "${basedir}";
 	public static final String installationPackageDirectory_description = "tibco.installation.packages.directory";
@@ -392,6 +396,8 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String ticBW6Version_default = "";
 		public static final String tacArchetypesVersion = "tibco.packages.install.tacArchetypesVersion";
 		public static final String tacArchetypesVersion_default = "";
+		public static final String tacArchetypesArtifactsId = "tibco.packages.install.tacArchetypesArtifactsId";
+		public static final String tacArchetypesArtifactsId_default = "default-bw5-ear,default-bw6-app-module,default-bw6-application";
 	}
 
 	public static class FullEnvironment {

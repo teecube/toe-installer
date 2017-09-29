@@ -87,7 +87,7 @@ public class InstallPackages extends AbstractPackagesResolver {
 				if (StringUtils.isNotEmpty(installer.getInstallationPackageArch(false)) && StringUtils.isNotEmpty(installer.getInstallationPackageOs(false))) {
 					classifier = installer.getInstallationPackageOs(false) + "_" + installer.getInstallationPackageArch(false);
 				}
-				this.installDependency(installer.getRemotePackageGroupId(), installer.getRemotePackageArtifactId(), installer.getInstallationPackageVersion(), "zip", classifier, installer.getInstallationPackage(), localRepositoryPath);
+				this.installDependency(installer.getRemoteInstallationPackageGroupId(), installer.getRemoteInstallationPackageArtifactId(), installer.getInstallationPackageVersion(), "zip", classifier, installer.getInstallationPackage(), localRepositoryPath);
 			}
 		} else {
 			getLog().info("No TIBCO installation package was found.");

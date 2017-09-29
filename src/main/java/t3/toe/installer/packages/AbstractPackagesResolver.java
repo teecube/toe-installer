@@ -86,6 +86,9 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 	@Parameter(property = InstallerMojosInformation.Packages.tacArchetypesVersion, defaultValue = InstallerMojosInformation.Packages.tacArchetypesVersion_default)
 	protected String tacArchetypesVersion;
 
+	@Parameter(property = InstallerMojosInformation.Packages.tacArchetypesArtifactsId, defaultValue = InstallerMojosInformation.Packages.tacArchetypesArtifactsId_default)
+	protected String tacArchetypesArtifactsId;
+
 	@Override
 	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() throws MojoExecutionException {
 		return new InstallerLifecycleParticipant();
@@ -177,6 +180,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 	private Plugin getTicBW6Plugin(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
 		List<String> goals = new ArrayList<String>();
 		goals.add("studio-proxy-uninstall");
+		goals.add("p2maven-install");
 		return getPlugin(helper, "io.teecube.tic", "tic-bw6", version, "bw6", goals);
 	}
 
@@ -189,16 +193,25 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 		return plugin;
 	}
 
-	private Plugin getTacArchetypeBW5EAR(DefaultVersionsHelper helper, String tacArchetypesVersion) throws MojoExecutionException {
-		Artifact artifact = getArtifact(helper, "io.teecube.tac.archetypes", "default-bw5-ear", tacArchetypesVersion, "maven-archetype");
-		Plugin plugin = getPluginFromArtifact(artifact);
-
+	private Plugin getMavenDependencyPlugin() {
+		Plugin plugin = new Plugin();
+		plugin.setGroupId("org.apache.maven.plugins");
+		plugin.setArtifactId("maven-dependency-plugin");
+		plugin.setVersion("3.0.2"); // must be in sync with POM !
+		
 		return plugin;
 	}
 
 	private List<Plugin> getTacArchetypes(DefaultVersionsHelper helper, String tacArchetypesVersion) throws MojoExecutionException {
 		List<Plugin> result = new ArrayList<Plugin>();
-		result.add(getTacArchetypeBW5EAR(helper, tacArchetypesVersion));
+		String[] artifactsId = tacArchetypesArtifactsId.split(",");
+		for (int i = 0; i < artifactsId.length; i++) {
+			String artifactId = artifactsId[i];
+
+			Artifact artifact = getArtifact(helper, "io.teecube.tac.archetypes", artifactId, tacArchetypesVersion, "maven-archetype");
+			Plugin plugin = getPluginFromArtifact(artifact);
+			result.add(plugin);
+		}
 		return result;
 	}
 
@@ -285,6 +298,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 			result.addAll(getTacArchetypes(helper, tacArchetypesVersion));
 		}
 		result.add(getMavenInstallPlugin());
+		result.add(getMavenDependencyPlugin());
 
 		return result;
 	}

@@ -63,6 +63,7 @@ import org.apache.maven.plugins.annotations.Component;
 import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.archiver.manager.ArchiverManager;
 import org.codehaus.plexus.archiver.manager.NoSuchArchiverException;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.twdata.maven.mojoexecutor.MojoExecutor.Element;
 
 import com.google.common.io.Files;
@@ -70,7 +71,7 @@ import com.tibco.envinfo.TIBCOEnvironment.Environment;
 
 import t3.AdvancedMavenLifecycleParticipant;
 import t3.CommonMojo;
-import t3.NoOpLogger;
+import t3.log.NoOpLogger;
 import t3.plugin.PropertiesEnforcer;
 import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
@@ -101,6 +102,9 @@ public abstract class CommonInstaller extends CommonMojo {
 
 	@Parameter(property = InstallerMojosInformation.removeExistingEnvironment, defaultValue = InstallerMojosInformation.removeExistingEnvironment_default)
 	protected Boolean removeExistingEnvironment;
+
+	@Parameter(property = InstallerMojosInformation.ignoreDependencies, defaultValue = InstallerMojosInformation.ignoreDependencies_default)
+	protected Boolean ignoreDependencies;
 
 	protected String currentGoalName;
 
@@ -221,6 +225,22 @@ public abstract class CommonInstaller extends CommonMojo {
 		}
 	}
 
+	public void setEnvironmentName(String environmentName) {
+		this.environmentName = environmentName;
+	}
+
+	public void setIgnoreDependencies(Boolean ignoreDependencies) {
+		this.ignoreDependencies = ignoreDependencies;
+	}
+	
+	public void setInstallationPackageVersion(String installationPackageVersion) {
+		this.installationPackageVersion = installationPackageVersion;
+	}
+
+	public void setInstallationRoot(File installationRoot) {
+		this.installationRoot = installationRoot;
+	}
+
 	protected Boolean reuseExistingEnvironment(File installationRoot) throws IOException {
 		if (((createNewEnvironment || _createNewEnvironment) && installationRootWasNotSet) || _isDependency) {
 			if (!_isDependency) {
@@ -265,14 +285,18 @@ public abstract class CommonInstaller extends CommonMojo {
 	public abstract String getInstallationPackageVersionMajorMinorPropertyName();
 	public abstract String getInstallationPackageVersionMajorMinor();
 
-	public abstract String getRemotePackageGroupId();
-	public abstract String getRemotePackageArtifactId();
-	public abstract String getRemotePackageVersion();
-	public abstract String getRemotePackageClassifier();
+	public abstract String getRemoteInstallationPackageGroupId();
+	public abstract String getRemoteInstallationPackageArtifactId();
+	public abstract String getRemoteInstallationPackageVersion();
+	public abstract String getRemoteInstallationPackageClassifier();
+	public abstract void setRemoteInstallationPackageGroupId(String remoteInstallationPackageGroupId);
+	public abstract void setRemoteInstallationPackageArtifactId(String remoteInstallationPackageArtifactId);
+	public abstract void setRemoteInstallationPackageVersion(String remoteInstallationPackageVersion);
+	public abstract void setRemoteInstallationPackageClassifier(String remoteInstallationPackageClassifier);
 	public String getRemotePackageCoordinates() {
-		String classifier = getRemotePackageClassifier();
+		String classifier = getRemoteInstallationPackageClassifier();
 
-		return getRemotePackageGroupId() + ":" + getRemotePackageArtifactId() + ":" + getRemotePackageVersion() + ":zip" + (classifier != null ? ":" + classifier : "");
+		return getRemoteInstallationPackageGroupId() + ":" + getRemoteInstallationPackageArtifactId() + ":" + getRemoteInstallationPackageVersion() + ":zip" + (classifier != null ? ":" + classifier : "");
 	}
 
 	public abstract void setInstallationPackageVersionMajorMinor(String version);
@@ -357,11 +381,11 @@ public abstract class CommonInstaller extends CommonMojo {
 		return executableFile;
 	}
 
-	private File findRemoteInstallationPackage() throws MojoExecutionException, ArtifactNotFoundException {
-		String groupId = getRemotePackageGroupId();
-		String artifactId = getRemotePackageArtifactId();
-		String version = getRemotePackageVersion();
-		String classifier = getRemotePackageClassifier();
+	private File findRemoteInstallationPackage() throws MojoExecutionException, ArtifactNotFoundException, ArtifactResolutionException {
+		String groupId = getRemoteInstallationPackageGroupId();
+		String artifactId = getRemoteInstallationPackageArtifactId();
+		String version = getRemoteInstallationPackageVersion();
+		String classifier = getRemoteInstallationPackageClassifier();
 
 		return getDependency(groupId, artifactId, version, "zip", classifier);
 	}
@@ -381,8 +405,8 @@ public abstract class CommonInstaller extends CommonMojo {
 	 * @throws MojoExecutionException 
 	 */
 	protected File findInstallationPackage() throws MojoExecutionException {
-		String remoteInstallationPackageVersion = getRemotePackageVersion();
-		String remoteInstallationPackageClassifier = getRemotePackageClassifier();
+		String remoteInstallationPackageVersion = getRemoteInstallationPackageVersion();
+		String remoteInstallationPackageClassifier = getRemoteInstallationPackageClassifier();
 		if (!StringUtils.isEmpty(remoteInstallationPackageVersion) && !StringUtils.isEmpty(remoteInstallationPackageClassifier)) {
 			File remoteInstallationPacakge;
 			try {
@@ -396,7 +420,7 @@ public abstract class CommonInstaller extends CommonMojo {
 					installationPackageVersion = remoteInstallationPackageVersion;
 					return remoteInstallationPacakge;
 				}
-			} catch (MojoExecutionException | FileNotFoundException | ArtifactNotFoundException e) {
+			} catch (MojoExecutionException | FileNotFoundException | ArtifactNotFoundException | ArtifactResolutionException e) {
 				getLog().info("");
 				getLog().error("This goal is configured to retrieve a remote installation package but this package cannot be found.");
 				getLog().error("The Maven coordinates configured for the remote installation package are: " + this.getRemotePackageCoordinates());
@@ -475,6 +499,13 @@ public abstract class CommonInstaller extends CommonMojo {
 		Matcher m = p.matcher(name);
 		if (m.matches()) {
 			installationPackageArch = m.group(getInstallationPackageArchGroupIndex());
+		} else if (StringUtils.isNotBlank(getRemoteInstallationPackageClassifier())) {
+			name = getRemoteInstallationPackageClassifier();
+			p = Pattern.compile("([^_]*)_(.*)");
+			m = p.matcher(name);
+			if (m.matches()) {
+				installationPackageArch = m.group(2);
+			}
 		} else {
 			installationPackageArch = "Arch Not Found";
 		}
@@ -510,6 +541,13 @@ public abstract class CommonInstaller extends CommonMojo {
 		Matcher m = p.matcher(name);
 		if (m.matches()) {
 			installationPackageOs = m.group(getInstallationPackageOsGroupIndex());
+		} else if (StringUtils.isNotBlank(getRemoteInstallationPackageClassifier())) {
+			name = getRemoteInstallationPackageClassifier();
+			p = Pattern.compile("([^_]*)_(.*)");
+			m = p.matcher(name);
+			if (m.matches()) {
+				installationPackageOs = m.group(1);
+			}
 		} else {
 			installationPackageOs = "OS Not Found";
 		}
@@ -558,12 +596,6 @@ public abstract class CommonInstaller extends CommonMojo {
 			}
 
 			props.setProperty("acceptLicense", "true"); // always true
-			if (getCreateNewEnvironment() && hasDependencies()) { // check if it is possible
-				throw new MojoExecutionException("The package to install has dependencies and cannot be created in a new environment");
-			}
-			if (!getCreateNewEnvironment() && !dependenciesExist()) {
-				throw new MojoExecutionException("The package to install has unresolved dependencies in this environment (" + environmentName + "=" + installationRoot + ")");
-			}
 			props.setProperty("createNewEnvironment", getCreateNewEnvironment().toString());
 			props.setProperty("environmentName", environmentName.toString());
 			props.setProperty("installationRoot", getInstallationRoot().getAbsolutePath());
@@ -579,6 +611,10 @@ public abstract class CommonInstaller extends CommonMojo {
 	}
 
 	private void installDependency(String goal) throws MojoExecutionException {
+		if (ignoreDependencies) {
+			return;
+		}
+
 		getLog().info("Detected a dependency. Installing...");
 		getLog().info("");
 		getLog().info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
@@ -623,7 +659,7 @@ public abstract class CommonInstaller extends CommonMojo {
 		return new InstallerLifecycleParticipant();
 	}
 
-	protected void initDefaultParameters() throws MojoExecutionException {
+	public void initDefaultParameters() throws MojoExecutionException {
 		String packageVersion = getInstallationPackageVersion();
 		if (packageVersion != null) {
 			session.getCurrentProject().getProperties().put(getInstallationPackageVersionPropertyName(), packageVersion);
@@ -684,7 +720,7 @@ public abstract class CommonInstaller extends CommonMojo {
 	}
 
 	@Override
-	protected <T> void initStandalonePOM() throws MojoExecutionException {
+	public <T> void initStandalonePOM() throws MojoExecutionException {
 		super.initStandalonePOM();
 
 		initDefaultParameters();
@@ -695,6 +731,9 @@ public abstract class CommonInstaller extends CommonMojo {
 			List<String> _goals = new ArrayList<String>();
 			_goals.addAll(session.getRequest().getGoals());
 			List<String> dependenciesGoals = getDependenciesGoals();
+			if (ignoreDependencies) {
+				dependenciesGoals.clear();
+			}
 
 			try {
 				if (_goals.size() > 1) {
@@ -750,6 +789,13 @@ public abstract class CommonInstaller extends CommonMojo {
 		if (installationExists()) {
 			getLog().info(getProductName() + " version " + getInstallationPackageVersionMajorMinor() + " is already installed in the directory '" + getInstallationRoot().getAbsolutePath() + "': skipping installation.");
 			return;
+		}
+
+		if (getCreateNewEnvironment() && hasDependencies()) { // check if it is possible
+			throw new MojoExecutionException("The package to install has dependencies and cannot be created in a new environment");
+		}
+		if (!getCreateNewEnvironment() && !dependenciesExist()) {
+			throw new MojoExecutionException("The package to install has unresolved dependencies in this environment (" + environmentName + "=" + installationRoot + ")");
 		}
 
 		File installationPackage = getInstallationPackage();

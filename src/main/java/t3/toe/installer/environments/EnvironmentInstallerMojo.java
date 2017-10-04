@@ -20,7 +20,6 @@ package t3.toe.installer.environments;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.executeMojo;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.groupId;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
@@ -109,6 +108,8 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 		loadTopology();
 
+		CommonInstaller.firstGoal = false;
+
 		for (Environment environment : environmentsMarshaller.getObject().getEnvironment()) {
 			Products products = environment.getProducts();
 			List<ProductToInstall> productsToInstall = new ArrayList<ProductToInstall>();
@@ -122,6 +123,10 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			for (ProductToInstall product : productsToInstall) {
 				configurations.add(initInstaller(environment, product, i));
 				i++;
+
+				if (i == productsToInstall.size() + 1) {
+					getLog().info(Messages.MESSAGE_SPACE);
+				}
 			}
 
 			getLog().info("Environment name to install is : " + environment.getEnvironmentName());
@@ -320,6 +325,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		configuration.add(element("ignoredParameters", ignoredParameters.toArray(new Element[0])));
 
 		// init the Mojo to check if installation already exists
+		mojo.setLog(this.getLog());
 		mojo.setLogger(this.logger);
 		mojo.setPluginManager(pluginManager);
 		mojo.setSession(session);

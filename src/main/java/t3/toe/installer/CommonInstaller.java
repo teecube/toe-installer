@@ -19,7 +19,6 @@ package t3.toe.installer;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.executeMojo;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.groupId;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
@@ -411,9 +410,7 @@ public abstract class CommonInstaller extends CommonMojo {
 			File remoteInstallationPacakge;
 			try {
 				remoteInstallationPacakge = findRemoteInstallationPackage();
-				if (!firstGoal) {
-					getLog().info("");
-				}
+
 				if (remoteInstallationPacakge == null || !remoteInstallationPacakge.exists()) {
 					throw new FileNotFoundException();
 				} else {

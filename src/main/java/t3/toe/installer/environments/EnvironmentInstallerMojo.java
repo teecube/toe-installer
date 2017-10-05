@@ -124,7 +124,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 				configurations.add(initInstaller(environment, product, i));
 				i++;
 
-				if (i == productsToInstall.size() + 1) {
+				if (productIsRemote(product)) {
 					getLog().info(Messages.MESSAGE_SPACE);
 				}
 			}
@@ -135,15 +135,15 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 			i = 1;
 			for (ProductToInstall product : productsToInstall) {
-				String alreadyInstalled = (product.isAlreadyInstalled() ? " (already installed)" : "");
 				String skipped = (product.isSkip() ? " (skipped)" : "");
+				String alreadyInstalled = (!product.isSkip() && product.isAlreadyInstalled() ? " (already installed)" : "");
 				String prefix;
 				if (i == 1) {
 					prefix = "Products to install            : " + i + ". ";
 				} else {
 					prefix = "                                 " + i + ". ";
 				}
-				getLog().info(prefix + product.getTibcoProduct().productName() + alreadyInstalled + skipped);
+				getLog().info(prefix + product.fullProductName() + alreadyInstalled + skipped);
 				i++;
 			}
 
@@ -153,6 +153,14 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 				i++;
 			}
 		}
+	}
+
+	private boolean productIsLocal(ProductToInstall product) {
+		return product != null && product.getPackage() != null && product.getPackage().getLocal() != null;
+	}
+
+	private boolean productIsRemote(ProductToInstall product) {
+		return product != null && product.getPackage() != null && product.getPackage().getRemote() != null;
 	}
 
 	private boolean productExists(TIBCOProduct tibcoProduct, List<ProductToInstall> productsToInstall) {
@@ -181,7 +189,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 				boolean traExists = productExists(TIBCOProduct.TRA, productsToInstall);
 				if (!rvExists || !traExists) {
 					getLog().info("");
-					getLog().error("The product '" + product.getTibcoProduct().productName() + "' has unresolved dependencies in the current topology.");
+					getLog().error("The product '" + product.fullProductName() + "' has unresolved dependencies in the current topology.");
 					if (rvExists) {
 						getLog().error("-> The product '" + TIBCOProduct.RV.productName() + "' is required but is not defined.");
 					}
@@ -205,7 +213,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 				if (product.getType().equals(ProductType.ADMIN) || product.getType().equals(ProductType.BW_5)) { // Administator and BW5 need RV and TRA before being installed
 					if (productToCompare.getType().equals(ProductType.RV) || productToCompare.getType().equals(ProductType.TRA)) {
 						if (productToComparePriority >= productPriority) {
-							getLog().error("The product '" + productToCompare.getTibcoProduct().productName() + "' (priority " + productToComparePriority + ") cannot be installed after product '" + product.getTibcoProduct().productName() + "' (priority " + productPriority + ").");
+							getLog().error("The product '" + productToCompare.fullProductName() + "' (priority " + productToComparePriority + ") cannot be installed after product '" + product.fullProductName() + "' (priority " + productPriority + ").");
 							prioritiesOK = false;
 						}						
 					}
@@ -279,7 +287,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		addProperty(configuration, ignoredParameters, "installationRoot", environment.getTibcoRoot(), CommonInstaller.class);
 		mojo.setInstallationRoot(new File(environment.getTibcoRoot()));
 		if (product.getPackage() != null) {
-			if (product.getPackage().getRemote() != null) {
+			if (product.getPackage().getRemote() != null) { // use remote package
 				RemotePackage remotePackage = product.getPackage().getRemote();
 	
 				// version and classifier are mandatory
@@ -296,24 +304,38 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 					addProperty(configuration, ignoredParameters, "remoteInstallationPackageArtifactId", remotePackage.getArtifactId(), mojo.getClass());
 					mojo.setRemoteInstallationPackageArtifactId(remotePackage.getArtifactId());
 				}
-			} else if (product.getPackage().getLocal() != null) {
+			} else if (product.getPackage().getLocal() != null) { // use local package
 				LocalPackage localPackage = product.getPackage().getLocal();
-				if (StringUtils.isNotBlank(localPackage.getDirectory())) {
-					addProperty(configuration, ignoredParameters, "installationPackageDirectory", localPackage.getDirectory(), CommonInstaller.class);
-					mojo.setInstallationPackageDirectory(new File(localPackage.getDirectory()));					
+				if (localPackage.getDirectoryWithPattern() != null) {
+					if (StringUtils.isNotBlank(localPackage.getDirectoryWithPattern().getDirectory())) {
+						addProperty(configuration, ignoredParameters, "installationPackageDirectory", localPackage.getDirectoryWithPattern().getDirectory(), CommonInstaller.class);
+						mojo.setInstallationPackageDirectory(new File(localPackage.getDirectoryWithPattern().getDirectory()));					
+					}
+					if (StringUtils.isNotBlank(localPackage.getDirectoryWithPattern().getPattern())) {
+						addProperty(configuration, ignoredParameters, "installationPackageRegex", localPackage.getDirectoryWithPattern().getPattern(), mojo.getClass());
+						mojo.setInstallationPackageRegex(localPackage.getDirectoryWithPattern().getPattern());
+					}
+					if (localPackage.getDirectoryWithPattern().getVersionGroupIndex() != null) {
+						addProperty(configuration, ignoredParameters, "installationPackageRegexVersionGroupIndex", localPackage.getDirectoryWithPattern().getVersionGroupIndex().toString(), mojo.getClass());
+						mojo.setInstallationPackageRegexVersionGroupIndex(localPackage.getDirectoryWithPattern().getVersionGroupIndex());
+					}
 				}
 				if (StringUtils.isNotBlank(localPackage.getFile())) {
 					addProperty(configuration, ignoredParameters, "installationPackage", localPackage.getFile(), mojo.getClass());
-//					mojo.setInstallationPackage(new File(localPackage.getFile())); // TODO
-				}
-				if (StringUtils.isNotBlank(localPackage.getPattern())) {
-					addProperty(configuration, ignoredParameters, "installationPackageRegex", localPackage.getPattern(), mojo.getClass());
-//					mojo.setInstallationPackageRegex(localPackage.getPattern()); // TODO
+					mojo.setInstallationPackage(new File(localPackage.getFile()));
 				}
 			}
-		} else {
-			addProperty(configuration, ignoredParameters, "installationPackageDirectory", getInstallationPackageDirectory(environment, product), CommonInstaller.class);
-			mojo.setInstallationPackageDirectory(new File(getInstallationPackageDirectory(environment, product)));
+		} else { // no remote or local package defined -> create a local package with default values
+			String installationPackagesDirectory = getInstallationPackagesDirectory(environment, product);
+			File installationPackagesDirectoryFile = null;
+			if (installationPackagesDirectory != null) {
+				installationPackagesDirectoryFile = new File(installationPackagesDirectory);
+			}
+			if (installationPackagesDirectoryFile == null || !installationPackagesDirectoryFile.exists() || !installationPackagesDirectoryFile.isDirectory()) {
+				throw new MojoExecutionException("The product '" + product.fullProductName() + "' has no package directory set in this topology");
+			}
+			addProperty(configuration, ignoredParameters, "installationPackageDirectory", installationPackagesDirectory, CommonInstaller.class);
+			mojo.setInstallationPackageDirectory(installationPackagesDirectoryFile);
 		}
 
 		if (product.getProperties() != null && product.getProperties().getProperty() != null) {
@@ -347,14 +369,14 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 		String goal = product.getTibcoProduct().goal();
 
-		if (product.isAlreadyInstalled()) {
-			getLog().info(productIndex + ". Skipping '" + product.getTibcoProduct().productName() + "' (already installed)");
+		if (product.isSkip()) {
+			getLog().info(productIndex + ". Skipping '" + product.fullProductName() + "'");
 			return;
-		} else if (product.isSkip()) {
-			getLog().info(productIndex + ". Skipping '" + product.getTibcoProduct().productName() + "'");
+		} else if (product.isAlreadyInstalled()) {
+			getLog().info(productIndex + ". Skipping '" + product.fullProductName() + "' (already installed)");
 			return;
 		} else {
-			getLog().info(productIndex + ". Installing '" + product.getTibcoProduct().productName() + "'");
+			getLog().info(productIndex + ". Installing '" + product.fullProductName() + "'");
 		}
 		getLog().info("");
 		getLog().info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
@@ -388,9 +410,9 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 	 * @param product
 	 * @return
 	 */
-	private String getInstallationPackageDirectory(Environment environment, ProductToInstall product) {
-		if (product != null && product.getPackage() != null && product.getPackage().getLocal() != null && product.getPackage().getLocal().getDirectory() != null) {
-			return product.getPackage().getLocal().getDirectory();
+	private String getInstallationPackagesDirectory(Environment environment, ProductToInstall product) {
+		if (productIsLocal(product) && product.getPackage().getLocal().getDirectoryWithPattern() != null && product.getPackage().getLocal().getDirectoryWithPattern().getDirectory() != null) {
+			return product.getPackage().getLocal().getDirectoryWithPattern().getDirectory();
 		} else if (environment != null && environment.getPackagesDirectory() != null) {
 			return environment.getPackagesDirectory();
 		}

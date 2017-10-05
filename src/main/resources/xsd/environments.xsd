@@ -42,12 +42,23 @@
 
 	<xs:complexType name="LocalPackage">
 		<xs:sequence>
-			<xs:element name="directory" type="xs:string" minOccurs="0"/>
-			<xs:element name="file" type="xs:string" minOccurs="0"/>
-			<xs:element name="pattern" type="xs:string" minOccurs="0"/>
+			<xs:choice>
+				<xs:element name="file" type="xs:string"/>
+				<xs:element name="directoryWithPattern" type="LocalPackagePattern"/>
+			</xs:choice>
 		</xs:sequence>
 	</xs:complexType>
 
+	<xs:complexType name="LocalPackagePattern">
+		<xs:sequence>
+			<xs:element name="directory" type="xs:string" minOccurs="0" /> <!-- minOccurs=0 because the /environment/packagesDirectory can be used instead  -->
+			<xs:element name="pattern" type="xs:string" minOccurs="0" />
+			<xs:element name="versionGroupIndex" type="xs:int" minOccurs="0" />
+			<xs:element name="archGroupIndex" type="xs:int" minOccurs="0" />
+			<xs:element name="osGroupIndex" type="xs:int" minOccurs="0" />
+		</xs:sequence>
+	</xs:complexType>
+		
 	<xs:complexType name="RemotePackage">
 		<xs:sequence>
 			<xs:element name="groupId" type="xs:string" minOccurs="0"/>
@@ -84,6 +95,7 @@
 				</xs:complexType>
 			</xs:element>
 		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" use="optional"/>
 		<xs:attribute name="name" type="xs:string" use="optional" default="@type"/>
 		<xs:attribute name="type" type="ProductType" use="required"/>
 		<xs:attribute name="priority" type="xs:int" use="optional"/>

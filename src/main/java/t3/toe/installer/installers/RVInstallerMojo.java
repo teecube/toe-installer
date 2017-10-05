@@ -189,6 +189,21 @@ public class RVInstallerMojo extends CommonInstaller {
 	}
 
 	@Override
+	public void setInstallationPackage(File installationPackage) {
+		this.installationPackage = installationPackage;
+	}
+
+	@Override
+	public void setInstallationPackageRegex(String installationPackageRegex) {
+		this.installationPackageRegex = installationPackageRegex;
+	}
+
+	@Override
+	public void setInstallationPackageRegexVersionGroupIndex(Integer installationPackageRegexVersionGroupIndex) {
+		this.installationPackageRegexVersionGroupIndex = installationPackageRegexVersionGroupIndex;
+	}
+
+	@Override
 	public boolean hasDependencies() {
 		return false;
 	}

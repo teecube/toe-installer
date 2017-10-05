@@ -274,7 +274,9 @@ public abstract class CommonInstaller extends CommonMojo {
 	public abstract String getProductName();
 	public abstract File getInstallationPackage() throws MojoExecutionException;
 	public abstract String getInstallationPackageRegex();
+	public abstract void setInstallationPackageRegex(String installationPackageRegex);
 	public abstract Integer getInstallationPackageVersionGroupIndex();
+	public abstract void setInstallationPackageRegexVersionGroupIndex(Integer installationPackageRegexVersionGroupIndex);
 	public abstract Integer getInstallationPackageArchGroupIndex();
 	public abstract String getInstallationPackageArchPropertyName();
 	public abstract Integer getInstallationPackageOsGroupIndex();
@@ -283,6 +285,7 @@ public abstract class CommonInstaller extends CommonMojo {
 	public abstract String getInstallationPackageVersionPropertyName();
 	public abstract String getInstallationPackageVersionMajorMinorPropertyName();
 	public abstract String getInstallationPackageVersionMajorMinor();
+	public abstract void setInstallationPackage(File installationPackage);
 
 	public abstract String getRemoteInstallationPackageGroupId();
 	public abstract String getRemoteInstallationPackageArtifactId();
@@ -386,7 +389,7 @@ public abstract class CommonInstaller extends CommonMojo {
 		String version = getRemoteInstallationPackageVersion();
 		String classifier = getRemoteInstallationPackageClassifier();
 
-		return getDependency(groupId, artifactId, version, "zip", classifier);
+		return getDependency(groupId, artifactId, version, "zip", classifier, true);
 	}
 
 	/**

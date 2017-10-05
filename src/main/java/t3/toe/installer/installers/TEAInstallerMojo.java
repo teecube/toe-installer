@@ -123,6 +123,11 @@ public class TEAInstallerMojo extends CommonInstaller {
 	}
 
 	@Override
+	public void setInstallationPackageRegex(String installationPackageRegex) {
+		this.installationPackageRegex = installationPackageRegex;
+	}
+
+	@Override
 	public String getInstallationPackagePropertyName() {
 		return InstallerMojosInformation.EnterpriseAdministrator.installationPackage;
 	}
@@ -195,6 +200,16 @@ public class TEAInstallerMojo extends CommonInstaller {
 	@Override
 	public void setRemoteInstallationPackageClassifier(String remoteInstallationPackageClassifier) {
 		this.remoteInstallationPackageClassifier = remoteInstallationPackageClassifier;
+	}
+
+	@Override
+	public void setInstallationPackage(File installationPackage) {
+		this.installationPackage = installationPackage;
+	}
+
+	@Override
+	public void setInstallationPackageRegexVersionGroupIndex(Integer installationPackageRegexVersionGroupIndex) {
+		this.installationPackageRegexVersionGroupIndex = installationPackageRegexVersionGroupIndex;
 	}
 
 	@Override

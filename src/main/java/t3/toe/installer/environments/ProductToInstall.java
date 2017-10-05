@@ -16,6 +16,8 @@
  */
 package t3.toe.installer.environments;
 
+import org.apache.commons.lang.StringUtils;
+
 import t3.toe.installer.environments.EnvironmentInstallerMojo.TIBCOProduct;
 
 public class ProductToInstall extends Product {
@@ -25,6 +27,7 @@ public class ProductToInstall extends Product {
 
 	public ProductToInstall(Product product) {
 		this.setHotfixes(product.getHotfixes());
+		this.setId(product.getId());
 		this.setName(product.getName());
 		this.setPackage(product.getPackage());
 		this.setPriority(product.getPriority());
@@ -50,5 +53,8 @@ public class ProductToInstall extends Product {
 	public void setTibcoProduct(TIBCOProduct tibcoProduct) {
 		this.tibcoProduct = tibcoProduct;
 	}
-	
-}
+
+	public String fullProductName() {
+		return tibcoProduct.productName() + (StringUtils.isNotEmpty(this.id) ? " (id: " + this.id + ")" : "");
+	}
+ }

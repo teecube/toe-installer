@@ -148,6 +148,10 @@ public abstract class CommonInstaller extends CommonMojo {
 		return environment.values();
 	}
 
+	public static boolean environmentExists(Environment environment) {
+		return environment != null && environment.getLocation() != null && new File(environment.getLocation()).exists() && new File(environment.getLocation()).isDirectory();
+	}
+
 	public static Environment getCurrentEnvironment(String environmentName) {
 		if (environmentName != null && !environmentName.isEmpty()) {
 			if (envInfo == null) {

@@ -110,7 +110,19 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 		CommonInstaller.firstGoal = false;
 
+		List<EnvironmentToInstall> environmentsToInstall = new ArrayList<EnvironmentToInstall>();
 		for (Environment environment : environmentsMarshaller.getObject().getEnvironment()) {
+			environmentsToInstall.add(new EnvironmentToInstall(environment));
+		}
+		for (EnvironmentToInstall environment : environmentsToInstall) {
+			// first check if environment exists and if we can continue according to current strategy (keep, fail, delete)
+			com.tibco.envinfo.TIBCOEnvironment.Environment localEnvironment = CommonInstaller.getCurrentEnvironment(environment.getEnvironmentName());
+			if (CommonInstaller.environmentExists(localEnvironment)) {
+				getLog().info("The environment already exists.");
+
+				environment.setToBeDeleted(deleteEnvironment(environment));
+			}
+			
 			Products products = environment.getProducts();
 			List<ProductToInstall> productsToInstall = new ArrayList<ProductToInstall>();
 			for (Product product : products.getProduct()) {
@@ -136,7 +148,12 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			i = 1;
 			for (ProductToInstall product : productsToInstall) {
 				String skipped = (product.isSkip() ? " (skipped)" : "");
-				String alreadyInstalled = (!product.isSkip() && product.isAlreadyInstalled() ? " (already installed)" : "");
+				String alreadyInstalled = (!product.isSkip() && product.isAlreadyInstalled() ? " (already installed"
+																							  + (environment.isToBeDeleted() ? ", will be deleted then reinstalled in new environment" : "")
+																							  + (!environment.isToBeDeleted() && IfProductExistsBehaviour.DELETE.equals(product.getIfExists()) ? ", will be deleted then reinstalled in current environment" : "")
+																							  + (!environment.isToBeDeleted() && IfProductExistsBehaviour.KEEP.equals(product.getIfExists()) ? ", will not be reinstalled" : "")
+																							  + ")" : "");
+
 				String prefix;
 				if (i == 1) {
 					prefix = "Products to install            : " + i + ". ";
@@ -153,6 +170,25 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 				i++;
 			}
 		}
+	}
+
+	private boolean deleteEnvironment(EnvironmentToInstall environment) throws MojoExecutionException, MojoFailureException {
+		switch (environment.getIfExists()) {
+		case DELETE:
+			getLog().info("Environment '" + environment.environmentName + "' will be deleted and reinstalled (as specified in topology).");
+			getLog().info(Messages.MESSAGE_SPACE);
+			return true;
+		case FAIL:
+			getLog().info(Messages.MESSAGE_SPACE);
+			getLog().error("Environment '" + environment.environmentName + "' already exists and cannot be updated nor deleted (as specified in topology).");
+			getLog().info(Messages.MESSAGE_SPACE);
+			throw new MojoExecutionException("Environment '" + environment.environmentName + "' already exists and cannot be updated nor deleted.");
+		case UPDATE:
+			getLog().info("Updating environment '" + environment.environmentName + "' (as specified in topology).");
+			getLog().info(Messages.MESSAGE_SPACE);
+			return false;
+		}
+		return true; // dead code anyway
 	}
 
 	private boolean productIsLocal(ProductToInstall product) {
@@ -265,7 +301,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 	}
 
-	private ArrayList<Element> initInstaller(Environment environment, ProductToInstall product, int productIndex) throws MojoExecutionException {
+	private ArrayList<Element> initInstaller(EnvironmentToInstall environment, ProductToInstall product, int productIndex) throws MojoExecutionException {
 		String goal = product.getTibcoProduct().goal();
 
 		CommonInstaller mojo = InstallerMojosFactory.getInstallerMojo("toe:" + goal);
@@ -277,9 +313,12 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		if (!firstDependency) {
 			addProperty(configuration, ignoredParameters, "createNewEnvironment", "false", CommonInstaller.class);
 		} else {
+			if (environment.isToBeDeleted()) {
+				addProperty(configuration, ignoredParameters, "removeExistingEnvironment", "true", CommonInstaller.class);
+			}
 			firstDependency = false;
 		}
-
+		
 		addProperty(configuration, ignoredParameters, "ignoreDependencies", "true", CommonInstaller.class); // disable resolution of dependencies in the product goal since dependency are managed here
 		mojo.setIgnoreDependencies(true);
 		addProperty(configuration, ignoredParameters, "environmentName", environment.getEnvironmentName(), CommonInstaller.class);
@@ -361,10 +400,30 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			product.setAlreadyInstalled(true);
 		}
 
+		if (product.isAlreadyInstalled() && !environment.isToBeDeleted()) {
+			switch (product.getIfExists()) {
+			case DELETE:
+				product.setToBeDeleted(true);
+
+				throw new MojoExecutionException("Unable to delete product '" + product.fullProductName() + "'", new UnsupportedOperationException()); // TODO : implement uninstall of products
+
+//				break;
+			case FAIL:
+				getLog().error("Product '" + product.fullProductName() + "' already exists and cannot be kept nor deleted (as specified in topology).");
+				getLog().info(Messages.MESSAGE_SPACE);
+
+				throw new MojoExecutionException("Product '" + product.fullProductName()  + "' already exists and cannot be deleted.");
+			case KEEP:
+				product.setToBeDeleted(false);
+
+				break;
+			}
+		}
+
 		return configuration;
 	}
 
-	private void installDependency(Environment environment, ProductToInstall product, int productIndex, List<Element> configuration) throws MojoExecutionException {
+	private void installDependency(EnvironmentToInstall environment, ProductToInstall product, int productIndex, List<Element> configuration) throws MojoExecutionException {
 		getLog().info("");
 
 		String goal = product.getTibcoProduct().goal();
@@ -372,7 +431,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		if (product.isSkip()) {
 			getLog().info(productIndex + ". Skipping '" + product.fullProductName() + "'");
 			return;
-		} else if (product.isAlreadyInstalled()) {
+		} else if (product.isAlreadyInstalled() && !environment.isToBeDeleted()) {
 			getLog().info(productIndex + ". Skipping '" + product.fullProductName() + "' (already installed)");
 			return;
 		} else {
@@ -410,7 +469,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 	 * @param product
 	 * @return
 	 */
-	private String getInstallationPackagesDirectory(Environment environment, ProductToInstall product) {
+	private String getInstallationPackagesDirectory(EnvironmentToInstall environment, ProductToInstall product) {
 		if (productIsLocal(product) && product.getPackage().getLocal().getDirectoryWithPattern() != null && product.getPackage().getLocal().getDirectoryWithPattern().getDirectory() != null) {
 			return product.getPackage().getLocal().getDirectoryWithPattern().getDirectory();
 		} else if (environment != null && environment.getPackagesDirectory() != null) {

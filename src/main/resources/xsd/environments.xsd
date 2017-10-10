@@ -68,6 +68,14 @@
 		</xs:sequence>
 	</xs:complexType>
 
+	<xs:simpleType name="IfProductExistsBehaviour">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="delete" />
+			<xs:enumeration value="fail" />
+			<xs:enumeration value="keep" />
+		</xs:restriction>
+	</xs:simpleType>
+
 	<xs:complexType name="Product">
 		<xs:sequence>
 			<xs:element name="hotfixes" minOccurs="0">
@@ -100,7 +108,16 @@
 		<xs:attribute name="type" type="ProductType" use="required"/>
 		<xs:attribute name="priority" type="xs:int" use="optional"/>
 		<xs:attribute name="skip" type="xs:boolean" use="optional" default="false"/>
+		<xs:attribute name="ifExists" type="IfProductExistsBehaviour" default="keep" />
 	</xs:complexType>
+
+	<xs:simpleType name="IfEnvironmentExistsBehaviour">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="delete" />
+			<xs:enumeration value="fail" />
+			<xs:enumeration value="update" />
+		</xs:restriction>
+	</xs:simpleType>
 
 	<xs:complexType name="Environment">
 		<xs:sequence>
@@ -115,6 +132,7 @@
 				</xs:complexType>
 			</xs:element>
 		</xs:sequence>
+		<xs:attribute name="ifExists" type="IfEnvironmentExistsBehaviour" default="fail" />
 	</xs:complexType>
 
 	<xs:element name="environments">

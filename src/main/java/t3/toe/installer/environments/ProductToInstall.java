@@ -23,11 +23,13 @@ import t3.toe.installer.environments.EnvironmentInstallerMojo.TIBCOProduct;
 public class ProductToInstall extends Product {
 	
 	private boolean alreadyInstalled;
+	private boolean toBeDeleted;
 	private TIBCOProduct tibcoProduct;
 
 	public ProductToInstall(Product product) {
 		this.setHotfixes(product.getHotfixes());
 		this.setId(product.getId());
+		this.setIfExists(product.getIfExists());
 		this.setName(product.getName());
 		this.setPackage(product.getPackage());
 		this.setPriority(product.getPriority());
@@ -57,4 +59,13 @@ public class ProductToInstall extends Product {
 	public String fullProductName() {
 		return tibcoProduct.productName() + (StringUtils.isNotEmpty(this.id) ? " (id: " + this.id + ")" : "");
 	}
+
+	public boolean isToBeDeleted() {
+		return toBeDeleted;
+	}
+
+	public void setToBeDeleted(boolean toBeDeleted) {
+		this.toBeDeleted = toBeDeleted;
+	}
+
  }

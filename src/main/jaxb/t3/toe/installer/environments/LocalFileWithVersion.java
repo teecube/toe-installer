@@ -15,17 +15,17 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for Property complex type.
+ * <p>Java class for LocalFileWithVersion complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="Property"&gt;
+ * &lt;complexType name="LocalFileWithVersion"&gt;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
  *       &lt;sequence&gt;
- *         &lt;element name="key" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
- *         &lt;element name="value" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+ *         &lt;element name="file" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+ *         &lt;element name="version" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
  *       &lt;/sequence&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
@@ -35,63 +35,63 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Property", propOrder = {
-    "key",
-    "value"
+@XmlType(name = "LocalFileWithVersion", propOrder = {
+    "file",
+    "version"
 })
-public class Property {
+public class LocalFileWithVersion {
 
     @XmlElement(required = true)
-    protected String key;
+    protected String file;
     @XmlElement(required = true)
-    protected String value;
+    protected String version;
 
     /**
-     * Gets the value of the key property.
+     * Gets the value of the file property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getKey() {
-        return key;
+    public String getFile() {
+        return file;
     }
 
     /**
-     * Sets the value of the key property.
+     * Sets the value of the file property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setKey(String value) {
-        this.key = value;
+    public void setFile(String value) {
+        this.file = value;
     }
 
     /**
-     * Gets the value of the value property.
+     * Gets the value of the version property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getValue() {
-        return value;
+    public String getVersion() {
+        return version;
     }
 
     /**
-     * Sets the value of the value property.
+     * Sets the value of the version property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setValue(String value) {
-        this.value = value;
+    public void setVersion(String value) {
+        this.version = value;
     }
 
 }

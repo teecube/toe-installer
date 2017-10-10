@@ -43,9 +43,16 @@
 	<xs:complexType name="LocalPackage">
 		<xs:sequence>
 			<xs:choice>
-				<xs:element name="file" type="xs:string"/>
+				<xs:element name="fileWithVersion" type="LocalFileWithVersion"/>
 				<xs:element name="directoryWithPattern" type="LocalPackagePattern"/>
 			</xs:choice>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="LocalFileWithVersion">
+		<xs:sequence>
+			<xs:element name="file" type="xs:string" />
+			<xs:element name="version" type="xs:string" />
 		</xs:sequence>
 	</xs:complexType>
 

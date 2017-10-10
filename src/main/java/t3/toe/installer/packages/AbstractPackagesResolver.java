@@ -61,10 +61,30 @@ import t3.toe.installer.InstallerMojosInformation;
 */
 public abstract class AbstractPackagesResolver extends CommonMojo {
 
-	private enum T3Plugins { TOE_INSTALLER, TOE_DOMAINS, TIC_BW5, TIC_BW6, TAC_ARCHETYPES };
+	protected enum T3Plugins {
+		TOE_INSTALLER ("TOE Products Installer"),
+		TOE_DOMAINS ("TOE Domains Manager"),
+		TIC_BW5 ("TIC BW5 Maven plugin"),
+		TIC_BW6 ("TIC BW6 Maven plugin"),
+		TAC_ARCHETYPES ("TAC Archetypes");
+
+		private String productName;
+
+		T3Plugins(String productName) {
+			this.productName = productName;
+		}
+
+		public String getProductName() {
+			return productName;
+		}
+
+		public void setProductName(String productName) {
+			this.productName = productName;
+		}
+	};
 
 	@org.apache.maven.plugins.annotations.Parameter(property = InstallerMojosInformation.Packages.pluginsToIncludeInArchive, defaultValue = InstallerMojosInformation.Packages.pluginsToIncludeInArchive_default)
-	private List<T3Plugins> plugins;
+	protected List<T3Plugins> plugins;
 
 	protected List<CommonInstaller> installers;
 
@@ -96,7 +116,6 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		// empty but will be modified at compile-time
 		super.execute();
 
 		installers = new ArrayList<CommonInstaller>();
@@ -115,6 +134,16 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 			if (installationPackage != null && installationPackage.exists()) {
 				installers.add(installer);
 			}
+		}
+
+		getLog().info("");
+		if (installers.size() > 0) {
+			getLog().info("Found " + installers.size() + " TIBCO installation packages:");
+			for (CommonInstaller installer : installers) {
+				getLog().info("-> " + installer.getProductName() + " version " + installer.getInstallationPackageVersion() + " @ " + installer.getInstallationPackage());
+			}
+		} else {
+			getLog().info("No TIBCO installation package was found.");
 		}
 	}
 
@@ -184,12 +213,21 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 		return getPlugin(helper, "io.teecube.tic", "tic-bw6", version, "bw6", goals);
 	}
 
+	private Plugin getMavenDeployPlugin() {
+		Plugin plugin = new Plugin();
+		plugin.setGroupId("org.apache.maven.plugins");
+		plugin.setArtifactId("maven-deploy-plugin");
+		plugin.setVersion("2.8.2"); // must be in sync with POM !
+
+		return plugin;
+	}
+
 	private Plugin getMavenInstallPlugin() {
 		Plugin plugin = new Plugin();
 		plugin.setGroupId("org.apache.maven.plugins");
 		plugin.setArtifactId("maven-install-plugin");
 		plugin.setVersion("2.5.2"); // must be in sync with POM !
-
+		
 		return plugin;
 	}
 
@@ -297,6 +335,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 		if (plugins.contains(T3Plugins.TAC_ARCHETYPES)) {
 			result.addAll(getTacArchetypes(helper, tacArchetypesVersion));
 		}
+		result.add(getMavenDeployPlugin());
 		result.add(getMavenInstallPlugin());
 		result.add(getMavenDependencyPlugin());
 

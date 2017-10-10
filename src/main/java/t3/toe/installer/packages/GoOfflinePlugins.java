@@ -43,7 +43,21 @@ public class GoOfflinePlugins extends AbstractPackagesResolver {
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		MavenProject goOfflineProject = generateGoOfflineProject();
+		getLog().info("Going offline by creating a standalone Maven repository in '" + goOfflineLocalRepository.getAbsolutePath() + "'");
+
+		if (!plugins.isEmpty()) {
+			getLog().info("");
+			getLog().info("This repository will include following plugins:");
+			for (T3Plugins plugin : plugins) {
+				getLog().info("-> " + plugin.getProductName());
+			}
+			getLog().info("");
+		}
+	
+		getLog().info("This might take some minutes...");
+
 		goOffline(goOfflineProject, goOfflineLocalRepository, "3.5.0");
+
 		getLog().info("");
 	}
 

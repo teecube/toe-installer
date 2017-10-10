@@ -20,7 +20,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 import t3.plugin.annotations.Mojo;
-import t3.toe.installer.CommonInstaller;
 
 /**
 * <p>
@@ -36,23 +35,16 @@ public class DisplayPackages extends AbstractPackagesResolver {
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		getLog().info("Resolving local TIBCO installation packages in directory: " + installationPackageDirectory.getAbsolutePath());
-
+		
 		super.execute();
 
-		getLog().info("");
-
 		if (installers.size() > 0) {
-			getLog().info("Found " + installers.size() + " TIBCO installation packages:");
-			for (CommonInstaller installer : installers) {
-				getLog().info("-> " + installer.getProductName() + " version " + installer.getInstallationPackageVersion() + " @ " + installer.getInstallationPackage());
-			}
 			getLog().info("");
 			getLog().info("These TIBCO installation packages can be automatically:");
 			getLog().info("  installed to the local Maven repository by running 'mvn toe:install-local-packages'");
 			getLog().info("  deployed to a remote Maven repository by running 'mvn toe:deploy-local-packages -Dtibco.remote=<repo>'");
-		} else {
-			getLog().info("No TIBCO installation package was found.");
 		}
+
 	}
 
 }

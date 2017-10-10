@@ -380,6 +380,9 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String generateArchive = "tibco.packages.install.generateArchive";
 		public static final String generateArchive_default = "false";
 
+		public static final String generateArchiveInstallInLocalRepositoryToo = "tibco.packages.install.generateArchiveInstallInLocalRepositoryToo";
+		public static final String generateArchiveInstallInLocalRepositoryToo_default = "false";
+
 		public static final String includePluginsInArchive = "tibco.packages.install.includePluginsInArchive";
 		public static final String includePluginsInArchive_default = "true";
 
@@ -398,6 +401,14 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String tacArchetypesVersion_default = "";
 		public static final String tacArchetypesArtifactsId = "tibco.packages.install.tacArchetypesArtifactsId";
 		public static final String tacArchetypesArtifactsId_default = "default-bw5-ear,default-bw6-app-module,default-bw6-application";
+
+		public static class Deploy {
+			public static final String remoteRepositoryId = "tibco.packages.deploy.remoteRepositoryId";
+			public static final String remoteRepositoryId_default = "";
+
+			public static final String remoteRepositoryURL = "tibco.packages.deploy.remoteRepositoryURL";
+			public static final String remoteRepositoryURL_default = "";
+		}
 	}
 
 	public static class FullEnvironment {

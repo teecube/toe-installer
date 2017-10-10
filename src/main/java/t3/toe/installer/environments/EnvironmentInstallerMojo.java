@@ -358,10 +358,12 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 						addProperty(configuration, ignoredParameters, "installationPackageRegexVersionGroupIndex", localPackage.getDirectoryWithPattern().getVersionGroupIndex().toString(), mojo.getClass());
 						mojo.setInstallationPackageRegexVersionGroupIndex(localPackage.getDirectoryWithPattern().getVersionGroupIndex());
 					}
-				}
-				if (StringUtils.isNotBlank(localPackage.getFile())) {
-					addProperty(configuration, ignoredParameters, "installationPackage", localPackage.getFile(), mojo.getClass());
-					mojo.setInstallationPackage(new File(localPackage.getFile()));
+				} else if (localPackage.getFileWithVersion() != null) {
+					addProperty(configuration, ignoredParameters, "installationPackage", localPackage.getFileWithVersion().getFile(), mojo.getClass());
+					mojo.setInstallationPackage(new File(localPackage.getFileWithVersion().getFile()));
+
+					addProperty(configuration, ignoredParameters, "installationPackageVersion", localPackage.getFileWithVersion().getVersion(), mojo.getClass());
+					mojo.setInstallationPackageVersion(localPackage.getFileWithVersion().getVersion());
 				}
 			}
 		} else { // no remote or local package defined -> create a local package with default values

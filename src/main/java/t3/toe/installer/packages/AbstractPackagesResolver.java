@@ -109,6 +109,15 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 	@Parameter(property = InstallerMojosInformation.Packages.tacArchetypesArtifactsId, defaultValue = InstallerMojosInformation.Packages.tacArchetypesArtifactsId_default)
 	protected String tacArchetypesArtifactsId;
 
+	@Parameter (property = InstallerMojosInformation.Packages.offlineDirectory, defaultValue = InstallerMojosInformation.Packages.offlineDirectory_default)
+	protected File offlineDirectory; 
+
+	@Parameter (property = InstallerMojosInformation.Packages.offlineArchiveLocalRepository, defaultValue = InstallerMojosInformation.Packages.offlineArchiveLocalRepository_default)
+	protected File offlineArchiveLocalRepository; 
+
+	@Parameter (property = InstallerMojosInformation.Packages.offlineArchive, defaultValue = InstallerMojosInformation.Packages.offlineArchive_default)
+	protected File offlineArchive; 
+
 	@Override
 	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() throws MojoExecutionException {
 		return new InstallerLifecycleParticipant();

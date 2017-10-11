@@ -374,8 +374,14 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String localRepositoryPath = "tibco.packages.install.localRepositoryPath";
 		public static final String localRepositoryPath_default = "${localRepository}";
 
-		public static final String archiveLocalRepositoryPath = "tibco.packages.install.archiveLocalRepositoryPath";
-		public static final String archiveLocalRepositoryPath_default = "${project.build.directory}/local-packages";
+		public static final String offlineArchiveLocalRepository = "tibco.packages.install.offlineArchiveLocalRepository";
+		public static final String offlineArchiveLocalRepository_default = "${tibco.packages.install.offlineDirectory}/repository";
+
+		public static final String offlineDirectory = "tibco.packages.install.offlineDirectory";
+		public static final String offlineDirectory_default = "${project.build.directory}/offline";
+
+		public static final String offlineArchive = "tibco.packages.install.offlineArchive";
+		public static final String offlineArchive_default = "${project.build.directory}/offline.zip";
 
 		public static final String generateArchive = "tibco.packages.install.generateArchive";
 		public static final String generateArchive_default = "false";

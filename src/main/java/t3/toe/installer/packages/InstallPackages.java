@@ -17,7 +17,9 @@
 package t3.toe.installer.packages;
 
 import java.io.File;
+import java.io.IOException;
 
+import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -46,32 +48,6 @@ public class InstallPackages extends AbstractPackagesAction {
 		getLog().info("Installing local TIBCO installation packages found in directory: " + installationPackageDirectory.getAbsolutePath());
 
 		super.execute();
-
-//		getLog().info("");
-//
-//		if (installers.size() > 0) {
-//			File localRepositoryPath = new File(localRepository.getBasedir()); // install to current Maven local repository
-//			File packagesLocalRepositoryPath = null;
-//			if (generateArchive) {
-//				packagesLocalRepositoryPath = new File(this.directory, "local-packages"); // install to target/local-packages
-//				if (includePluginsInArchive) {
-//					goOfflinePlugins(packagesLocalRepositoryPath);
-//				}
-//			}
-//
-//			getLog().info("Installing " + installers.size() + " TIBCO installation packages...");
-//
-//			if (generateArchive) {
-//				installPackagesToLocalRepository(packagesLocalRepositoryPath);
-//				if (generateArchiveInstallInLocalRepositoryToo) {
-//					installPackagesToLocalRepository(localRepositoryPath);
-//				}
-//			} else {
-//				installPackagesToLocalRepository(localRepositoryPath);
-//			}
-//		} else {
-//			getLog().info("No TIBCO installation package was found.");
-//		}
 	}
 
 	@Override
@@ -105,6 +81,14 @@ public class InstallPackages extends AbstractPackagesAction {
 			String version = installer.getInstallationPackageVersion();
 			getLog().info("Installing product '" + installer.getProductName() + "' to '" + localRepositoryPath.getAbsolutePath().replace("\\", "/") + "/" + groupId.replace(".", "/") + "/" + artifactId + "/" + version + "'");
 			this.installDependency(groupId, artifactId, version, "zip", classifier, installer.getInstallationPackage(), localRepositoryPath, true);
+		}
+		
+		if (generateArchive) {
+			try {
+				addFilesToZip(offlineDirectory, offlineArchive);
+			} catch (IOException | ArchiveException e) {
+				throw new MojoExecutionException(e.getLocalizedMessage(), e);
+			}
 		}
 	}
 

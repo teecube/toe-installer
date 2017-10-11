@@ -16,15 +16,14 @@
  */
 package t3.toe.installer.packages;
 
-import java.io.File;
+import java.io.IOException;
 
+import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 
 import t3.plugin.annotations.Mojo;
-import t3.plugin.annotations.Parameter;
-import t3.toe.installer.InstallerMojosInformation;
 
 /**
 * <p>
@@ -37,13 +36,10 @@ import t3.toe.installer.InstallerMojosInformation;
 @Mojo(name = "go-offline-plugins", requiresProject = false)
 public class GoOfflinePlugins extends AbstractPackagesResolver {
 
-	@Parameter (property = InstallerMojosInformation.Packages.archiveLocalRepositoryPath, defaultValue = InstallerMojosInformation.Packages.archiveLocalRepositoryPath_default)
-	protected File goOfflineLocalRepository; 
-
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		MavenProject goOfflineProject = generateGoOfflineProject();
-		getLog().info("Going offline by creating a standalone Maven repository in '" + goOfflineLocalRepository.getAbsolutePath() + "'");
+		getLog().info("Going offline by creating a standalone Maven repository in '" + offlineArchiveLocalRepository.getAbsolutePath() + "'");
 
 		if (!plugins.isEmpty()) {
 			getLog().info("");
@@ -56,7 +52,13 @@ public class GoOfflinePlugins extends AbstractPackagesResolver {
 	
 		getLog().info("This might take some minutes...");
 
-		goOffline(goOfflineProject, goOfflineLocalRepository, "3.5.0");
+		goOffline(goOfflineProject, offlineArchiveLocalRepository, "3.5.0");
+
+		try {
+			addFilesToZip(offlineDirectory, offlineArchive);
+		} catch (IOException | ArchiveException e) {
+			throw new MojoExecutionException(e.getLocalizedMessage(), e);
+		}
 
 		getLog().info("");
 	}

@@ -41,8 +41,8 @@ import t3.toe.installer.InstallerMojosInformation;
 */
 public abstract class AbstractPackagesAction extends AbstractPackagesResolver {
 
-	@Parameter (property = InstallerMojosInformation.Packages.archiveLocalRepositoryPath, defaultValue = InstallerMojosInformation.Packages.archiveLocalRepositoryPath_default)
-	protected File goOfflineLocalRepository; 
+	@Parameter (property = InstallerMojosInformation.Packages.offlineArchiveLocalRepository, defaultValue = InstallerMojosInformation.Packages.offlineArchiveLocalRepository_default)
+	protected File offlineArchiveLocalRepository; 
 
 	@Parameter (property = InstallerMojosInformation.Packages.generateArchive, defaultValue = InstallerMojosInformation.Packages.generateArchive_default)
 	protected Boolean generateArchive; 
@@ -60,15 +60,13 @@ public abstract class AbstractPackagesAction extends AbstractPackagesResolver {
 		getLog().info("");
 
 		if (installers.size() > 0) {
-			File packagesLocalRepositoryPath = null;
 			if (generateArchive) {
-				packagesLocalRepositoryPath = new File(this.directory, "local-packages"); // install to target/local-packages
 				if (includePluginsInArchive) {
-					goOfflinePlugins(packagesLocalRepositoryPath);
+					goOfflinePlugins(offlineArchiveLocalRepository); // install to target/offline/repository
 				}
 			}
 
-			doExecute(packagesLocalRepositoryPath);
+			doExecute(offlineArchiveLocalRepository);
 		} else {
 			getLog().info("No TIBCO installation package was found.");
 		}
@@ -82,7 +80,7 @@ public abstract class AbstractPackagesAction extends AbstractPackagesResolver {
 		getLog().info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
 
 		ArrayList<Element> configuration = new ArrayList<Element>();
-		configuration.add(element("goOfflineLocalRepository", localRepositoryPath.getAbsolutePath()));
+		configuration.add(element("offlineArchiveLocalRepository", localRepositoryPath.getAbsolutePath()));
 
 		executeMojo(
 			plugin(

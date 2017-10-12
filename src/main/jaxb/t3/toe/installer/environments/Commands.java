@@ -12,22 +12,20 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for anonymous complex type.
+ * <p>Java class for Commands complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType&gt;
+ * &lt;complexType name="Commands"&gt;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
  *       &lt;sequence&gt;
- *         &lt;element name="environment" type="{http://teecu.be/toe-installer/environments}Environment" maxOccurs="unbounded"/&gt;
+ *         &lt;element name="command" type="{http://teecu.be/toe-installer/environments}Command" maxOccurs="unbounded" minOccurs="0"/&gt;
  *       &lt;/sequence&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
@@ -37,42 +35,40 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {
-    "environment"
+@XmlType(name = "Commands", propOrder = {
+    "command"
 })
-@XmlRootElement(name = "environments")
-public class Environments {
+public class Commands {
 
-    @XmlElement(required = true)
-    protected List<Environment> environment;
+    protected List<Command> command;
 
     /**
-     * Gets the value of the environment property.
+     * Gets the value of the command property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the environment property.
+     * This is why there is not a <CODE>set</CODE> method for the command property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getEnvironment().add(newItem);
+     *    getCommand().add(newItem);
      * </pre>
      * 
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link Environment }
+     * {@link Command }
      * 
      * 
      */
-    public List<Environment> getEnvironment() {
-        if (environment == null) {
-            environment = new ArrayList<Environment>();
+    public List<Command> getCommand() {
+        if (command == null) {
+            command = new ArrayList<Command>();
         }
-        return this.environment;
+        return this.command;
     }
 
 }

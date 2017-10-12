@@ -21,6 +21,7 @@
 	targetNamespace="http://teecu.be/toe-installer/environments"
 	elementFormDefault="qualified" attributeFormDefault="unqualified">
 
+	<!-- Products -->
 	<xs:simpleType name="ProductType">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="admin" />
@@ -85,13 +86,7 @@
 
 	<xs:complexType name="Product">
 		<xs:sequence>
-			<xs:element name="hotfixes" minOccurs="0">
-				<xs:complexType>
-					<xs:sequence>
-						<xs:element name="hotfix" type="xs:string"/>
-					</xs:sequence>
-				</xs:complexType>
-			</xs:element>
+			<xs:element name="preInstallCommands" minOccurs="0" type="Commands"/>
 			<xs:element name="package" minOccurs="0">
 				<xs:complexType>
 					<xs:sequence>
@@ -102,6 +97,13 @@
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
+			<xs:element name="hotfixes" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="hotfix" type="xs:string"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
 			<xs:element name="properties" minOccurs="0">
 				<xs:complexType>
 					<xs:sequence>
@@ -109,6 +111,7 @@
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
+			<xs:element name="postInstallCommands" minOccurs="0" type="Commands"/>
 		</xs:sequence>
 		<xs:attribute name="id" type="xs:string" use="optional"/>
 		<xs:attribute name="name" type="xs:string" use="optional" default="@type"/>
@@ -118,14 +121,34 @@
 		<xs:attribute name="ifExists" type="IfProductExistsBehaviour" default="keep" />
 	</xs:complexType>
 
-	<xs:simpleType name="IfEnvironmentExistsBehaviour">
+	<!-- Commands -->
+	<xs:complexType name="Command">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="id" type="xs:string" use="optional"/>
+				<xs:attribute name="name" type="xs:string" use="optional" default="@type"/>
+				<xs:attribute name="description" type="xs:string" use="optional"/>
+				<xs:attribute name="onError" type="CommandOnErrorBehaviour" default="fail" />
+				<xs:attribute name="skip" type="xs:boolean" use="optional" default="false"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:simpleType name="CommandOnErrorBehaviour">
 		<xs:restriction base="xs:string">
-			<xs:enumeration value="delete" />
 			<xs:enumeration value="fail" />
-			<xs:enumeration value="update" />
+			<xs:enumeration value="warn" />
+			<xs:enumeration value="ignore" />
 		</xs:restriction>
 	</xs:simpleType>
 
+	<xs:complexType name="Commands">
+		<xs:sequence>
+			<xs:element name="command" type="Command" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<!-- Environments -->
 	<xs:complexType name="Environment">
 		<xs:sequence>
 			<xs:element name="environmentName" type="xs:string"/>
@@ -134,13 +157,23 @@
 			<xs:element name="products">
 				<xs:complexType>
 					<xs:sequence>
+						<xs:element name="preInstallCommands" minOccurs="0" type="Commands"/>
 						<xs:element name="product" type="Product" minOccurs="1" maxOccurs="unbounded"/>
+						<xs:element name="postInstallCommands" minOccurs="0" type="Commands"/>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
 		</xs:sequence>
 		<xs:attribute name="ifExists" type="IfEnvironmentExistsBehaviour" default="fail" />
 	</xs:complexType>
+
+	<xs:simpleType name="IfEnvironmentExistsBehaviour">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="delete" />
+			<xs:enumeration value="fail" />
+			<xs:enumeration value="update" />
+		</xs:restriction>
+	</xs:simpleType>
 
 	<xs:element name="environments">
 		<xs:complexType>

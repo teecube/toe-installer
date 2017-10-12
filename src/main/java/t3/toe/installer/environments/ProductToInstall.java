@@ -32,6 +32,8 @@ public class ProductToInstall extends Product {
 		this.setIfExists(product.getIfExists());
 		this.setName(product.getName());
 		this.setPackage(product.getPackage());
+		this.setPostInstallCommands(product.getPostInstallCommands());
+		this.setPreInstallCommands(product.getPreInstallCommands());
 		this.setPriority(product.getPriority());
 		this.setProperties(product.getProperties());
 		this.setSkip(product.isSkip());

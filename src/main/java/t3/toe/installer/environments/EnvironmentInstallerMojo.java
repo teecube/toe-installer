@@ -26,6 +26,7 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -164,11 +165,46 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 				i++;
 			}
 
+			// execute pre-products-install commands
+			if (products.getPreInstallCommands() != null && !products.getPreInstallCommands().getCommand().isEmpty()) {
+				getLog().info("Executing pre-install commands");
+				for (Command command : products.getPreInstallCommands().getCommand()) {
+					executeCommand(command);
+				}
+			}
+
 			i = 1;
 			for (ProductToInstall product : productsToInstall) {
-				installDependency(environment, product, i, configurations.get(i-1));
+				installProduct(environment, product, i, configurations.get(i-1));
 				i++;
 			}
+
+			// execute post-products-install commands
+			if (products.getPostInstallCommands() != null && !products.getPostInstallCommands().getCommand().isEmpty()) {
+				getLog().info("");
+				getLog().info("Executing post-install commands");
+				for (Command command : products.getPostInstallCommands().getCommand()) {
+					executeCommand(command);
+				}
+			}
+		}
+	}
+
+	private void executeCommand(Command command) throws MojoExecutionException {
+		if (command.isSkip()) {
+			getLog().info("Skipping command '" + command.getName() + "'");
+			return;
+		}
+
+		String commandLine = command.getValue().trim();
+		getLog().info("Executing command '" + commandLine + "'");
+		try {
+			CommonMojo.commandOutputStream = System.out;
+			executeBinary(commandLine, new File(session.getRequest().getBaseDirectory()), "failed");
+		} catch (MojoExecutionException | IOException e) {
+			throw new MojoExecutionException(e.getLocalizedMessage(), e);
+		} finally {
+			CommonMojo.commandOutputStream = null;
 		}
 	}
 
@@ -425,7 +461,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		return configuration;
 	}
 
-	private void installDependency(EnvironmentToInstall environment, ProductToInstall product, int productIndex, List<Element> configuration) throws MojoExecutionException {
+	private void installProduct(EnvironmentToInstall environment, ProductToInstall product, int productIndex, List<Element> configuration) throws MojoExecutionException {
 		getLog().info("");
 
 		String goal = product.getTibcoProduct().goal();
@@ -437,6 +473,14 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			getLog().info(productIndex + ". Skipping '" + product.fullProductName() + "' (already installed)");
 			return;
 		} else {
+			// execute pre-product-install commands
+			if (product.getPreInstallCommands() != null && !product.getPreInstallCommands().getCommand().isEmpty()) {
+				getLog().info("Executing pre-install commands for current product");
+				for (Command command : product.getPreInstallCommands().getCommand()) {
+					executeCommand(command);
+				}
+			}
+
 			getLog().info(productIndex + ". Installing '" + product.fullProductName() + "'");
 		}
 		getLog().info("");
@@ -457,6 +501,15 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 		getLog().info("");
 		getLog().info("<<< " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " <<<");
+
+		// execute pre-product-install commands
+		if (product.getPostInstallCommands() != null && !product.getPostInstallCommands().getCommand().isEmpty()) {
+			getLog().info("");
+			getLog().info("Executing post-install commands for current product");
+			for (Command command : product.getPostInstallCommands().getCommand()) {
+				executeCommand(command);
+			}
+		}
 	}
 
 	private void addProperty(ArrayList<Element> configuration, ArrayList<Element> ignoredParameters, String key, String value, Class<?> clazz) {

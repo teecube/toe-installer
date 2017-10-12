@@ -14,46 +14,34 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for ProductType.
+ * <p>Java class for CommandOnErrorBehaviour.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
- * &lt;simpleType name="ProductType"&gt;
+ * &lt;simpleType name="CommandOnErrorBehaviour"&gt;
  *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string"&gt;
- *     &lt;enumeration value="admin"/&gt;
- *     &lt;enumeration value="bw5"/&gt;
- *     &lt;enumeration value="bw6"/&gt;
- *     &lt;enumeration value="ems"/&gt;
- *     &lt;enumeration value="rv"/&gt;
- *     &lt;enumeration value="tea"/&gt;
- *     &lt;enumeration value="tra"/&gt;
+ *     &lt;enumeration value="fail"/&gt;
+ *     &lt;enumeration value="warn"/&gt;
+ *     &lt;enumeration value="ignore"/&gt;
  *   &lt;/restriction&gt;
  * &lt;/simpleType&gt;
  * </pre>
  * 
  */
-@XmlType(name = "ProductType")
+@XmlType(name = "CommandOnErrorBehaviour")
 @XmlEnum
-public enum ProductType {
+public enum CommandOnErrorBehaviour {
 
-    @XmlEnumValue("admin")
-    ADMIN("admin"),
-    @XmlEnumValue("bw5")
-    BW_5("bw5"),
-    @XmlEnumValue("bw6")
-    BW_6("bw6"),
-    @XmlEnumValue("ems")
-    EMS("ems"),
-    @XmlEnumValue("rv")
-    RV("rv"),
-    @XmlEnumValue("tea")
-    TEA("tea"),
-    @XmlEnumValue("tra")
-    TRA("tra");
+    @XmlEnumValue("fail")
+    FAIL("fail"),
+    @XmlEnumValue("warn")
+    WARN("warn"),
+    @XmlEnumValue("ignore")
+    IGNORE("ignore");
     private final String value;
 
-    ProductType(String v) {
+    CommandOnErrorBehaviour(String v) {
         value = v;
     }
 
@@ -61,8 +49,8 @@ public enum ProductType {
         return value;
     }
 
-    public static ProductType fromValue(String v) {
-        for (ProductType c: ProductType.values()) {
+    public static CommandOnErrorBehaviour fromValue(String v) {
+        for (CommandOnErrorBehaviour c: CommandOnErrorBehaviour.values()) {
             if (c.value.equals(v)) {
                 return c;
             }

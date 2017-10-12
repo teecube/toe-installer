@@ -44,9 +44,6 @@ public abstract class AbstractPackagesAction extends AbstractPackagesResolver {
 	@Parameter (property = InstallerMojosInformation.Packages.offlineArchiveLocalRepository, defaultValue = InstallerMojosInformation.Packages.offlineArchiveLocalRepository_default)
 	protected File offlineArchiveLocalRepository; 
 
-	@Parameter (property = InstallerMojosInformation.Packages.generateArchive, defaultValue = InstallerMojosInformation.Packages.generateArchive_default)
-	protected Boolean generateArchive; 
-
 	@Parameter (property = InstallerMojosInformation.Packages.generateArchiveInstallInLocalRepositoryToo, defaultValue = InstallerMojosInformation.Packages.generateArchiveInstallInLocalRepositoryToo_default)
 	protected Boolean generateArchiveInstallInLocalRepositoryToo; 
 

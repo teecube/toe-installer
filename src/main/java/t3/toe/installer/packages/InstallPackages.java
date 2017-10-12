@@ -79,11 +79,14 @@ public class InstallPackages extends AbstractPackagesAction {
 			String groupId = installer.getRemoteInstallationPackageGroupId();
 			String artifactId = installer.getRemoteInstallationPackageArtifactId();
 			String version = installer.getInstallationPackageVersion();
-			getLog().info("Installing product '" + installer.getProductName() + "' to '" + localRepositoryPath.getAbsolutePath().replace("\\", "/") + "/" + groupId.replace(".", "/") + "/" + artifactId + "/" + version + "'");
+			getLog().info("Installing '" + installer.getInstallationPackage().getAbsolutePath() + "' to '" + localRepositoryPath.getAbsolutePath().replace("\\", "/") + "/" + groupId.replace(".", "/") + "/" + artifactId + "/" + version + "'");
 			this.installDependency(groupId, artifactId, version, "zip", classifier, installer.getInstallationPackage(), localRepositoryPath, true);
 		}
 		
 		if (generateArchive) {
+			getLog().info("");
+			getLog().info("Updating offline archive '" + offlineArchive.getAbsolutePath() + "' with " + installers.size() + " TIBCO installation packages...");
+
 			try {
 				addFilesToZip(offlineDirectory, offlineArchive);
 			} catch (IOException | ArchiveException e) {

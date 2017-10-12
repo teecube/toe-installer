@@ -54,10 +54,15 @@ public class GoOfflinePlugins extends AbstractPackagesResolver {
 
 		goOffline(goOfflineProject, offlineArchiveLocalRepository, "3.5.0");
 
-		try {
-			addFilesToZip(offlineDirectory, offlineArchive);
-		} catch (IOException | ArchiveException e) {
-			throw new MojoExecutionException(e.getLocalizedMessage(), e);
+		if (generateArchive) {
+			getLog().info("");
+			getLog().info("Adding offline repository '" + offlineDirectory.getAbsolutePath() + "' to archive '" + offlineArchive.getAbsolutePath() + "'");
+			try {
+				offlineArchive.delete();
+				addFilesToZip(offlineDirectory, offlineArchive);
+			} catch (IOException | ArchiveException e) {
+				throw new MojoExecutionException(e.getLocalizedMessage(), e);
+			}
 		}
 
 		getLog().info("");

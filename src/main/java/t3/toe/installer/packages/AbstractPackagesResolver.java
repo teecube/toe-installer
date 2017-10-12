@@ -118,6 +118,9 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 	@Parameter (property = InstallerMojosInformation.Packages.offlineArchive, defaultValue = InstallerMojosInformation.Packages.offlineArchive_default)
 	protected File offlineArchive; 
 
+	@Parameter (property = InstallerMojosInformation.Packages.generateArchive, defaultValue = InstallerMojosInformation.Packages.generateArchive_default)
+	protected Boolean generateArchive; 
+
 	@Override
 	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() throws MojoExecutionException {
 		return new InstallerLifecycleParticipant();

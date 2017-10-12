@@ -40,7 +40,7 @@ import t3.toe.installer.InstallerMojosInformation;
 @Mojo(name = "install-local-packages", requiresProject = false)
 public class InstallPackages extends AbstractPackagesAction {
 
-	@org.apache.maven.plugins.annotations.Parameter (property = InstallerMojosInformation.Packages.localRepositoryPath, defaultValue = InstallerMojosInformation.Packages.localRepositoryPath_default, readonly = true, required = true)
+	@org.apache.maven.plugins.annotations.Parameter (property = InstallerMojosInformation.Packages.Install.localRepositoryPath, defaultValue = InstallerMojosInformation.Packages.Install.localRepositoryPath_default, readonly = true, required = true)
 	protected ArtifactRepository localRepository;
 
 	@Override

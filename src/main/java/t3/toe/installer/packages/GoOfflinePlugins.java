@@ -16,14 +16,21 @@
  */
 package t3.toe.installer.packages;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Settings;
+import org.apache.maven.settings.io.DefaultSettingsWriter;
 
 import t3.plugin.annotations.Mojo;
+import t3.plugin.annotations.Parameter;
+import t3.toe.installer.InstallerMojosInformation;
 
 /**
 * <p>
@@ -35,6 +42,9 @@ import t3.plugin.annotations.Mojo;
 */
 @Mojo(name = "go-offline-plugins", requiresProject = false)
 public class GoOfflinePlugins extends AbstractPackagesResolver {
+
+	@Parameter(property = InstallerMojosInformation.Packages.Offline.generateSettings, defaultValue = InstallerMojosInformation.Packages.Offline.generateSettings_default)
+	protected Boolean generateSettings;
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
@@ -54,6 +64,13 @@ public class GoOfflinePlugins extends AbstractPackagesResolver {
 
 		goOffline(goOfflineProject, offlineArchiveLocalRepository, "3.5.0");
 
+		if (generateSettings) {
+			getLog().info("");
+			getLog().info("Generating offline Maven settings.xml");
+
+			generateOfflineSettings();
+		}
+
 		if (generateArchive) {
 			getLog().info("");
 			getLog().info("Adding offline repository '" + offlineDirectory.getAbsolutePath() + "' to archive '" + offlineArchive.getAbsolutePath() + "'");
@@ -66,6 +83,26 @@ public class GoOfflinePlugins extends AbstractPackagesResolver {
 		}
 
 		getLog().info("");
+	}
+
+	private void generateOfflineSettings() throws MojoExecutionException {
+		Settings defaultSettings = new Settings();
+
+		defaultSettings.setLocalRepository("./offline/repository"); // use only offline repository
+		defaultSettings.setOffline(true); // offline to use only offline repository
+		// <pluginGroups> to define T3 plugins' groupIds
+		List<String> pluginGroups = new ArrayList<String>();
+		pluginGroups.add("io.teecube.tic");
+		pluginGroups.add("io.teecube.toe");
+		defaultSettings.setPluginGroups(pluginGroups );
+
+		// write the settings.xml in target/offline
+		DefaultSettingsWriter settingsWriter = new DefaultSettingsWriter();
+		try {
+			settingsWriter.write(new File(offlineDirectory, "settings.xml"), null, defaultSettings);
+		} catch (IOException e) {
+			throw new MojoExecutionException(e.getLocalizedMessage(), e);
+		}
 	}
 
 }

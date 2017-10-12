@@ -83,7 +83,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 		}
 	};
 
-	@org.apache.maven.plugins.annotations.Parameter(property = InstallerMojosInformation.Packages.pluginsToIncludeInArchive, defaultValue = InstallerMojosInformation.Packages.pluginsToIncludeInArchive_default)
+	@org.apache.maven.plugins.annotations.Parameter(property = InstallerMojosInformation.Packages.Offline.Plugins.list, defaultValue = InstallerMojosInformation.Packages.Offline.Plugins.list_default)
 	protected List<T3Plugins> plugins;
 
 	protected List<CommonInstaller> installers;
@@ -91,34 +91,34 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 	@Parameter(property = InstallerMojosInformation.installationPackageDirectory, defaultValue = InstallerMojosInformation.installationPackageDirectory_default)
 	protected File installationPackageDirectory;
 
-	@Parameter(property = InstallerMojosInformation.Packages.toeDomainsVersion, defaultValue = InstallerMojosInformation.Packages.toeDomainsVersion_default)
+	@Parameter(property = InstallerMojosInformation.Packages.Offline.Plugins.toeDomainsVersion, defaultValue = InstallerMojosInformation.Packages.Offline.Plugins.toeDomainsVersion_default)
 	protected String toeDomainsVersion;
 
-	@Parameter(property = InstallerMojosInformation.Packages.toeInstallerVersion, defaultValue = InstallerMojosInformation.Packages.toeInstallerVersion_default)
+	@Parameter(property = InstallerMojosInformation.Packages.Offline.Plugins.toeInstallerVersion, defaultValue = InstallerMojosInformation.Packages.Offline.Plugins.toeInstallerVersion_default)
 	protected String toeInstallerVersion;
 	
-	@Parameter(property = InstallerMojosInformation.Packages.ticBW5Version, defaultValue = InstallerMojosInformation.Packages.ticBW5Version_default)
+	@Parameter(property = InstallerMojosInformation.Packages.Offline.Plugins.ticBW5Version, defaultValue = InstallerMojosInformation.Packages.Offline.Plugins.ticBW5Version_default)
 	protected String ticBW5Version;
 	
-	@Parameter(property = InstallerMojosInformation.Packages.ticBW6Version, defaultValue = InstallerMojosInformation.Packages.ticBW6Version_default)
+	@Parameter(property = InstallerMojosInformation.Packages.Offline.Plugins.ticBW6Version, defaultValue = InstallerMojosInformation.Packages.Offline.Plugins.ticBW6Version_default)
 	protected String ticBW6Version;
 
-	@Parameter(property = InstallerMojosInformation.Packages.tacArchetypesVersion, defaultValue = InstallerMojosInformation.Packages.tacArchetypesVersion_default)
+	@Parameter(property = InstallerMojosInformation.Packages.Offline.Plugins.tacArchetypesVersion, defaultValue = InstallerMojosInformation.Packages.Offline.Plugins.tacArchetypesVersion_default)
 	protected String tacArchetypesVersion;
 
-	@Parameter(property = InstallerMojosInformation.Packages.tacArchetypesArtifactsId, defaultValue = InstallerMojosInformation.Packages.tacArchetypesArtifactsId_default)
+	@Parameter(property = InstallerMojosInformation.Packages.Offline.Plugins.tacArchetypesArtifactsId, defaultValue = InstallerMojosInformation.Packages.Offline.Plugins.tacArchetypesArtifactsId_default)
 	protected String tacArchetypesArtifactsId;
 
-	@Parameter (property = InstallerMojosInformation.Packages.offlineDirectory, defaultValue = InstallerMojosInformation.Packages.offlineDirectory_default)
+	@Parameter (property = InstallerMojosInformation.Packages.Offline.directory, defaultValue = InstallerMojosInformation.Packages.Offline.directory_default)
 	protected File offlineDirectory; 
 
-	@Parameter (property = InstallerMojosInformation.Packages.offlineArchiveLocalRepository, defaultValue = InstallerMojosInformation.Packages.offlineArchiveLocalRepository_default)
+	@Parameter (property = InstallerMojosInformation.Packages.Offline.Archive.localRepository, defaultValue = InstallerMojosInformation.Packages.Offline.Archive.localRepository_default)
 	protected File offlineArchiveLocalRepository; 
 
-	@Parameter (property = InstallerMojosInformation.Packages.offlineArchive, defaultValue = InstallerMojosInformation.Packages.offlineArchive_default)
+	@Parameter (property = InstallerMojosInformation.Packages.Offline.Archive.archive, defaultValue = InstallerMojosInformation.Packages.Offline.Archive.archive_default)
 	protected File offlineArchive; 
 
-	@Parameter (property = InstallerMojosInformation.Packages.generateArchive, defaultValue = InstallerMojosInformation.Packages.generateArchive_default)
+	@Parameter (property = InstallerMojosInformation.Packages.Offline.Archive.generate, defaultValue = InstallerMojosInformation.Packages.Offline.Archive.generate_default)
 	protected Boolean generateArchive; 
 
 	@Override

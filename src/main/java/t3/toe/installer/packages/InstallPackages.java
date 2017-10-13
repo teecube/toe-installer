@@ -37,7 +37,7 @@ import t3.toe.installer.InstallerMojosInformation;
 * @author Mathieu Debove &lt;mad@teecu.be&gt;
 *
 */
-@Mojo(name = "install-local-packages", requiresProject = false)
+@Mojo(name = "packages-install", requiresProject = false)
 public class InstallPackages extends AbstractPackagesAction {
 
 	@org.apache.maven.plugins.annotations.Parameter (property = InstallerMojosInformation.Packages.Install.localRepositoryPath, defaultValue = InstallerMojosInformation.Packages.Install.localRepositoryPath_default, readonly = true, required = true)
@@ -56,14 +56,14 @@ public class InstallPackages extends AbstractPackagesAction {
 
 		getLog().info("Installing " + installers.size() + " TIBCO installation packages...");
 
-		if (generateArchive) {
-			installPackagesToLocalRepository(packagesLocalRepositoryPath);
-			if (installInLocalRepositoryToo) {
-				installPackagesToLocalRepository(localRepositoryPath);
-			}
-		} else {
+//		if (generateArchive) {
+//			installPackagesToLocalRepository(packagesLocalRepositoryPath);
+//			if (installInLocalRepositoryToo) {
+//				installPackagesToLocalRepository(localRepositoryPath);
+//			}
+//		} else {
 			installPackagesToLocalRepository(localRepositoryPath);
-		}		
+//		}
 	}
 
 	private void installPackagesToLocalRepository(File localRepositoryPath) throws MojoExecutionException {

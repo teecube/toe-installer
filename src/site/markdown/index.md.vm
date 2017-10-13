@@ -30,7 +30,7 @@ $h4 Install TIBCO BusinessWorks 6.x
 launch the command:
 
 <div class="command" title="Install TIBCO BusinessWorks 6.x">
-<span id="command">mvn toe:bw6-install</span>
+<span id="command">mvn toe:install-bw6</span>
 <span class="argument">-Dtibco.installation.environmentName=BW6</span>
 <span class="argument">-Dtibco.installation.root=C:/tibco/bw6</span>
 </div>
@@ -60,7 +60,7 @@ $h4 Install TIBCO BusinessWorks 5.x
 launch the command:
 
 <div class="command" title="Install TIBCO BusinessWorks 5.x">
-<span id="command">mvn toe:bw5-install</span>
+<span id="command">mvn toe:install-bw5</span>
 <span class="argument">-Dtibco.installation.environmentName=BW5</span>
 <span class="argument">-Dtibco.installation.root=C:/tibco/bw5</span>
 </div>

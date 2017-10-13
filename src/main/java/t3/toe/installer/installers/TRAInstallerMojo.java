@@ -40,13 +40,13 @@ import t3.toe.installer.InstallerMojosInformation;
 * If the target environment already contains the dependency product
 * (RendezVous), only TIBCO Runtime Agent is installed, otherwise,
 * the plugin will look for the dependency to install and call corresponding
-* goal (see <a href="rv-install-mojo.html">rv-install goal</a>).
+* goal (see <a href="install-rv-mojo.html">install-rv goal</a>).
 * </p>
 *
 * @author Mathieu Debove &lt;mad@teecu.be&gt;
 *
 */
-@Mojo(name = "tra-install", requiresProject = false)
+@Mojo(name = "install-tra", requiresProject = false)
 public class TRAInstallerMojo extends CommonInstaller {
 
 	@Parameter(property = InstallerMojosInformation.TRA.installationPackage, defaultValue = "${" + InstallerMojosInformation.installationPackageDirectory + "}/${" + InstallerMojosInformation.TRA.installationPackageRegex + "}")

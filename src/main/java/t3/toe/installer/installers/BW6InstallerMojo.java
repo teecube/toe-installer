@@ -39,7 +39,7 @@ import t3.toe.installer.InstallerMojosInformation;
 * @author Mathieu Debove &lt;mad@teecu.be&gt;
 *
 */
-@Mojo(name = "bw6-install", requiresProject = false)
+@Mojo(name = "install-bw6", requiresProject = false)
 public class BW6InstallerMojo extends CommonInstaller {
 
 	@Parameter(property = InstallerMojosInformation.BW6.installationPackage, defaultValue = "${" + InstallerMojosInformation.installationPackageDirectory + "}/${tibco.bw6.installation.package.regex}")

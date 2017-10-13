@@ -69,7 +69,7 @@ public abstract class AbstractPackagesAction extends AbstractPackagesResolver {
 	protected abstract void doExecute(File packagesLocalRepositoryPath) throws MojoExecutionException;
 	
 	protected void goOfflinePlugins(File localRepositoryPath) throws MojoExecutionException {
-		String goal = "go-offline-plugins";
+		String goal = "packages-standalone";
 
 		getLog().info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
 

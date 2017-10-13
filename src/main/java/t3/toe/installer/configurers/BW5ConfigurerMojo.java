@@ -38,7 +38,7 @@ import t3.toe.installer.InstallerMojosInformation;
 * @author Mathieu Debove &lt;mad@teecu.be&gt;
 *
 */
-@Mojo(name = "bw5-configure", requiresProject = false)
+@Mojo(name = "configure-bw5", requiresProject = false)
 public class BW5ConfigurerMojo extends CommonConfigurer {
 
 	@Parameter(property = InstallerMojosInformation.BW5.pluginGroupId, defaultValue = InstallerMojosInformation.BW5.pluginGroupId_default)
@@ -116,7 +116,7 @@ public class BW5ConfigurerMojo extends CommonConfigurer {
 
 	@Override
 	protected String getProductInstallationGoal() {
-		return InstallerMojosInformation.pluginPrefix + "bw5-install";
+		return InstallerMojosInformation.pluginPrefix + "install-bw5";
 	}
 
 	@Override

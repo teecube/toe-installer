@@ -39,14 +39,14 @@ import t3.toe.installer.InstallerMojosInformation;
 * If the target environment already contains the dependencies products
 * (RendezVous, TRA), only TIBCO BusinessWorks 5.x is installed, otherwise,
 * the plugin will look for the dependencies to install and call corresponding
-* goals (see <a href="rv-install-mojo.html">rv-install goal</a> and
-* <a href="./tra-install-mojo.html">tra-install goal</a>).
+* goals (see <a href="install-rv-mojo.html">install-rv goal</a> and
+* <a href="./install-tra-mojo.html">install-tra goal</a>).
 * </p>
 *
 * @author Mathieu Debove &lt;mad@teecu.be&gt;
 *
 */
-@Mojo(name = "bw5-install", requiresProject = false)
+@Mojo(name = "install-bw5", requiresProject = false)
 public class BW5InstallerMojo extends CommonInstaller {
 
 	@Parameter(property = InstallerMojosInformation.BW5.installationPackage, defaultValue = "${" + InstallerMojosInformation.installationPackageDirectory + "}/${tibco.bw5.installation.package.regex}")
@@ -86,8 +86,8 @@ public class BW5InstallerMojo extends CommonInstaller {
 	public List<String> getDependenciesGoals() {
 		List<String> dependenciesGoals = new ArrayList<String>();
 
-		dependenciesGoals.add(InstallerMojosInformation.pluginPrefix + "rv-install");
-		dependenciesGoals.add(InstallerMojosInformation.pluginPrefix + "tra-install");
+		dependenciesGoals.add(InstallerMojosInformation.pluginPrefix + "install-rv");
+		dependenciesGoals.add(InstallerMojosInformation.pluginPrefix + "install-tra");
 		return dependenciesGoals;
 	}
 

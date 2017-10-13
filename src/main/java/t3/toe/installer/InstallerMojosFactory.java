@@ -87,25 +87,25 @@ public class InstallerMojosFactory extends MojosFactory {
 		}
 
 		switch (goal) {
-		case InstallerMojosInformation.pluginPrefix + "admin-install":
+		case InstallerMojosInformation.pluginPrefix + "install-admin":
 			return (T) new AdminInstallerMojo();
-		case InstallerMojosInformation.pluginPrefix + "bw5-install":
+		case InstallerMojosInformation.pluginPrefix + "install-bw5":
 			return (T) new BW5InstallerMojo();
-		case InstallerMojosInformation.pluginPrefix + "bw6-install":
+		case InstallerMojosInformation.pluginPrefix + "install-bw6":
 			return (T) new BW6InstallerMojo();
-		case InstallerMojosInformation.pluginPrefix + "ems-install":
+		case InstallerMojosInformation.pluginPrefix + "install-ems":
 			return (T) new EMSInstallerMojo();
-		case InstallerMojosInformation.pluginPrefix + "rv-install":
+		case InstallerMojosInformation.pluginPrefix + "install-rv":
 			return (T) new RVInstallerMojo();
-		case InstallerMojosInformation.pluginPrefix + "tea-install":
+		case InstallerMojosInformation.pluginPrefix + "install-tea":
 			return (T) new TEAInstallerMojo();
-		case InstallerMojosInformation.pluginPrefix + "tra-install":
+		case InstallerMojosInformation.pluginPrefix + "install-tra":
 			return (T) new TRAInstallerMojo();
 		case InstallerMojosInformation.pluginPrefix + "env-install":
 			return (T) new EnvironmentInstallerMojo();
-		case InstallerMojosInformation.pluginPrefix + "display-local-packages":
+		case InstallerMojosInformation.pluginPrefix + "packages-display":
 			return (T) new DisplayPackages();
-		case InstallerMojosInformation.pluginPrefix + "install-local-packages":
+		case InstallerMojosInformation.pluginPrefix + "packages-install":
 			return (T) new InstallPackages();
 
 		default:

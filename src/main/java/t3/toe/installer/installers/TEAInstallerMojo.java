@@ -38,7 +38,7 @@ import t3.toe.installer.InstallerMojosInformation;
 * @author Mathieu Debove &lt;mad@teecu.be&gt;
 *
 */
-@Mojo(name = "tea-install", requiresProject = false)
+@Mojo(name = "install-tea", requiresProject = false)
 public class TEAInstallerMojo extends CommonInstaller {
 
 	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.installationPackage, defaultValue = "${" + InstallerMojosInformation.installationPackageDirectory + "}/${tibco.tea.installation.package.regex}")

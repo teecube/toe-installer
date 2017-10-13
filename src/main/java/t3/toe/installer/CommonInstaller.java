@@ -649,13 +649,13 @@ public abstract class CommonInstaller extends CommonMojo {
 	}
 
 	protected void installRV() throws MojoExecutionException {
-		session.getRequest().getGoals().add(InstallerMojosInformation.pluginPrefix + "rv-install");
-		installDependency("rv-install");
+		session.getRequest().getGoals().add(InstallerMojosInformation.pluginPrefix + "install-rv");
+		installDependency("install-rv");
 	}
 
 	protected void installTRA() throws MojoExecutionException {
-		session.getRequest().getGoals().add(InstallerMojosInformation.pluginPrefix + "tra-install");
-		installDependency("tra-install");
+		session.getRequest().getGoals().add(InstallerMojosInformation.pluginPrefix + "install-tra");
+		installDependency("install-tra");
 	}
 
 	@Override

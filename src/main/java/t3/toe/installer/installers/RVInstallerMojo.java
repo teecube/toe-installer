@@ -38,7 +38,7 @@ import t3.toe.installer.InstallerMojosInformation;
 * @author Mathieu Debove &lt;mad@teecu.be&gt;
 *
 */
-@Mojo(name = "rv-install", requiresProject = false)
+@Mojo(name = "install-rv", requiresProject = false)
 public class RVInstallerMojo extends CommonInstaller {
 
 	@Parameter(property = InstallerMojosInformation.RV.installationPackage, defaultValue = "${" + InstallerMojosInformation.installationPackageDirectory + "}/${tibco.rv.installation.package.regex}")

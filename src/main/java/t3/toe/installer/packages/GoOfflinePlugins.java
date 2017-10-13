@@ -40,7 +40,7 @@ import t3.toe.installer.InstallerMojosInformation;
 * @author Mathieu Debove &lt;mad@teecu.be&gt;
 *
 */
-@Mojo(name = "go-offline-plugins", requiresProject = false)
+@Mojo(name = "packages-standalone", requiresProject = false)
 public class GoOfflinePlugins extends AbstractPackagesResolver {
 
 	@Parameter(property = InstallerMojosInformation.Packages.Offline.generateSettings, defaultValue = InstallerMojosInformation.Packages.Offline.generateSettings_default)

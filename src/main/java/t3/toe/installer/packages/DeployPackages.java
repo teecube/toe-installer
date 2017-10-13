@@ -35,7 +35,7 @@ import t3.toe.installer.InstallerMojosInformation;
 * @author Mathieu Debove &lt;mad@teecu.be&gt;
 *
 */
-@Mojo(name = "deploy-local-packages", requiresProject = false)
+@Mojo(name = "packages-deploy", requiresProject = false)
 public class DeployPackages extends AbstractPackagesAction {
 
 	@Parameter (property = InstallerMojosInformation.Packages.Deploy.remoteRepositoryId, defaultValue = InstallerMojosInformation.Packages.Deploy.remoteRepositoryId_default, required = true)

@@ -29,7 +29,7 @@ import t3.plugin.annotations.Mojo;
 * @author Mathieu Debove &lt;mad@teecu.be&gt;
 *
 */
-@Mojo(name = "display-local-packages", requiresProject = false)
+@Mojo(name = "packages-display", requiresProject = false)
 public class DisplayPackages extends AbstractPackagesResolver {
 
 	@Override
@@ -41,8 +41,8 @@ public class DisplayPackages extends AbstractPackagesResolver {
 		if (installers.size() > 0) {
 			getLog().info("");
 			getLog().info("These TIBCO installation packages can be automatically:");
-			getLog().info("  installed to the local Maven repository by running 'mvn toe:install-local-packages'");
-			getLog().info("  deployed to a remote Maven repository by running 'mvn toe:deploy-local-packages -Dtibco.remote=<repo>'");
+			getLog().info("  installed to the local Maven repository by running 'mvn toe:packages-install'");
+			getLog().info("  deployed to a remote Maven repository by running 'mvn toe:packages-deploy -Dtibco.remote=<repo>'");
 		}
 
 	}

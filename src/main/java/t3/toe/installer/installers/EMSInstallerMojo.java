@@ -38,7 +38,7 @@ import t3.toe.installer.InstallerMojosInformation;
 * @author Mathieu Debove &lt;mad@teecu.be&gt;
 *
 */
-@Mojo(name = "ems-install", requiresProject = false)
+@Mojo(name = "install-ems", requiresProject = false)
 public class EMSInstallerMojo extends CommonInstaller {
 
 	@Parameter(property = InstallerMojosInformation.EMS.installationPackage, defaultValue = "${" + InstallerMojosInformation.installationPackageDirectory + "}/${tibco.ems.installation.package.regex}")

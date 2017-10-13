@@ -69,13 +69,13 @@ import t3.toe.installer.environments.Environment.Products;
 public class EnvironmentInstallerMojo extends CommonMojo {
 
 	public enum TIBCOProduct {
-		ADMIN ("admin-install", "Administrator", 30),
-		BW5 ("bw5-install", "BusinessWorks 5", 30),
-		BW6 ("bw6-install", "BusinessWorks 6", 00),
-		EMS ("ems-install", "EMS", 30),
-		RV ("rv-install", "RendezVous", 10),
-		TEA ("tea-install", "TEA", 00),
-		TRA ("tra-install", "TRA", 20);
+		ADMIN ("install-admin", "Administrator", 30),
+		BW5 ("install-bw5", "BusinessWorks 5", 30),
+		BW6 ("install-bw6", "BusinessWorks 6", 00),
+		EMS ("install-ems", "EMS", 30),
+		RV ("install-rv", "RendezVous", 10),
+		TEA ("install-tea", "TEA", 00),
+		TRA ("install-tra", "TRA", 20);
 
 	    private final String goal;
 	    private final String name;

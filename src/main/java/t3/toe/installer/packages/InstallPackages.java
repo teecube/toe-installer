@@ -58,7 +58,7 @@ public class InstallPackages extends AbstractPackagesAction {
 
 		if (generateArchive) {
 			installPackagesToLocalRepository(packagesLocalRepositoryPath);
-			if (generateArchiveInstallInLocalRepositoryToo) {
+			if (installInLocalRepositoryToo) {
 				installPackagesToLocalRepository(localRepositoryPath);
 			}
 		} else {

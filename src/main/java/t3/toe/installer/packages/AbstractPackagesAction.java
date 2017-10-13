@@ -41,11 +41,8 @@ import t3.toe.installer.InstallerMojosInformation;
 */
 public abstract class AbstractPackagesAction extends AbstractPackagesResolver {
 
-	@Parameter (property = InstallerMojosInformation.Packages.Offline.Archive.localRepository, defaultValue = InstallerMojosInformation.Packages.Offline.Archive.localRepository_default)
-	protected File offlineArchiveLocalRepository; 
-
 	@Parameter (property = InstallerMojosInformation.Packages.Offline.Archive.installInLocalRepositoryToo, defaultValue = InstallerMojosInformation.Packages.Offline.Archive.installInLocalRepositoryToo_default)
-	protected Boolean generateArchiveInstallInLocalRepositoryToo; 
+	protected Boolean installInLocalRepositoryToo; 
 
 	@Parameter (property = InstallerMojosInformation.Packages.Offline.Plugins.include, defaultValue = InstallerMojosInformation.Packages.Offline.Plugins.include_default)
 	protected Boolean includePluginsInArchive; 

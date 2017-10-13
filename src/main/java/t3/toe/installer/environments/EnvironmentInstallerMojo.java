@@ -166,10 +166,12 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			}
 
 			// execute pre-products-install commands
+			i = 1;
 			if (products.getPreInstallCommands() != null && !products.getPreInstallCommands().getCommand().isEmpty()) {
 				getLog().info("Executing pre-install commands");
 				for (Command command : products.getPreInstallCommands().getCommand()) {
-					executeCommand(command);
+					executeCommand(command, i, "Pre-install command");
+					i++;
 				}
 			}
 
@@ -179,33 +181,66 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 				i++;
 			}
 
+			getLog().info("");
+			getLog().info("End of products installation.");
+
 			// execute post-products-install commands
+			i = 1;
 			if (products.getPostInstallCommands() != null && !products.getPostInstallCommands().getCommand().isEmpty()) {
 				getLog().info("");
 				getLog().info("Executing post-install commands");
 				for (Command command : products.getPostInstallCommands().getCommand()) {
-					executeCommand(command);
+					executeCommand(command, i, "Post-install command");
+					i++;
 				}
 			}
 		}
 	}
 
-	private void executeCommand(Command command) throws MojoExecutionException {
+	private void executeCommand(Command command, int commandIndex, String commandType) throws MojoExecutionException {
 		if (command.isSkip()) {
 			getLog().info("Skipping command '" + command.getName() + "'");
 			return;
 		}
 
+		getLog().info("");
+
 		String commandLine = command.getValue().trim();
-		getLog().info("Executing command '" + commandLine + "'");
+		String commandCaption = command.getName() + (command.getId() != null ? " (id: " + command.getId() + ")" : "");
+		String commandPrefix =  "[" + commandType + " #" + commandIndex + "]" + (command.getId() != null ? " [" + command.getId() + "]": "") + " ";
+
+		getLog().info(commandIndex + ". Name: " + commandCaption);
+		if (StringUtils.isNotBlank(command.getDescription())) {
+			getLog().info("   Description: " + command.getDescription());
+		}
+		getLog().info("");
+
 		try {
-			CommonMojo.commandOutputStream = System.out;
-			executeBinary(commandLine, new File(session.getRequest().getBaseDirectory()), "failed");
+			CommonMojo.commandOutputStream = new CollectingLogOutputStream(getLog(), commandPrefix);
+			if (executeBinary(commandLine, new File(session.getRequest().getBaseDirectory()), "The command '" + commandCaption + "' failed.") != 0) {
+				failedCommand(command);
+			}
 		} catch (MojoExecutionException | IOException e) {
-			throw new MojoExecutionException(e.getLocalizedMessage(), e);
+			failedCommand(command);
 		} finally {
 			CommonMojo.commandOutputStream = null;
 		}
+	}
+
+	private void failedCommand(Command command) throws MojoExecutionException {
+		switch (command.getOnError()) {
+		case FAIL:
+			getLog().info("");
+			getLog().error("The command failed.");
+			throw new MojoExecutionException("The command failed.");
+		case IGNORE:
+			getLog().info("");
+			break;
+		case WARN:
+			getLog().info("");
+			getLog().warn("The command failed.");
+			break;
+		}		
 	}
 
 	private boolean deleteEnvironment(EnvironmentToInstall environment) throws MojoExecutionException, MojoFailureException {
@@ -476,8 +511,10 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			// execute pre-product-install commands
 			if (product.getPreInstallCommands() != null && !product.getPreInstallCommands().getCommand().isEmpty()) {
 				getLog().info("Executing pre-install commands for current product");
+				int i = 1;
 				for (Command command : product.getPreInstallCommands().getCommand()) {
-					executeCommand(command);
+					executeCommand(command, i, "");
+					i++;
 				}
 			}
 
@@ -502,12 +539,14 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		getLog().info("");
 		getLog().info("<<< " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " <<<");
 
-		// execute pre-product-install commands
+		// execute post-product-install commands
 		if (product.getPostInstallCommands() != null && !product.getPostInstallCommands().getCommand().isEmpty()) {
 			getLog().info("");
 			getLog().info("Executing post-install commands for current product");
+			int i = 1;
 			for (Command command : product.getPostInstallCommands().getCommand()) {
-				executeCommand(command);
+				executeCommand(command, i, "");
+				i++;
 			}
 		}
 	}

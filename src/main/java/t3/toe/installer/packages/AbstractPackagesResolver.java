@@ -61,35 +61,11 @@ import t3.toe.installer.InstallerMojosInformation;
 */
 public abstract class AbstractPackagesResolver extends CommonMojo {
 
-	protected enum T3Plugins {
-		TOE_INSTALLER ("TOE Products Installer"),
-		TOE_DOMAINS ("TOE Domains Manager"),
-		TIC_BW5 ("TIC BW5 Maven plugin"),
-		TIC_BW6 ("TIC BW6 Maven plugin"),
-		TAC_ARCHETYPES ("TAC Archetypes");
-
-		private String productName;
-
-		T3Plugins(String productName) {
-			this.productName = productName;
-		}
-
-		public String getProductName() {
-			return productName;
-		}
-
-		public void setProductName(String productName) {
-			this.productName = productName;
-		}
-	};
+	@Parameter(property = InstallerMojosInformation.installationPackageDirectory, defaultValue = InstallerMojosInformation.installationPackageDirectory_default)
+	protected File installationPackageDirectory;
 
 	@org.apache.maven.plugins.annotations.Parameter(property = InstallerMojosInformation.Packages.Offline.Plugins.list, defaultValue = InstallerMojosInformation.Packages.Offline.Plugins.list_default)
 	protected List<T3Plugins> plugins;
-
-	protected List<CommonInstaller> installers;
-
-	@Parameter(property = InstallerMojosInformation.installationPackageDirectory, defaultValue = InstallerMojosInformation.installationPackageDirectory_default)
-	protected File installationPackageDirectory;
 
 	@Parameter(property = InstallerMojosInformation.Packages.Offline.Plugins.toeDomainsVersion, defaultValue = InstallerMojosInformation.Packages.Offline.Plugins.toeDomainsVersion_default)
 	protected String toeDomainsVersion;
@@ -120,6 +96,8 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 
 	@Parameter (property = InstallerMojosInformation.Packages.Offline.Archive.generate, defaultValue = InstallerMojosInformation.Packages.Offline.Archive.generate_default)
 	protected Boolean generateArchive; 
+
+	protected List<CommonInstaller> installers;
 
 	@Override
 	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() throws MojoExecutionException {

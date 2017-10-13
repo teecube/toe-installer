@@ -65,9 +65,6 @@ public class GoOfflinePlugins extends AbstractPackagesResolver {
 		goOffline(goOfflineProject, offlineArchiveLocalRepository, "3.5.0");
 
 		if (generateSettings) {
-			getLog().info("");
-			getLog().info("Generating offline Maven settings.xml");
-
 			generateOfflineSettings();
 		}
 
@@ -86,6 +83,9 @@ public class GoOfflinePlugins extends AbstractPackagesResolver {
 	}
 
 	private void generateOfflineSettings() throws MojoExecutionException {
+		getLog().info("");
+		getLog().info("Generating offline Maven settings.xml in '" + offlineDirectory.getAbsolutePath() + "'");
+
 		Settings defaultSettings = new Settings();
 
 		defaultSettings.setLocalRepository("./offline/repository"); // use only offline repository

@@ -388,22 +388,22 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 			public static final String directory = "tibco.packages.offline.directory";
 			public static final String directory_default = "${project.build.directory}/offline";
 
+			public static final String generateSettings = "tibco.packages.offline.generateSettings";
+			public static final String generateSettings_default = "true";
+
 			public static class Archive {
-				public static final String localRepository = "tibco.packages.offline.archive.localRepository";
-				public static final String localRepository_default = "${tibco.packages.offline.directory}/repository";
-				
 				public static final String archive = "tibco.packages.offline.archive";
 				public static final String archive_default = "${project.build.directory}/offline.zip";
-				
+
 				public static final String generate = "tibco.packages.offline.archive.generate";
 				public static final String generate_default = "false";				
 
 				public static final String installInLocalRepositoryToo = "tibco.packages.offline.archive.installInLocalRepositoryToo";
 				public static final String installInLocalRepositoryToo_default = "false";
-			}
 
-			public static final String generateSettings = "tibco.packages.offline.generateSettings";
-			public static final String generateSettings_default = "true";
+				public static final String localRepository = "tibco.packages.offline.archive.localRepository";
+				public static final String localRepository_default = "${tibco.packages.offline.directory}/repository";
+			}
 
 			public static class Plugins {
 				public static final String include = "tibco.packages.offline.plugins.include";

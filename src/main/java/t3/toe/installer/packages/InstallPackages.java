@@ -17,16 +17,12 @@
 package t3.toe.installer.packages;
 
 import java.io.File;
-import java.io.IOException;
 
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 import t3.plugin.annotations.Mojo;
-import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosInformation;
 
 /**
@@ -34,11 +30,16 @@ import t3.toe.installer.InstallerMojosInformation;
 * This goal installs resolved TIBCO installation packages found in a given directory to a Maven (local) repository.
 * </p>
 *
+* <p>
+* To display the TIBCO installation packages before installing them, use
+* <a href="packages-display-mojo.html">packages-display goal</a>.
+* </p>
+*
 * @author Mathieu Debove &lt;mad@teecu.be&gt;
 *
 */
 @Mojo(name = "packages-install", requiresProject = false)
-public class InstallPackages extends AbstractPackagesAction {
+public class InstallPackages extends AbstractPackagesResolver {
 
 	@org.apache.maven.plugins.annotations.Parameter (property = InstallerMojosInformation.Packages.Install.localRepositoryPath, defaultValue = InstallerMojosInformation.Packages.Install.localRepositoryPath_default, readonly = true, required = true)
 	protected ArtifactRepository localRepository;
@@ -51,48 +52,10 @@ public class InstallPackages extends AbstractPackagesAction {
 	}
 
 	@Override
-	protected void doExecute(File packagesLocalRepositoryPath) throws MojoExecutionException {
+	protected void doExecute() throws MojoExecutionException {
 		File localRepositoryPath = new File(localRepository.getBasedir()); // install to current Maven local repository
 
-		getLog().info("Installing " + installers.size() + " TIBCO installation packages...");
-
-//		if (generateArchive) {
-//			installPackagesToLocalRepository(packagesLocalRepositoryPath);
-//			if (installInLocalRepositoryToo) {
-//				installPackagesToLocalRepository(localRepositoryPath);
-//			}
-//		} else {
-			installPackagesToLocalRepository(localRepositoryPath);
-//		}
-	}
-
-	private void installPackagesToLocalRepository(File localRepositoryPath) throws MojoExecutionException {
-		getLog().info("");
-		getLog().info("Using local repository: " + localRepositoryPath.getAbsolutePath());
-		getLog().info("");
-
-		for (CommonInstaller installer : installers) {
-			String classifier = null;
-			if (StringUtils.isNotEmpty(installer.getInstallationPackageArch(false)) && StringUtils.isNotEmpty(installer.getInstallationPackageOs(false))) {
-				classifier = installer.getInstallationPackageOs(false) + "_" + installer.getInstallationPackageArch(false);
-			}
-			String groupId = installer.getRemoteInstallationPackageGroupId();
-			String artifactId = installer.getRemoteInstallationPackageArtifactId();
-			String version = installer.getInstallationPackageVersion();
-			getLog().info("Installing '" + installer.getInstallationPackage().getAbsolutePath() + "' to '" + localRepositoryPath.getAbsolutePath().replace("\\", "/") + "/" + groupId.replace(".", "/") + "/" + artifactId + "/" + version + "'");
-			this.installDependency(groupId, artifactId, version, "zip", classifier, installer.getInstallationPackage(), localRepositoryPath, true);
-		}
-		
-		if (generateArchive) {
-			getLog().info("");
-			getLog().info("Updating offline archive '" + offlineArchive.getAbsolutePath() + "' with " + installers.size() + " TIBCO installation packages...");
-
-			try {
-				addFilesToZip(offlineDirectory, offlineArchive);
-			} catch (IOException | ArchiveException e) {
-				throw new MojoExecutionException(e.getLocalizedMessage(), e);
-			}
-		}
+		installPackagesToLocalRepository(localRepositoryPath);
 	}
 
 }

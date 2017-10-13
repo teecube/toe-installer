@@ -384,50 +384,51 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 			public static final String remoteRepositoryURL_default = "";
 		}
 
-		public static class Offline {
-			public static final String directory = "tibco.packages.offline.directory";
-			public static final String directory_default = "${project.build.directory}/offline";
+		public static class Standalone {
+			public static final String directory = "tibco.packages.standalone.directory";
+			public static final String directory_default = "${project.build.directory}/standalone";
 
-			public static final String generateSettings = "tibco.packages.offline.generateSettings";
+			public static final String localRepository = "tibco.packages.standalone.localRepository";
+			public static final String localRepository_default = "${tibco.packages.standalone.directory}/repository";
+
+			public static final String generateSettings = "tibco.packages.standalone.generateSettings";
 			public static final String generateSettings_default = "true";
 
+			public static final String includeTIBCOInstallationPackages = "tibco.packages.standalone.includeTIBCOInstallationPackages";
+			public static final String includeTIBCOInstallationPackages_default = "true";
+			
 			public static class Archive {
-				public static final String archive = "tibco.packages.offline.archive";
-				public static final String archive_default = "${project.build.directory}/offline.zip";
+				public static final String archive = "tibco.packages.standalone.archive";
+				public static final String archive_default = "${project.build.directory}/t3-standalone.zip";
 
-				public static final String generate = "tibco.packages.offline.archive.generate";
-				public static final String generate_default = "false";				
+				public static final String generate = "tibco.packages.standalone.archive.generate";
+				public static final String generate_default = "true";				
 
-				public static final String installInLocalRepositoryToo = "tibco.packages.offline.archive.installInLocalRepositoryToo";
-				public static final String installInLocalRepositoryToo_default = "false";
-
-				public static final String localRepository = "tibco.packages.offline.archive.localRepository";
-				public static final String localRepository_default = "${tibco.packages.offline.directory}/repository";
 			}
 
 			public static class Plugins {
-				public static final String include = "tibco.packages.offline.plugins.include";
+				public static final String include = "tibco.packages.standalone.plugins.include";
 				public static final String include_default = "true";
 
-				public static final String list = "tibco.packages.offline.plugins.list";
+				public static final String list = "tibco.packages.standalone.plugins.list";
 				public static final String list_default = "TOE_DOMAINS,TOE_INSTALLER,TIC_BW5,TIC_BW6,TAC_ARCHETYPES";
 
-				public static final String toeDomainsVersion = "tibco.packages.offline.plugins.toeDomainsVersion";
+				public static final String toeDomainsVersion = "tibco.packages.standalone.plugins.toeDomainsVersion";
 				public static final String toeDomainsVersion_default = "";
 
-				public static final String toeInstallerVersion = "tibco.packages.offline.plugins.toeInstallerVersion";
+				public static final String toeInstallerVersion = "tibco.packages.standalone.plugins.toeInstallerVersion";
 				public static final String toeInstallerVersion_default = "";
 
-				public static final String ticBW5Version = "tibco.packages.offline.plugins.ticBW5Version";
+				public static final String ticBW5Version = "tibco.packages.standalone.plugins.ticBW5Version";
 				public static final String ticBW5Version_default = "";
 
-				public static final String ticBW6Version = "tibco.packages.offline.plugins.ticBW6Version";
+				public static final String ticBW6Version = "tibco.packages.standalone.plugins.ticBW6Version";
 				public static final String ticBW6Version_default = "";
 
-				public static final String tacArchetypesVersion = "tibco.packages.offline.plugins.tacArchetypesVersion";
+				public static final String tacArchetypesVersion = "tibco.packages.standalone.plugins.tacArchetypesVersion";
 				public static final String tacArchetypesVersion_default = "";
 
-				public static final String tacArchetypesArtifactsId = "tibco.packages.offline.plugins.tacArchetypesArtifactsId";
+				public static final String tacArchetypesArtifactsId = "tibco.packages.standalone.plugins.tacArchetypesArtifactsId";
 				public static final String tacArchetypesArtifactsId_default = "default-bw5-ear,default-bw6-app-module,default-bw6-application";
 			}
 

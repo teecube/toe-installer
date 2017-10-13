@@ -16,8 +16,6 @@
  */
 package t3.toe.installer.packages;
 
-import java.io.File;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -32,11 +30,16 @@ import t3.toe.installer.InstallerMojosInformation;
 * This goal deploys resolved TIBCO installation packages found in a given directory to a Maven (remote) repository.
 * </p>
 *
+* <p>
+* To display the TIBCO installation packages before deploying them, use
+* <a href="packages-display-mojo.html">packages-display goal</a>.
+* </p>
+*
 * @author Mathieu Debove &lt;mad@teecu.be&gt;
 *
 */
 @Mojo(name = "packages-deploy", requiresProject = false)
-public class DeployPackages extends AbstractPackagesAction {
+public class DeployPackages extends AbstractPackagesResolver {
 
 	@Parameter (property = InstallerMojosInformation.Packages.Deploy.remoteRepositoryId, defaultValue = InstallerMojosInformation.Packages.Deploy.remoteRepositoryId_default, required = true)
 	protected String remoteRepositoryId; 
@@ -52,7 +55,7 @@ public class DeployPackages extends AbstractPackagesAction {
 	}
 
 	@Override
-	protected void doExecute(File packagesLocalRepositoryPath) throws MojoExecutionException {
+	protected void doExecute() throws MojoExecutionException {
 		getLog().info("Deploying " + installers.size() + " TIBCO installation packages...");
 
 		deployPackagesToRemoteRepository(remoteRepositoryId, remoteRepositoryURL);

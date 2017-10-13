@@ -25,6 +25,11 @@ import t3.plugin.annotations.Mojo;
 * <p>
 * This goal displays resolved TIBCO installation packages found in a given directory.
 * </p>
+* <p>
+* To install these TIBCO installation packages, use
+* <a href="packages-install-mojo.html">packages-install goal</a> and to deploy them, use
+* <a href="packages-deploy-mojo.html">packages-deploy goal</a>.
+* </p>
 *
 * @author Mathieu Debove &lt;mad@teecu.be&gt;
 *
@@ -37,14 +42,14 @@ public class DisplayPackages extends AbstractPackagesResolver {
 		getLog().info("Resolving local TIBCO installation packages in directory: " + installationPackageDirectory.getAbsolutePath());
 		
 		super.execute();
+	}
 
-		if (installers.size() > 0) {
-			getLog().info("");
-			getLog().info("These TIBCO installation packages can be automatically:");
-			getLog().info("  installed to the local Maven repository by running 'mvn toe:packages-install'");
-			getLog().info("  deployed to a remote Maven repository by running 'mvn toe:packages-deploy -Dtibco.remote=<repo>'");
-		}
-
+	@Override
+	protected void doExecute() throws MojoExecutionException {
+		getLog().info("");
+		getLog().info("These TIBCO installation packages can be automatically:");
+		getLog().info("  installed to the local Maven repository by running 'mvn toe:packages-install'");
+		getLog().info("  deployed to a remote Maven repository by running 'mvn toe:packages-deploy -Dtibco.remote=<repo>'");		
 	}
 
 }

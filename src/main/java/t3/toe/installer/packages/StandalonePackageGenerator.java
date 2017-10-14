@@ -52,7 +52,26 @@ import t3.toe.installer.InstallerMojosInformation;
 
 /**
 * <p>
-* This goal generates a standalone package composed of 
+* This goal generates a <strong>self-contained</strong> and <strong>ready-to-use</strong> <em>standalone package</em>.
+* </p>
+* <p>
+* This <em>standalone package</em> can be composed of:
+*  <ul>
+*   <li>T3 plugins and their dependencies</li>
+*   <li>resolved TIBCO installation packages (see <a href="packages-display-mojo.html">packages-display goal</a>)</li>
+*   <li>a Maven settings.xml preconfigured to use T3 plugins</li>
+*   <li>a preconfigured <a href="env-install-mojo.html">environment installation definition</a></li>
+*  </ul>
+* Each of these elements can be included or not in the <em>standalone package</em>.
+* </p>
+* <p>
+* This <em>standalone package</em> allows to:
+*  <ul>
+*   <li>use T3 plugins with no required Internet access</li>
+*   <li>install TIBCO products according to an environment installation definition</li>
+*   <li>use installed TIBCO products with T3 plugins additions</li>
+*   <li>deliver a self-contained and ready-to-use package to clients</li>
+*  </ul>
 * </p>
 *
 * @author Mathieu Debove &lt;mad@teecu.be&gt;

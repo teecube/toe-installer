@@ -382,7 +382,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
 		Settings defaultSettings = new Settings();
 
-		defaultSettings.setLocalRepository("./offline/repository"); // use only offline repository
+		defaultSettings.setLocalRepository("./repository"); // use only offline repository
 		defaultSettings.setOffline(true); // offline to use only offline repository
 		// <pluginGroups> to define T3 plugins' groupIds
 		List<String> pluginGroups = new ArrayList<String>();

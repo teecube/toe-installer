@@ -74,6 +74,35 @@
 								<argument>-Dtibco.environments.topology=bw5-full.xml</argument>
 							</arguments>
 						</commandLine>
+						<commandLine>
+							<property>installTIBCOPackageToMaven_command</property>
+							<title>Install TIBCO installation packages to local Maven repository</title>
+							<commandLine>mvn toe:packages-install</commandLine>
+							<arguments>
+								<argument>-Dtibco.installation.packages.directory=/tmp/packages</argument>
+							</arguments>
+						</commandLine>
+						<commandLine>
+							<property>installTIBCOPackageToMaven_sample</property>
+							<title><![CDATA[<strong>bw6-full.xml</strong> (BW5 with Administrator &amp; EMS on Windows)]]></title>
+							<commandLine>cd /tmp/packages ; ls -l</commandLine>
+							<results>
+								<result>total 551M</result>
+								<result>-rw-r--r-- 1 tibco tibco 161M Jan 01 2016 TIB_BW_5.13.0_win_x86_64.zip</result>
+								<result>-rw-r--r-- 1 tibco tibco 240M Jan 01 2016 TIB_TRA_5.10.0_win_x86_64.zip</result>
+								<result>-rw-r--r-- 1 tibco tibco 150M Jan 01 2016 TIB_rv_8.4.4_win_x86_64_vc10.zip</result>
+							</results>
+						</commandLine>
+						<commandLine>
+							<property>deployTIBCOPackageToMaven_command</property>
+							<title>Deploy TIBCO installation packages to remote Maven repository</title>
+							<commandLine>mvn toe:packages-deploy</commandLine>
+							<arguments>
+								<argument>-Dtibco.installation.packages.directory=/tmp/packages</argument>
+								<argument>-Dtibco.packages.deploy.remoteRepositoryId=tibco-binaries</argument>
+								<argument><![CDATA[-Dtibco.packages.deploy.remoteRepositoryURL=http://&lt;repo_url>]]></argument>
+							</arguments>
+						</commandLine>
 					</commandLines>
 					<samples>
 						<sample>
@@ -152,6 +181,17 @@
 		&lt;/products>
 	&lt;/environment>
 &lt;/environments>
+							]]></content>
+						</sample>
+						<sample>
+							<property>deployTIBCOPackageToMaven_conf</property>
+							<title><![CDATA[Configuration of the deployment server in Maven settings.xml]]></title>
+							<content><![CDATA[
+&lt;server>
+  &lt;id>tibco-binaries&lt;/id>
+  &lt;username>username&lt;/username>
+  &lt;password>password&lt;/password>
+&lt;/server>
 							]]></content>
 						</sample>
 					</samples>

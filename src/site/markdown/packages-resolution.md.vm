@@ -6,11 +6,18 @@
 $h2 Automatic packages resolution
 
 ${toeDisplayedName} - ${toeDisplayedInstallerName} has a state-of-the-art
-system to resolve the required <em>TIBCO installation packages</em>.
-It can retrieve the installation packages from a local directory with a
-zero-configuration approach or from a Maven repository (local or remote).
+system to resolve automatically the required *TIBCO installation packages* for
+all its installation [goals](./plugin-info.html).
+
+It can retrieve the installation packages:
+
+* from a local directory with a zero-configuration approach, based on the
+naming convention of the TIBCO installation packages
+* from a Maven repository (local or remote) where the TIBCO installation
+packages have neen [installed](#Install) or [deployed](#Deploy) before
+
 It's a prerequisites to create a
-[full environment installation configuration](./environments.html) and
+[full environment installation](./environments.html) configuration and
 to install seamlessly complex TIBCO installations.
 
 <div class="well" style="padding-top: 12px;">
@@ -24,12 +31,19 @@ is the installation package for TIBCO
 <span class="color-highlight"><strong>B</strong></span>usiness
 <span class="color-highlight"><strong>W</strong></span>orks
 version <strong>6.4.0</strong>
-for <em>Win</em>dows platform <span>(<em>x86_64</em> architecture)</span>.
+for <em>Win</em>dows platform <span> on a <em>x86_64</em> architecture</span>.
 <br />
 Notice that these installation packages filenames are always prefixed by
 <em>TIB_</em> and suffixed by the <u>.zip</u> file extension, that they contain
 a short name of the product, the version and the system/architecture.
 </div>
+
+<p>
+For following explanations, we consider a directory */tmp/packages* filled with
+4 TIBCO installation packages as follows:
+</p>
+
+${installTIBCOPackageToMaven_sample}
 
 $h3 Local resolving (in the filesystem)
 
@@ -38,13 +52,19 @@ based on the official naming convention.
 The default location is the current directory where this Maven plugin is run: 
 _${basedir}_.
 
+To display the resolved packages in the current directory, run: 
+
+${displayLocalTIBCOPackage_command}
+
 $h3 Remote resolving (via Maven)
 
-Remote resolution is based on Maven dependency mechanism. It requires that
-the <em>TIBCO installation packages are available in a Maven repository</em>.
-It does not matter whether the Maven repository is remote or local even though
-this resolution method is called remote as opposed to local resolution which is
-based on simple local directories only.
+Remote resolution is based on
+[Maven dependency mechanism](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html).
+It requires that the **TIBCO installation packages are available in a Maven
+repository**. It does not matter whether the Maven repository is remote or local
+even though this resolution method is called remote as opposed to 
+[local resolution](#Local_resolving_in_the_filesystem) which is based on simple
+local directories only.
 
 ${toeDisplayedName} - ${toeDisplayedInstallerName} provides the goals to
 <a href="./packages-install-mojo.html">install</a> or
@@ -53,13 +73,8 @@ Maven repositories.
 
 $h4 Install
 
-The TIBCO installation packages to install in Maven should be put in a
-directory, for instance in <em>/tmp/packages</em>:
-
-${installTIBCOPackageToMaven_sample}
-
-Then, a simple command will install all TIBCO installation packages found in
-this directory to the Maven local repository:
+In */tmp/packages* directory, a simple command will install all TIBCO
+installation packages found in this directory to the Maven local repository:
 
 ${installTIBCOPackageToMaven_command}
 
@@ -71,7 +86,7 @@ also be set in the Maven settings.xml:
 ${deployTIBCOPackageToMaven_conf}
 
 Then, a simple command will deploy all TIBCO installation packages found in
-the directory to the Maven remote repository:
+the */tmp/packages* directory to the Maven remote repository:
 
 ${deployTIBCOPackageToMaven_command}
 

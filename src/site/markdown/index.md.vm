@@ -46,14 +46,8 @@ $h4 Install TIBCO BusinessWorks 5.x
 <li><p>
 <span class="fa fa-hand-o-right"></span> Copy all required files in one directory:
 
-<div class="command" title="Directory with installation packages">
-<span id="command">cd /tmp/install ; ls -l</span>
-<span class="argument"> </span>
-<span class="result">total 551M</span>
-<span class="result">-rw-r--r-- 1 tibco tibco 161M Jan 01  2016 TIB_BW_5.13.0_win_x86_64.zip</span>
-<span class="result">-rw-r--r-- 1 tibco tibco 240M Jan 01  2016 TIB_TRA_5.10.0_win_x86_64.zip</span>
-<span class="result">-rw-r--r-- 1 tibco tibco 150M Jan 01  2016 TIB_rv_8.4.4_win_x86_64_vc10.zip</span>
-</div>
+${installTIBCOPackageToMaven_sample}
+
 </p></li>
 <li><p>
 <span class="fa fa-hand-o-right"></span> Define the target environment and

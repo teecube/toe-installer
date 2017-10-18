@@ -75,6 +75,11 @@
 							</arguments>
 						</commandLine>
 						<commandLine>
+							<property>displayLocalTIBCOPackage_command</property>
+							<title>Display TIBCO installation packages resolved in current directory</title>
+							<commandLine>mvn toe:packages-display</commandLine>
+						</commandLine>
+						<commandLine>
 							<property>installTIBCOPackageToMaven_command</property>
 							<title>Install TIBCO installation packages to local Maven repository</title>
 							<commandLine>mvn toe:packages-install</commandLine>
@@ -88,9 +93,10 @@
 							<commandLine>cd /tmp/packages ; ls -l</commandLine>
 							<results>
 								<result>total 551M</result>
-								<result>-rw-r--r-- 1 tibco tibco 161M Jan 01 2016 TIB_BW_5.13.0_win_x86_64.zip</result>
-								<result>-rw-r--r-- 1 tibco tibco 240M Jan 01 2016 TIB_TRA_5.10.0_win_x86_64.zip</result>
-								<result>-rw-r--r-- 1 tibco tibco 150M Jan 01 2016 TIB_rv_8.4.4_win_x86_64_vc10.zip</result>
+								<result>-rw-r--r-- 1 tibco tibco 162M Jan 01 2017 TIB_BW_5.13.0_win_x86_64.zip</result>
+								<result>-rw-r--r-- 1 tibco tibco 151M Jan 01 2017 TIB_rv_8.4.5_win_x86_64_vc10.zip</result>
+								<result>-rw-r--r-- 1 tibco tibco 100M Jan 01 2017 TIB_TIBCOAdmin_5.10.0_win_x86_64.zip</result>
+								<result>-rw-r--r-- 1 tibco tibco 240M Jan 01 2017 TIB_TRA_5.10.0_win_x86_64.zip</result>
 							</results>
 						</commandLine>
 						<commandLine>

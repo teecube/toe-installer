@@ -20,6 +20,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 import t3.plugin.annotations.Mojo;
+import t3.toe.installer.InstallerMojosInformation;
 
 /**
 * <p>
@@ -46,10 +47,9 @@ public class DisplayPackages extends AbstractPackagesResolver {
 
 	@Override
 	protected void doExecute() throws MojoExecutionException {
-		getLog().info("");
 		getLog().info("These TIBCO installation packages can be automatically:");
-		getLog().info("  installed to the local Maven repository by running 'mvn toe:packages-install'");
-		getLog().info("  deployed to a remote Maven repository by running 'mvn toe:packages-deploy -Dtibco.remote=<repo>'");		
+		getLog().info("-> installed to the local Maven repository by running 'mvn toe:packages-install'");
+		getLog().info("->  deployed to a remote Maven repository by running 'mvn toe:packages-deploy -D" + InstallerMojosInformation.Packages.Deploy.remoteRepositoryId + "=<repositoryId> -D" + InstallerMojosInformation.Packages.Deploy.remoteRepositoryURL + "=<repositoryURL>'");		
 	}
 
 }

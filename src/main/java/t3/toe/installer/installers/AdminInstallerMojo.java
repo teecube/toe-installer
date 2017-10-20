@@ -28,6 +28,7 @@ import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosInformation;
+import t3.toe.installer.environments.ProductType;
 
 /**
 * <p>
@@ -255,5 +256,11 @@ public class AdminInstallerMojo extends CommonInstaller {
 	public String getProductName() {
 		return InstallerMojosInformation.Administrator.category;
 	}
+
+	@Override
+	public ProductType getProductType() {
+		return ProductType.ADMIN;
+	}
+
 
 }

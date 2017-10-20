@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.maven.artifact.Artifact;
@@ -124,18 +125,36 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 	@Parameter(property = InstallerMojosInformation.Packages.Standalone.Plugins.tacArchetypesArtifactsId, defaultValue = InstallerMojosInformation.Packages.Standalone.Plugins.tacArchetypesArtifactsId_default)
 	protected String tacArchetypesArtifactsId;
 
+	@Parameter(property = InstallerMojosInformation.Packages.Standalone.topologyGenerate, defaultValue = InstallerMojosInformation.Packages.Standalone.topologyGenerate_default)
+	protected Boolean generateStandaloneTopology;
+
+	@Parameter (property = InstallerMojosInformation.Packages.Standalone.topologyGeneratedFile, defaultValue = InstallerMojosInformation.Packages.Standalone.topologyGeneratedFile_default)
+	protected File standaloneTopologyGeneratedFile;
+
+	@Override
+	protected Boolean getGenerateTopology() throws MojoExecutionException {
+		return generateStandaloneTopology;
+	}
+
+	@Override
+	protected File getTopologyGeneratedFile() throws MojoExecutionException {
+		return standaloneTopologyGeneratedFile;
+	}
+
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		MavenProject goOfflineProject = generateGoOfflineProject();
 		getLog().info("Creating a standalone Maven repository in '" + standaloneLocalRepository.getAbsolutePath() + "'");
 
-		if (!plugins.isEmpty()) {
+		if (includePluginsInStandalone && !plugins.isEmpty()) {
 			getLog().info("");
 			getLog().info("This repository will include following plugins:");
 			for (T3Plugins plugin : plugins) {
 				getLog().info("-> " + plugin.getProductName());
 			}
 			getLog().info("");
+			java.util.logging.Logger logTransferListener = java.util.logging.Logger.getLogger("org.jboss.shrinkwrap.resolver.impl.maven.logging.LogTransferListener");
+			logTransferListener.setLevel(Level.OFF);
 			getLog().info("This might take some minutes...");
 			
 			goOffline(goOfflineProject, standaloneLocalRepository, "3.5.0");
@@ -401,7 +420,6 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
 	@Override
 	protected void doExecute() throws MojoExecutionException {
-		// TODO Auto-generated method stub
 		
 	}
 

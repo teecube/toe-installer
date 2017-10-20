@@ -16,10 +16,13 @@
  */
 package t3.toe.installer.packages;
 
+import java.io.File;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 import t3.plugin.annotations.Mojo;
+import t3.plugin.annotations.Parameter;
 import t3.toe.installer.InstallerMojosInformation;
 
 /**
@@ -38,6 +41,22 @@ import t3.toe.installer.InstallerMojosInformation;
 @Mojo(name = "packages-display", requiresProject = false)
 public class DisplayPackages extends AbstractPackagesResolver {
 
+	@Parameter(property = InstallerMojosInformation.FullEnvironment.topologyGenerate, defaultValue = InstallerMojosInformation.FullEnvironment.topologyGenerate_default)
+	protected Boolean generateTopology;
+
+	@Parameter (property = InstallerMojosInformation.FullEnvironment.topologyGeneratedFile, defaultValue = InstallerMojosInformation.FullEnvironment.topologyGeneratedFile_default)
+	protected File topologyGeneratedFile;
+
+	@Override
+	protected Boolean getGenerateTopology() throws MojoExecutionException {
+		return generateTopology;
+	}
+
+	@Override
+	protected File getTopologyGeneratedFile() throws MojoExecutionException {
+		return topologyGeneratedFile;
+	}
+
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		getLog().info("Resolving local TIBCO installation packages in directory: " + installationPackageDirectory.getAbsolutePath());
@@ -49,7 +68,7 @@ public class DisplayPackages extends AbstractPackagesResolver {
 	protected void doExecute() throws MojoExecutionException {
 		getLog().info("These TIBCO installation packages can be automatically:");
 		getLog().info("-> installed to the local Maven repository by running 'mvn toe:packages-install'");
-		getLog().info("->  deployed to a remote Maven repository by running 'mvn toe:packages-deploy -D" + InstallerMojosInformation.Packages.Deploy.remoteRepositoryId + "=<repositoryId> -D" + InstallerMojosInformation.Packages.Deploy.remoteRepositoryURL + "=<repositoryURL>'");		
+		getLog().info("-> deployed to a remote Maven repository by running 'mvn toe:packages-deploy -D" + InstallerMojosInformation.Packages.Deploy.remoteRepositoryId + "=<repositoryId> -D" + InstallerMojosInformation.Packages.Deploy.remoteRepositoryURL + "=<repositoryURL>'");		
 	}
 
 }

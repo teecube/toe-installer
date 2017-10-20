@@ -29,6 +29,7 @@ import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosInformation;
+import t3.toe.installer.environments.ProductType;
 
 /**
 * <p>
@@ -259,6 +260,11 @@ public class TRAInstallerMojo extends CommonInstaller {
 	@Override
 	public String getProductName() {
 		return "TIBCO Runtime Agent (TRA)";
+	}
+
+	@Override
+	public ProductType getProductType() {
+		return ProductType.TRA;
 	}
 
 }

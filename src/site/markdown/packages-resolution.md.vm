@@ -38,10 +38,10 @@ Notice that these installation packages filenames are always prefixed by
 a short name of the product, the version and the system/architecture.
 </div>
 
-<p>
+$h3 Example
+
 For following explanations, we consider a directory */tmp/packages* filled with
 4 TIBCO installation packages as follows:
-</p>
 
 ${installTIBCOPackageToMaven_sample}
 

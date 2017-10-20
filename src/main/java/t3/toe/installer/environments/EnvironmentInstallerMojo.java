@@ -38,9 +38,13 @@ import java.util.Map;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.codehaus.plexus.logging.Logger;
 import org.twdata.maven.mojoexecutor.MojoExecutor.Element;
 import org.xml.sax.SAXException;
 
@@ -87,16 +91,16 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 	        this.priority = priority;
 	    }
 
-	    protected String goal() { return goal; }
+	    public String goal() { return goal; }
 	    protected String productName() { return "TIBCO " + name; }
 	    protected Integer priority() { return priority; }
 	}
 
-	@Parameter (property = InstallerMojosInformation.FullEnvironment.environmentsTopologyFile, defaultValue = InstallerMojosInformation.FullEnvironment.environmentsTopologyFile_default)
+	@Parameter (property = InstallerMojosInformation.FullEnvironment.topologyFile, defaultValue = InstallerMojosInformation.FullEnvironment.topologyFile_default)
 	protected File environmentsTopology;
 
 	protected EnvironmentsMarshaller environmentsMarshaller;
-	private boolean firstDependency = true;
+	private static boolean firstDependency = true;
 
 	@Override
 	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() throws MojoExecutionException {
@@ -134,7 +138,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			int i = 1;
 			List<List<Element>> configurations = new ArrayList<List<Element>>();
 			for (ProductToInstall product : productsToInstall) {
-				configurations.add(initInstaller(environment, product, i));
+				configurations.add(initInstaller(environment, product, i, pluginManager, session, logger, getLog()));
 				i++;
 
 				if (productIsRemote(product)) {
@@ -262,11 +266,11 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		return true; // dead code anyway
 	}
 
-	private boolean productIsLocal(ProductToInstall product) {
+	private static boolean productIsLocal(ProductToInstall product) {
 		return product != null && product.getPackage() != null && product.getPackage().getLocal() != null;
 	}
 
-	private boolean productIsRemote(ProductToInstall product) {
+	private static boolean productIsRemote(ProductToInstall product) {
 		return product != null && product.getPackage() != null && product.getPackage().getRemote() != null;
 	}
 
@@ -369,14 +373,17 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		if (environmentsMarshaller == null) {
 			throw new MojoExecutionException("Unable to load topology from file '" + environmentsTopology.getAbsolutePath() + "'");
 		}
-
 	}
 
-	private ArrayList<Element> initInstaller(EnvironmentToInstall environment, ProductToInstall product, int productIndex) throws MojoExecutionException {
+	public static ArrayList<Element> initInstaller(EnvironmentToInstall environment, ProductToInstall product, int productIndex, BuildPluginManager pluginManager, MavenSession session, Logger logger, Log log) throws MojoExecutionException {
 		String goal = product.getTibcoProduct().goal();
+		CommonInstaller installer = InstallerMojosFactory.getInstallerMojo("toe:" + goal);
 
-		CommonInstaller mojo = InstallerMojosFactory.getInstallerMojo("toe:" + goal);
-		String mojoClassName = mojo.getClass().getCanonicalName();
+		return initInstaller(environment, product, productIndex, pluginManager, session, logger, log, installer);
+	}
+
+	public static ArrayList<Element> initInstaller(EnvironmentToInstall environment, ProductToInstall product, int productIndex, BuildPluginManager pluginManager, MavenSession session, Logger logger, Log log, CommonInstaller installer) throws MojoExecutionException {
+		String mojoClassName = installer.getClass().getCanonicalName();
 
 		ArrayList<Element> configuration = new ArrayList<Element>();
 		ArrayList<Element> ignoredParameters = new ArrayList<Element>();
@@ -391,50 +398,50 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		}
 		
 		addProperty(configuration, ignoredParameters, "ignoreDependencies", "true", CommonInstaller.class); // disable resolution of dependencies in the product goal since dependency are managed here
-		mojo.setIgnoreDependencies(true);
+		installer.setIgnoreDependencies(true);
 		addProperty(configuration, ignoredParameters, "environmentName", environment.getEnvironmentName(), CommonInstaller.class);
-		mojo.setEnvironmentName(environment.getEnvironmentName());
+		installer.setEnvironmentName(environment.getEnvironmentName());
 		addProperty(configuration, ignoredParameters, "installationRoot", environment.getTibcoRoot(), CommonInstaller.class);
-		mojo.setInstallationRoot(new File(environment.getTibcoRoot()));
+		installer.setInstallationRoot(new File(environment.getTibcoRoot()));
 		if (product.getPackage() != null) {
 			if (product.getPackage().getRemote() != null) { // use remote package
 				RemotePackage remotePackage = product.getPackage().getRemote();
 	
 				// version and classifier are mandatory
-				addProperty(configuration, ignoredParameters, "remoteInstallationPackageVersion", remotePackage.getVersion(), mojo.getClass());
-				mojo.setRemoteInstallationPackageVersion(remotePackage.getVersion());
-				mojo.setInstallationPackageVersion(remotePackage.getVersion());
-				addProperty(configuration, ignoredParameters, "remoteInstallationPackageClassifier", remotePackage.getClassifier(), mojo.getClass());
-				mojo.setRemoteInstallationPackageClassifier(remotePackage.getClassifier());
+				addProperty(configuration, ignoredParameters, "remoteInstallationPackageVersion", remotePackage.getVersion(), installer.getClass());
+				installer.setRemoteInstallationPackageVersion(remotePackage.getVersion());
+				installer.setInstallationPackageVersion(remotePackage.getVersion());
+				addProperty(configuration, ignoredParameters, "remoteInstallationPackageClassifier", remotePackage.getClassifier(), installer.getClass());
+				installer.setRemoteInstallationPackageClassifier(remotePackage.getClassifier());
 				if (StringUtils.isNotBlank(remotePackage.getGroupId())) {
-					addProperty(configuration, ignoredParameters, "remoteInstallationPackageGroupId", remotePackage.getGroupId(), mojo.getClass());
-					mojo.setRemoteInstallationPackageGroupId(remotePackage.getGroupId());
+					addProperty(configuration, ignoredParameters, "remoteInstallationPackageGroupId", remotePackage.getGroupId(), installer.getClass());
+					installer.setRemoteInstallationPackageGroupId(remotePackage.getGroupId());
 				}
 				if (StringUtils.isNotBlank(remotePackage.getArtifactId())) {
-					addProperty(configuration, ignoredParameters, "remoteInstallationPackageArtifactId", remotePackage.getArtifactId(), mojo.getClass());
-					mojo.setRemoteInstallationPackageArtifactId(remotePackage.getArtifactId());
+					addProperty(configuration, ignoredParameters, "remoteInstallationPackageArtifactId", remotePackage.getArtifactId(), installer.getClass());
+					installer.setRemoteInstallationPackageArtifactId(remotePackage.getArtifactId());
 				}
 			} else if (product.getPackage().getLocal() != null) { // use local package
 				LocalPackage localPackage = product.getPackage().getLocal();
 				if (localPackage.getDirectoryWithPattern() != null) {
 					if (StringUtils.isNotBlank(localPackage.getDirectoryWithPattern().getDirectory())) {
 						addProperty(configuration, ignoredParameters, "installationPackageDirectory", localPackage.getDirectoryWithPattern().getDirectory(), CommonInstaller.class);
-						mojo.setInstallationPackageDirectory(new File(localPackage.getDirectoryWithPattern().getDirectory()));					
+						installer.setInstallationPackageDirectory(new File(localPackage.getDirectoryWithPattern().getDirectory()));					
 					}
 					if (StringUtils.isNotBlank(localPackage.getDirectoryWithPattern().getPattern())) {
-						addProperty(configuration, ignoredParameters, "installationPackageRegex", localPackage.getDirectoryWithPattern().getPattern(), mojo.getClass());
-						mojo.setInstallationPackageRegex(localPackage.getDirectoryWithPattern().getPattern());
+						addProperty(configuration, ignoredParameters, "installationPackageRegex", localPackage.getDirectoryWithPattern().getPattern(), installer.getClass());
+						installer.setInstallationPackageRegex(localPackage.getDirectoryWithPattern().getPattern());
 					}
 					if (localPackage.getDirectoryWithPattern().getVersionGroupIndex() != null) {
-						addProperty(configuration, ignoredParameters, "installationPackageRegexVersionGroupIndex", localPackage.getDirectoryWithPattern().getVersionGroupIndex().toString(), mojo.getClass());
-						mojo.setInstallationPackageRegexVersionGroupIndex(localPackage.getDirectoryWithPattern().getVersionGroupIndex());
+						addProperty(configuration, ignoredParameters, "installationPackageRegexVersionGroupIndex", localPackage.getDirectoryWithPattern().getVersionGroupIndex().toString(), installer.getClass());
+						installer.setInstallationPackageRegexVersionGroupIndex(localPackage.getDirectoryWithPattern().getVersionGroupIndex());
 					}
 				} else if (localPackage.getFileWithVersion() != null) {
-					addProperty(configuration, ignoredParameters, "installationPackage", localPackage.getFileWithVersion().getFile(), mojo.getClass());
-					mojo.setInstallationPackage(new File(localPackage.getFileWithVersion().getFile()));
+					addProperty(configuration, ignoredParameters, "installationPackage", localPackage.getFileWithVersion().getFile(), installer.getClass());
+					installer.setInstallationPackage(new File(localPackage.getFileWithVersion().getFile()));
 
-					addProperty(configuration, ignoredParameters, "installationPackageVersion", localPackage.getFileWithVersion().getVersion(), mojo.getClass());
-					mojo.setInstallationPackageVersion(localPackage.getFileWithVersion().getVersion());
+					addProperty(configuration, ignoredParameters, "installationPackageVersion", localPackage.getFileWithVersion().getVersion(), installer.getClass());
+					installer.setInstallationPackageVersion(localPackage.getFileWithVersion().getVersion());
 				}
 			}
 		} else { // no remote or local package defined -> create a local package with default values
@@ -447,7 +454,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 				throw new MojoExecutionException("The product '" + product.fullProductName() + "' has no package directory set in this topology");
 			}
 			addProperty(configuration, ignoredParameters, "installationPackageDirectory", installationPackagesDirectory, CommonInstaller.class);
-			mojo.setInstallationPackageDirectory(installationPackagesDirectoryFile);
+			installer.setInstallationPackageDirectory(installationPackagesDirectoryFile);
 		}
 
 		if (product.getProperties() != null && product.getProperties().getProperty() != null) {
@@ -459,17 +466,17 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		configuration.add(element("ignoredParameters", ignoredParameters.toArray(new Element[0])));
 
 		// init the Mojo to check if installation already exists
-		mojo.setLog(this.getLog());
-		mojo.setLogger(this.logger);
-		mojo.setPluginManager(pluginManager);
-		mojo.setSession(session);
+		installer.setLog(log);
+		installer.setLogger(logger);
+		installer.setPluginManager(pluginManager);
+		installer.setSession(session);
 		Map<String, String> mojoIgnoredParameters = new HashMap<String, String>();
 		for (Element ignoredParameter : ignoredParameters) {
 			mojoIgnoredParameters.put(ignoredParameter.toDom().getName(), ignoredParameter.toDom().getValue());
 		}
-		mojo.setIgnoredParameters(mojoIgnoredParameters);
-		mojo.initStandalonePOM();
-		if (mojo.installationExists()) {
+		installer.setIgnoredParameters(mojoIgnoredParameters);
+		installer.initStandalonePOM();
+		if (installer.installationExists()) {
 			product.setAlreadyInstalled(true);
 		}
 
@@ -482,8 +489,8 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 //				break;
 			case FAIL:
-				getLog().error("Product '" + product.fullProductName() + "' already exists and cannot be kept nor deleted (as specified in topology).");
-				getLog().info(Messages.MESSAGE_SPACE);
+				log.error("Product '" + product.fullProductName() + "' already exists and cannot be kept nor deleted (as specified in topology).");
+				log.info(Messages.MESSAGE_SPACE);
 
 				throw new MojoExecutionException("Product '" + product.fullProductName()  + "' already exists and cannot be deleted.");
 			case KEEP:
@@ -551,7 +558,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		}
 	}
 
-	private void addProperty(ArrayList<Element> configuration, ArrayList<Element> ignoredParameters, String key, String value, Class<?> clazz) {
+	private static void addProperty(ArrayList<Element> configuration, ArrayList<Element> ignoredParameters, String key, String value, Class<?> clazz) {
 		configuration.add(element(key, value));
 		ignoredParameters.add(element(key, clazz.getCanonicalName()));
 	}
@@ -563,7 +570,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 	 * @param product
 	 * @return
 	 */
-	private String getInstallationPackagesDirectory(EnvironmentToInstall environment, ProductToInstall product) {
+	private static String getInstallationPackagesDirectory(EnvironmentToInstall environment, ProductToInstall product) {
 		if (productIsLocal(product) && product.getPackage().getLocal().getDirectoryWithPattern() != null && product.getPackage().getLocal().getDirectoryWithPattern().getDirectory() != null) {
 			return product.getPackage().getLocal().getDirectoryWithPattern().getDirectory();
 		} else if (environment != null && environment.getPackagesDirectory() != null) {

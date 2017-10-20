@@ -23,6 +23,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 import t3.plugin.annotations.Mojo;
+import t3.plugin.annotations.Parameter;
 import t3.toe.installer.InstallerMojosInformation;
 
 /**
@@ -43,6 +44,22 @@ public class InstallPackages extends AbstractPackagesResolver {
 
 	@org.apache.maven.plugins.annotations.Parameter (property = InstallerMojosInformation.Packages.Install.localRepositoryPath, defaultValue = InstallerMojosInformation.Packages.Install.localRepositoryPath_default, readonly = true, required = true)
 	protected ArtifactRepository localRepository;
+
+	@Parameter(property = InstallerMojosInformation.FullEnvironment.topologyGenerate, defaultValue = InstallerMojosInformation.FullEnvironment.topologyGenerate_default)
+	protected Boolean generateTopology;
+
+	@Parameter (property = InstallerMojosInformation.FullEnvironment.topologyGeneratedFile, defaultValue = InstallerMojosInformation.FullEnvironment.topologyGeneratedFile_default)
+	protected File topologyGeneratedFile;
+
+	@Override
+	protected Boolean getGenerateTopology() throws MojoExecutionException {
+		return generateTopology;
+	}
+
+	@Override
+	protected File getTopologyGeneratedFile() throws MojoExecutionException {
+		return topologyGeneratedFile;
+	}
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {

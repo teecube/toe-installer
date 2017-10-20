@@ -18,7 +18,7 @@
 
 -->
 <environments xmlns="http://teecu.be/toe-installer/environments" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://teecu.be/toe-installer/environments ../../main/resources/xsd/environments.xsd ">
-	<environment>
+	<environment ifExists="update">
 		<environmentName>BW640-test</environmentName>
 		<tibcoRoot>C:/tibco/BW640-test</tibcoRoot>
 		<products>

@@ -29,6 +29,7 @@ import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosInformation;
+import t3.toe.installer.environments.ProductType;
 
 /**
 * <p>
@@ -244,5 +245,11 @@ public class BW6InstallerMojo extends CommonInstaller {
 	public String getProductName() {
 		return "TIBCO BusinessWorks 6.x";
 	}
+
+	@Override
+	public ProductType getProductType() {
+		return ProductType.BW_6;
+	}
+
 
 }

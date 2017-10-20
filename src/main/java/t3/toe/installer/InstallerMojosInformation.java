@@ -396,7 +396,13 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 			public static final String includeTIBCOInstallationPackages = "tibco.packages.standalone.includeTIBCOInstallationPackages";
 			public static final String includeTIBCOInstallationPackages_default = "true";
-			
+
+			public static final String topologyGenerate = "tibco.packages.standalone.topology.generate";
+			public static final String topologyGenerate_default = "true";
+
+			public static final String topologyGeneratedFile = "tibco.packages.standalone.topology.generatedFile";
+			public static final String topologyGeneratedFile_default = "${tibco.packages.standalone.directory}/tibco-environments.xml";
+
 			public static class Archive {
 				public static final String archive = "tibco.packages.standalone.archive";
 				public static final String archive_default = "${project.build.directory}/t3-standalone.zip";
@@ -436,8 +442,20 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 	}
 
 	public static class FullEnvironment {
-		public static final String environmentsTopologyFile = "tibco.environments.topology";
-		public static final String environmentsTopologyFile_default = "${basedir}/tibco-environments.xml";
+		public static final String topologyFile = "tibco.environments.topology";
+		public static final String topologyFile_default = "${basedir}/tibco-environments.xml";
+
+		public static final String topologyGenerate = "tibco.environments.topology.generate";
+		public static final String topologyGenerate_default = "false";
+
+		public static final String topologyGenerateWithTemplate = "tibco.environments.topology.generate.withTemplate";
+		public static final String topologyGenerateWithTemplate_default = "true";
+
+		public static final String topologyGeneratedFile = "tibco.environments.topology.generatedFile";
+		public static final String topologyGeneratedFile_default = "${project.build.directory}/tibco-environments.xml";
+
+		public static final String topologyType = "tibco.environments.topology.type";
+		public static final String topologyType_default = "LOCAL";
 	}
 
 }

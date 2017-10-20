@@ -16,6 +16,8 @@
  */
 package t3.toe.installer.packages;
 
+import java.io.File;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -46,6 +48,22 @@ public class DeployPackages extends AbstractPackagesResolver {
 
 	@Parameter (property = InstallerMojosInformation.Packages.Deploy.remoteRepositoryURL, defaultValue = InstallerMojosInformation.Packages.Deploy.remoteRepositoryURL_default, required = true)
 	protected String remoteRepositoryURL; 
+
+	@Parameter(property = InstallerMojosInformation.FullEnvironment.topologyGenerate, defaultValue = InstallerMojosInformation.FullEnvironment.topologyGenerate_default)
+	protected Boolean generateTopology;
+
+	@Parameter (property = InstallerMojosInformation.FullEnvironment.topologyGeneratedFile, defaultValue = InstallerMojosInformation.FullEnvironment.topologyGeneratedFile_default)
+	protected File topologyGeneratedFile;
+
+	@Override
+	protected Boolean getGenerateTopology() throws MojoExecutionException {
+		return generateTopology;
+	}
+
+	@Override
+	protected File getTopologyGeneratedFile() throws MojoExecutionException {
+		return topologyGeneratedFile;
+	}
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {

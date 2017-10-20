@@ -76,6 +76,7 @@ import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.envinfo.EnvInfo;
 import t3.toe.installer.envinfo.RemoveEnvInfoMojo;
+import t3.toe.installer.environments.ProductType;
 
 /**
 *
@@ -104,6 +105,8 @@ public abstract class CommonInstaller extends CommonMojo {
 
 	@Parameter(property = InstallerMojosInformation.ignoreDependencies, defaultValue = InstallerMojosInformation.ignoreDependencies_default)
 	protected Boolean ignoreDependencies;
+
+	private List<File> ignoredInstallationPackages;
 
 	protected String currentGoalName;
 
@@ -276,6 +279,7 @@ public abstract class CommonInstaller extends CommonMojo {
 	protected static Boolean _removeExistingEnvironment = null;
 
 	public abstract String getProductName();
+	public abstract ProductType getProductType();
 	public abstract File getInstallationPackage() throws MojoExecutionException;
 	public abstract String getInstallationPackageRegex();
 	public abstract void setInstallationPackageRegex(String installationPackageRegex);
@@ -447,7 +451,16 @@ public abstract class CommonInstaller extends CommonMojo {
 	    });
 
 		if (result != null && result.length > 0) {
-			return result[0];
+			if (ignoredInstallationPackages != null) {
+				for (File f : result) {
+					if (ignoredInstallationPackages.contains(f)) {
+						continue;
+					}
+					return f;
+				}
+			} else {
+				return result[0];
+			}
 		}
 
 		return null;
@@ -1029,6 +1042,10 @@ public abstract class CommonInstaller extends CommonMojo {
 
 	public void setInstallationPackageDirectory(File installationPackageDirectory) {
 		this.installationPackageDirectory = installationPackageDirectory;
+	}
+
+	public void setIgnoredInstallationPackages(List<File> ignoredInstallationPackages) {
+		this.ignoredInstallationPackages = ignoredInstallationPackages;
 	}
 
 }

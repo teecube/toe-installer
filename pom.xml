@@ -342,6 +342,11 @@
 			<artifactId>plexus-container-default</artifactId>
 			<version>1.0-alpha-30</version>
 		</dependency>
+
+		<dependency>
+		    <groupId>org.kohsuke</groupId>
+		    <artifactId>wordnet-random-name</artifactId>
+		</dependency>
 	</dependencies>
 
 	<scm>

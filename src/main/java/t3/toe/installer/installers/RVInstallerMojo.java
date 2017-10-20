@@ -28,6 +28,7 @@ import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosInformation;
+import t3.toe.installer.environments.ProductType;
 
 /**
 * <p>
@@ -229,5 +230,11 @@ public class RVInstallerMojo extends CommonInstaller {
 	public String getProductName() {
 		return "TIBCO RendezVous";
 	}
+
+	@Override
+	public ProductType getProductType() {
+		return ProductType.RV;
+	}
+
 
 }

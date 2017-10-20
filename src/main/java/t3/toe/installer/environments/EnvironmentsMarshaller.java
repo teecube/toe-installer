@@ -35,4 +35,8 @@ public class EnvironmentsMarshaller extends XMLMarshall<Environments, ObjectFact
 		super(xmlFile, xsdStream);
 	}
 
+	public EnvironmentsMarshaller(File xmlFile) throws JAXBException, SAXException {
+		super(xmlFile);
+	}
+
 }

@@ -26,6 +26,7 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -361,6 +362,12 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 	protected void loadTopology() throws MojoExecutionException {
 		getLog().info("Using topology file: " + environmentsTopology.getAbsolutePath());
 		getLog().info(Messages.MESSAGE_SPACE);
+
+		if (!environmentsTopology.exists()) {
+			getLog().error("Topology not found");
+			getLog().error("Set '" + InstallerMojosInformation.FullEnvironment.topologyFile + "' parameter with an existing topology file");
+			throw new MojoExecutionException("Topology not found", new FileNotFoundException(environmentsTopology.getAbsolutePath()));
+		}
 
 		try {
 			String filename = "/xsd/environments.xsd";

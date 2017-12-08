@@ -987,7 +987,9 @@ public abstract class CommonInstaller extends CommonMojo {
 			getLog().debug(cmdLine.toString());
 			result = executor.execute(cmdLine);
 		} catch (IOException e) {
-			//
+			if (e.getCause().getMessage().contains("=740")) { // Windows and not admin
+				windowsNeedElevation();
+			}
 		}
 
 		// deduce new log file
@@ -1005,6 +1007,13 @@ public abstract class CommonInstaller extends CommonMojo {
 			detectSilentErrors(logFile);
 		}
 
+	}
+
+	private void windowsNeedElevation() throws MojoExecutionException {
+		getLog().info("");
+		getLog().error("Administration privileges are required to install TIBCO products on Windows.");
+
+		throw new MojoExecutionException("Administration privileges are required to install TIBCO products on Windows.");
 	}
 
 	private void detectSilentErrors(File logFile) throws MojoExecutionException {

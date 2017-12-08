@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>io.teecube.toe</groupId>
 		<artifactId>toe</artifactId>
-		<version>0.0.11</version>
+		<version>0.0.12</version>
 	</parent>
 
 	<artifactId>toe-installer-plugin</artifactId>

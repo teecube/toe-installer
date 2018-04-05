@@ -1,5 +1,10 @@
+# Eclipse
 .classpath
 .project
 .settings/
+# IntelliJ
+.idea
+# Maven
 target/
+# Misc
 git*.sh

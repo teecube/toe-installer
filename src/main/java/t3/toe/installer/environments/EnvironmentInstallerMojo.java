@@ -51,6 +51,7 @@ import org.xml.sax.SAXException;
 import t3.AdvancedMavenLifecycleParticipant;
 import t3.CommonMojo;
 import t3.Messages;
+import t3.Utils;
 import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.CommonInstaller;
@@ -119,7 +120,13 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		for (Environment environment : environmentsMarshaller.getObject().getEnvironment()) {
 			environmentsToInstall.add(new EnvironmentToInstall(environment));
 		}
+		int environmentsCount = environmentsToInstall.size();
+		int environmentsIndex = 1;
 		for (EnvironmentToInstall environment : environmentsToInstall) {
+			if (environmentsCount > 1) { // multiple environments to install
+				getLog().info("=== " + StringUtils.leftPad(Utils.toRoman(environmentsIndex), 3, " ") + ". Environment: " + environment.getEnvironmentName() + " ===");
+				getLog().info("");
+			}
 			// first check if environment exists and if we can continue according to current strategy (keep, fail, delete)
 			com.tibco.envinfo.TIBCOEnvironment.Environment localEnvironment = CommonInstaller.getCurrentEnvironment(environment.getEnvironmentName());
 			if (CommonInstaller.environmentExists(localEnvironment)) {
@@ -197,6 +204,11 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 					executeCommand(command, i, "Post-install command");
 					i++;
 				}
+			}
+
+			if (environmentsCount > 1 && environmentsIndex < environmentsCount) { // add space between environments
+				getLog().info("");
+				environmentsIndex++;
 			}
 		}
 	}
@@ -465,8 +477,10 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 		if (product.getProperties() != null && product.getProperties().getProperty() != null) {
 			for (Property property : product.getProperties().getProperty()) {
-				configuration.add(element(property.getKey(), property.getValue()));
-				ignoredParameters.add(element(property.getKey(), mojoClassName));
+				if (StringUtils.isNotEmpty(property.getKey())) {
+					configuration.add(element(property.getKey(), property.getValue()));
+					ignoredParameters.add(element(property.getKey(), mojoClassName));
+				}
 			}
 		}
 		configuration.add(element("ignoredParameters", ignoredParameters.toArray(new Element[0])));

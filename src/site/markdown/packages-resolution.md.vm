@@ -14,7 +14,7 @@ It can retrieve the installation packages:
 * from a local directory with a zero-configuration approach, based on the
 naming convention of the TIBCO installation packages
 * from a Maven repository (local or remote) where the TIBCO installation
-packages have neen [installed](#Install) or [deployed](#Deploy) before
+packages have been [installed](#Install) or [deployed](#Deploy) before
 
 It's a prerequisites to create a
 [full environment installation](./environments.html) configuration and

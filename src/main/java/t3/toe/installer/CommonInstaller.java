@@ -672,7 +672,7 @@ public abstract class CommonInstaller extends CommonMojo {
 	}
 
 	@Override
-	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() throws MojoExecutionException {
+	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() {
 		return new InstallerLifecycleParticipant();
 	}
 

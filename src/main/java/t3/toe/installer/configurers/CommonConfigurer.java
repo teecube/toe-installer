@@ -96,7 +96,7 @@ public abstract class CommonConfigurer extends CommonMojo {
 	protected abstract boolean validateProfileProperties(Environment environment);
 
 	@Override
-	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() throws MojoExecutionException {
+	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() {
 		return new InstallerLifecycleParticipant();
 	}
 

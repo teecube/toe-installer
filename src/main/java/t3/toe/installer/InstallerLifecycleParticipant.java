@@ -34,6 +34,7 @@ import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.Logger;
 
 import t3.AdvancedMavenLifecycleParticipant;
+import t3.CommonMavenLifecycleParticipant;
 import t3.CommonMojo;
 import t3.plugin.PluginConfigurator;
 import t3.plugin.PluginManager;
@@ -44,7 +45,7 @@ import t3.plugin.PluginManager;
  *
  */
 @Component(role = AbstractMavenLifecycleParticipant.class, hint = "TOEInstallerLifecycleParticipant")
-public class InstallerLifecycleParticipant extends AbstractMavenLifecycleParticipant implements AdvancedMavenLifecycleParticipant {
+public class InstallerLifecycleParticipant extends CommonMavenLifecycleParticipant implements AdvancedMavenLifecycleParticipant {
 
     @Requirement
     private PlexusContainer plexus;
@@ -68,28 +69,36 @@ public class InstallerLifecycleParticipant extends AbstractMavenLifecyclePartici
 	public final static String pluginArtifactId = "toe-installer-plugin";
 	public final static String pluginKey = InstallerLifecycleParticipant.pluginGroupId + ":" + InstallerLifecycleParticipant.pluginArtifactId;
 
-	@Override
-	public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
-		fixStandalonePOM(session.getCurrentProject(), new File(session.getRequest().getBaseDirectory()));
+    @Override
+    protected String getPluginGroupId() {
+        return pluginGroupId;
+    }
 
-		PluginConfigurator.propertiesManager = CommonMojo.propertiesManager(session, session.getCurrentProject());
+    @Override
+    protected String getPluginArtifactId() {
+        return pluginArtifactId;
+    }
 
-		List<MavenProject> projects = prepareProjects(session.getProjects(), session);
-		session.setProjects(projects);
+    @Override
+    protected String loadedMessage() {
+        return null;
+    }
 
-		PluginManager.registerCustomPluginManager(pluginManager, new InstallerMojosFactory()); // to inject Global Parameters in Mojos
+    @Override
+    protected void initProjects(MavenSession session) throws MavenExecutionException {
+        List<MavenProject> projects = prepareProjects(session.getProjects(), session);
+        session.setProjects(projects);
 
-		super.afterProjectsRead(session);
-	}
+        PluginManager.registerCustomPluginManager(pluginManager, new InstallerMojosFactory()); // to inject Global Parameters in Mojos
+    }
 
-	/**
+    /**
 	 * <p>
 	 *
 	 * </p>
 	 *
 	 * @param session
 	 * @param projects
-	 * @param projectBuildingRequest
 	 * @throws MavenExecutionException
 	 */
 	private List<MavenProject> prepareProjects(List<MavenProject> projects, MavenSession session) throws MavenExecutionException {

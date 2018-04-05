@@ -103,7 +103,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 	private static boolean firstDependency = true;
 
 	@Override
-	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() throws MojoExecutionException {
+	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() {
 		return new InstallerLifecycleParticipant();
 	}
 

@@ -85,7 +85,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 	protected abstract File getTopologyGeneratedFile() throws MojoExecutionException;
 
 	@Override
-	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() throws MojoExecutionException {
+	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() {
 		return new InstallerLifecycleParticipant();
 	}
 

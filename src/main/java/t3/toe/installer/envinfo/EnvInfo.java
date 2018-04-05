@@ -54,7 +54,7 @@ public class EnvInfo extends CommonMojo {
 	private static boolean filesDisplayed = false;
 
 	@Override
-	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() throws MojoExecutionException {
+	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() {
 		return new InstallerLifecycleParticipant();
 	}
 

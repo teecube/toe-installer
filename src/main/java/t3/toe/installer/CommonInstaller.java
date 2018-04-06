@@ -118,7 +118,8 @@ public abstract class CommonInstaller extends CommonMojo {
 
 	private static Boolean installationRootWasNotSet = false;
 	private static EnvInfo envInfo = null;
- 
+	private boolean installationPackageWasAlreadyResolved = false;
+
 	public Boolean getCreateNewEnvironment() {
 		if (createNewEnvironment != _createNewEnvironment && _createNewEnvironment != null) {
 			return _createNewEnvironment;
@@ -280,7 +281,7 @@ public abstract class CommonInstaller extends CommonMojo {
 
 	public abstract String getProductName();
 	public abstract ProductType getProductType();
-	public abstract File getInstallationPackage() throws MojoExecutionException;
+	public abstract File getInstallationPackage(boolean resolve) throws MojoExecutionException;
 	public abstract String getInstallationPackageRegex();
 	public abstract void setInstallationPackageRegex(String installationPackageRegex);
 	public abstract Integer getInstallationPackageVersionGroupIndex();
@@ -389,6 +390,10 @@ public abstract class CommonInstaller extends CommonMojo {
 		}
 
 		return executableFile;
+	}
+
+	public File getInstallationPackage() throws MojoExecutionException {
+		return getInstallationPackage(true);
 	}
 
 	private File findRemoteInstallationPackage() throws MojoExecutionException, ArtifactNotFoundException, ArtifactResolutionException {
@@ -740,6 +745,10 @@ public abstract class CommonInstaller extends CommonMojo {
 	public <T> void initStandalonePOM() throws MojoExecutionException {
 		super.initStandalonePOM();
 
+		if (getInstallationPackage(false).exists()) {
+			installationPackageWasAlreadyResolved = true;
+		}
+
 		initDefaultParameters();
 
 		if (firstGoal) {
@@ -1057,4 +1066,7 @@ public abstract class CommonInstaller extends CommonMojo {
 		this.ignoredInstallationPackages = ignoredInstallationPackages;
 	}
 
+	public boolean installationPackageWasAlreadyResolved() {
+		return installationPackageWasAlreadyResolved;
+	}
 }

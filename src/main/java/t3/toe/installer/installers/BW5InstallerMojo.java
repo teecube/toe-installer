@@ -114,8 +114,8 @@ public class BW5InstallerMojo extends CommonInstaller {
 	}
 
 	@Override
-	public File getInstallationPackage() throws MojoExecutionException {
-		if (installationPackage == null || !installationPackage.exists()) {
+	public File getInstallationPackage(boolean resolve) throws MojoExecutionException {
+		if (resolve && (installationPackage == null || !installationPackage.exists())) {
 			installationPackage = findInstallationPackage();
 		}
 		return installationPackage;

@@ -126,6 +126,8 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			if (environmentsCount > 1) { // multiple environments to install
 				getLog().info("=== " + StringUtils.leftPad(Utils.toRoman(environmentsIndex), 3, " ") + ". Environment: " + environment.getEnvironmentName() + " ===");
 				getLog().info("");
+
+                firstDependency = true;
 			}
 			// first check if environment exists and if we can continue according to current strategy (keep, fail, delete)
 			com.tibco.envinfo.TIBCOEnvironment.Environment localEnvironment = CommonInstaller.getCurrentEnvironment(environment.getEnvironmentName());
@@ -147,10 +149,6 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			for (ProductToInstall product : productsToInstall) {
 				configurations.add(initInstaller(environment, product, i, pluginManager, session, logger, getLog()));
 				i++;
-
-				if (productIsRemote(product)) {
-					getLog().info(Messages.MESSAGE_SPACE);
-				}
 			}
 
 			getLog().info("Environment name to install is : " + environment.getEnvironmentName());
@@ -496,6 +494,10 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		}
 		installer.setIgnoredParameters(mojoIgnoredParameters);
 		installer.initStandalonePOM();
+		if (!installer.installationPackageWasAlreadyResolved() && productIsRemote(product)) {
+		    logger.info(Messages.MESSAGE_SPACE);
+        }
+
 		if (installer.installationExists()) {
 			product.setAlreadyInstalled(true);
 		}

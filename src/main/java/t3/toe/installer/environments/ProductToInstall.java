@@ -23,8 +23,9 @@ import t3.toe.installer.environments.EnvironmentInstallerMojo.TIBCOProduct;
 public class ProductToInstall extends Product {
 	
 	private boolean alreadyInstalled;
-	private boolean toBeDeleted;
 	private TIBCOProduct tibcoProduct;
+	private boolean toBeDeleted;
+	private String version;
 
 	public ProductToInstall(Product product) {
 		this.setHotfixes(product.getHotfixes());
@@ -70,4 +71,11 @@ public class ProductToInstall extends Product {
 		this.toBeDeleted = toBeDeleted;
 	}
 
- }
+	public String getVersion() {
+		return version;
+	}
+
+	public void setVersion(String version) {
+		this.version = version;
+	}
+}

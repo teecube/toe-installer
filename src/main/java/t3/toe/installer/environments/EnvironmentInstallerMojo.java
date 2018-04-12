@@ -167,7 +167,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			});
 			int maxFullProductNameLength = productWithLongestFullProductName.fullProductName().length();
 			i = 1;
-			for (TIBCOProductToInstall product : productsToInstall) {
+			for (ProductToInstall product : productsToInstall) {
 				String skipped = (product.isSkip() ? " (skipped)" : "");
 				String alreadyInstalled = (!product.isSkip() && product.isAlreadyInstalled() ? " (already installed"
 																							  + (environment.isToBeDeleted() ? ", will be deleted then reinstalled in new environment" : "")
@@ -320,8 +320,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
                 .toList();
 
 		for (ProductToInstall product : productsToInstall) {
-            getLog().info(product.getClass().getComponentType().getCanonicalName());
-		    if (true) { // TODO : filter only TIBCOProduct
+		    if (product instanceof TIBCOProductToInstall) {
                 TIBCOProductToInstall tibcoProduct = (TIBCOProductToInstall) product;
                 Integer productPriority = tibcoProduct.getPriority();
                 if (productPriority == null) { // if not set in XML, take default one
@@ -374,18 +373,24 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		Collections.sort(productsToInstall, new ProductComparator());
 	}
 
-	public class ProductComparator implements Comparator<TIBCOProductToInstall> {
+	public class ProductComparator implements Comparator<ProductToInstall> {
 	    @Override
-	    public int compare(TIBCOProductToInstall p1, TIBCOProductToInstall p2) {
+	    public int compare(ProductToInstall p1, ProductToInstall p2) {
 	    	if (p1 == null || p2 == null) return 0;
 
 	    	Integer priority1 = p1.getPriority();
 	    	Integer priority2 = p2.getPriority();
 	    	if (priority1 == null) {
-	    		priority1 = p1.getTibcoProductGoalAndPriority().priority();
+	    		if (p1 instanceof TIBCOProductToInstall) {
+					priority1 = ((TIBCOProductToInstall) p1).getTibcoProductGoalAndPriority().priority();
+				} else {
+	    			return 0;
+				}
 	    	}
 	    	if (priority2 == null) {
-	    		priority2 = p2.getTibcoProductGoalAndPriority().priority();
+				if (p2 instanceof TIBCOProductToInstall) {
+					priority2 = ((TIBCOProductToInstall) p2).getTibcoProductGoalAndPriority().priority();
+				}
 	    	}
 
 			return priority1.compareTo(priority2);

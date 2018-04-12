@@ -28,6 +28,10 @@ public abstract class ProductToInstall<P extends Product> {
     private Integer priority;
     private boolean skip;
 
+    private boolean alreadyInstalled;
+    private boolean toBeDeleted;
+    private String version;
+
     public ProductToInstall(P product) {
         this.setId(product.getId());
         this.setIfExists(product.getIfExists());
@@ -112,5 +116,29 @@ public abstract class ProductToInstall<P extends Product> {
 
     public boolean isSkip() {
         return skip;
+    }
+
+    public boolean isAlreadyInstalled() {
+        return alreadyInstalled;
+    }
+
+    public void setAlreadyInstalled(boolean alreadyInstalled) {
+        this.alreadyInstalled = alreadyInstalled;
+    }
+
+    public boolean isToBeDeleted() {
+        return toBeDeleted;
+    }
+
+    public void setToBeDeleted(boolean toBeDeleted) {
+        this.toBeDeleted = toBeDeleted;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
     }
 }

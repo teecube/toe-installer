@@ -25,9 +25,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 	private TIBCOProduct.Hotfixes hotfixes;
 	private ProductType type;
 
-	private boolean alreadyInstalled;
 	private TIBCOProductGoalAndPriority tibcoProductGoalAndPriority;
-	private boolean toBeDeleted;
 	private String version;
 
 	public TIBCOProductToInstall(TIBCOProduct tibcoProduct) {
@@ -55,14 +53,6 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 		return type;
 	}
 
-	public boolean isAlreadyInstalled() {
-		return alreadyInstalled;
-	}
-
-	public void setAlreadyInstalled(boolean alreadyInstalled) {
-		this.alreadyInstalled = alreadyInstalled;
-	}
-
 	public TIBCOProductGoalAndPriority getTibcoProductGoalAndPriority() {
 		return tibcoProductGoalAndPriority;
 	}
@@ -73,22 +63,6 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 	public String fullProductName() {
 		return tibcoProductGoalAndPriority.productName() + (StringUtils.isNotEmpty(this.getId()) ? " (id: " + this.getId() + ")" : "");
-	}
-
-	public boolean isToBeDeleted() {
-		return toBeDeleted;
-	}
-
-	public void setToBeDeleted(boolean toBeDeleted) {
-		this.toBeDeleted = toBeDeleted;
-	}
-
-	public String getVersion() {
-		return version;
-	}
-
-	public void setVersion(String version) {
-		this.version = version;
 	}
 
 }

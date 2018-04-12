@@ -394,8 +394,11 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 			public static final String generateSettings = "tibco.packages.standalone.generateSettings";
 			public static final String generateSettings_default = "true";
 
-			public static final String includeTIBCOInstallationPackages = "tibco.packages.standalone.includeTIBCOInstallationPackages";
-			public static final String includeTIBCOInstallationPackages_default = "true";
+			public static final String includeLocalTIBCOInstallationPackages = "tibco.packages.standalone.includeLocalTIBCOInstallationPackages";
+			public static final String includeLocalTIBCOInstallationPackages_default = "true";
+
+			public static final String includeTopologyTIBCOInstallationPackages = "tibco.packages.standalone.includeTopologyTIBCOInstallationPackages";
+			public static final String includeTopologyTIBCOInstallationPackages_default = "true";
 
 			public static final String topologyGenerate = "tibco.packages.standalone.topology.generate";
 			public static final String topologyGenerate_default = "true";

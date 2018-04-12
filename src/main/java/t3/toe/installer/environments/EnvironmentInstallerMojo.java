@@ -378,17 +378,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			throw new MojoExecutionException("Topology not found", new FileNotFoundException(environmentsTopology.getAbsolutePath()));
 		}
 
-		try {
-			String filename = "/xsd/environments.xsd";
-			InputStream configStream = EnvironmentInstallerMojo.class.getResourceAsStream(filename);
-
-			environmentsMarshaller = new EnvironmentsMarshaller(environmentsTopology, configStream);
-		} catch (JAXBException | SAXException e) {
-			throw new MojoExecutionException("Unable to load topology from file '" + environmentsTopology.getAbsolutePath() + "'", e);
-		}
-		if (environmentsMarshaller == null) {
-			throw new MojoExecutionException("Unable to load topology from file '" + environmentsTopology.getAbsolutePath() + "'");
-		}
+		environmentsMarshaller = EnvironmentsMarshaller.getEnvironmentMarshaller(environmentsTopology);
 	}
 
 	public static ArrayList<Element> initInstaller(EnvironmentToInstall environment, ProductToInstall product, int productIndex, BuildPluginManager pluginManager, MavenSession session, Logger logger, Log log) throws MojoExecutionException {

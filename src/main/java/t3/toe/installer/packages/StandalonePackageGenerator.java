@@ -18,6 +18,7 @@ package t3.toe.installer.packages;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -46,14 +47,19 @@ import org.apache.maven.settings.io.DefaultSettingsWriter;
 import org.codehaus.mojo.versions.api.ArtifactVersions;
 import org.codehaus.mojo.versions.api.DefaultVersionsHelper;
 
+import org.xml.sax.SAXException;
 import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.InstallerLifecycleParticipant;
 import t3.toe.installer.InstallerMojosInformation;
+import t3.toe.installer.environments.*;
+
+import javax.xml.bind.JAXBException;
 
 /**
 * <p>
-* This goal generates a <strong>self-contained</strong> and <strong>ready-to-use</strong> <em>standalone package</em>.
+* This goal generates a <strong>self-contained</strong> and <strong>ready-to-use</strong>&nbsp;
+* <em>standalone package</em>.
 * </p>
 * <p>
 * This <em>standalone package</em> can be composed of:
@@ -81,28 +87,37 @@ import t3.toe.installer.InstallerMojosInformation;
 @Mojo(name = "standalone-package", requiresProject = false)
 public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
-	@Parameter (property = InstallerMojosInformation.Packages.Standalone.directory, defaultValue = InstallerMojosInformation.Packages.Standalone.directory_default)
-	protected File standaloneDirectory; 
-
-	@Parameter (property = InstallerMojosInformation.Packages.Standalone.localRepository, defaultValue = InstallerMojosInformation.Packages.Standalone.localRepository_default)
-	protected File standaloneLocalRepository; 
-
 	@Parameter(property = InstallerMojosInformation.Packages.Standalone.generateSettings, defaultValue = InstallerMojosInformation.Packages.Standalone.generateSettings_default)
 	protected Boolean generateSettings;
 
-	@Parameter(property = InstallerMojosInformation.Packages.Standalone.includeTIBCOInstallationPackages, defaultValue = InstallerMojosInformation.Packages.Standalone.includeTIBCOInstallationPackages_default)
-	protected Boolean includeTIBCOInstallationPackages;
+	@Parameter(property = InstallerMojosInformation.Packages.Standalone.topologyGenerate, defaultValue = InstallerMojosInformation.Packages.Standalone.topologyGenerate_default)
+	protected Boolean generateStandaloneTopology;
+
+	@Parameter(property = InstallerMojosInformation.Packages.Standalone.includeLocalTIBCOInstallationPackages, defaultValue = InstallerMojosInformation.Packages.Standalone.includeLocalTIBCOInstallationPackages_default)
+	protected Boolean includeLocalTIBCOInstallationPackages;
+
+	@Parameter (property = InstallerMojosInformation.Packages.Standalone.includeTopologyTIBCOInstallationPackages, defaultValue = InstallerMojosInformation.Packages.Standalone.includeTopologyTIBCOInstallationPackages_default)
+	protected Boolean includeTopologyTIBCOInstallationPackages;
+
+	@Parameter (property = InstallerMojosInformation.Packages.Standalone.directory, defaultValue = InstallerMojosInformation.Packages.Standalone.directory_default)
+	protected File standaloneDirectory;
+
+	@Parameter (property = InstallerMojosInformation.Packages.Standalone.localRepository, defaultValue = InstallerMojosInformation.Packages.Standalone.localRepository_default)
+	protected File standaloneLocalRepository;
+
+	@Parameter (property = InstallerMojosInformation.Packages.Standalone.topologyGeneratedFile, defaultValue = InstallerMojosInformation.Packages.Standalone.topologyGeneratedFile_default)
+	protected File standaloneTopologyGeneratedFile;
 
 	/* Archive */
 	@Parameter (property = InstallerMojosInformation.Packages.Standalone.Archive.archive, defaultValue = InstallerMojosInformation.Packages.Standalone.Archive.archive_default)
-	protected File standaloneArchive; 
+	protected File standaloneArchive;
 
 	@Parameter (property = InstallerMojosInformation.Packages.Standalone.Archive.generate, defaultValue = InstallerMojosInformation.Packages.Standalone.Archive.generate_default)
-	protected Boolean generateStandaloneArchive; 
+	protected Boolean generateStandaloneArchive;
 
 	/* Plugins */
 	@Parameter (property = InstallerMojosInformation.Packages.Standalone.Plugins.include, defaultValue = InstallerMojosInformation.Packages.Standalone.Plugins.include_default)
-	protected Boolean includePluginsInStandalone; 
+	protected Boolean includePluginsInStandalone;
 
 	@org.apache.maven.plugins.annotations.Parameter(property = InstallerMojosInformation.Packages.Standalone.Plugins.list, defaultValue = InstallerMojosInformation.Packages.Standalone.Plugins.list_default)
 	protected List<T3Plugins> plugins;
@@ -125,19 +140,14 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 	@Parameter(property = InstallerMojosInformation.Packages.Standalone.Plugins.tacArchetypesArtifactsId, defaultValue = InstallerMojosInformation.Packages.Standalone.Plugins.tacArchetypesArtifactsId_default)
 	protected String tacArchetypesArtifactsId;
 
-	@Parameter(property = InstallerMojosInformation.Packages.Standalone.topologyGenerate, defaultValue = InstallerMojosInformation.Packages.Standalone.topologyGenerate_default)
-	protected Boolean generateStandaloneTopology;
-
-	@Parameter (property = InstallerMojosInformation.Packages.Standalone.topologyGeneratedFile, defaultValue = InstallerMojosInformation.Packages.Standalone.topologyGeneratedFile_default)
-	protected File standaloneTopologyGeneratedFile;
 
 	@Override
-	protected Boolean getGenerateTopology() throws MojoExecutionException {
+	protected Boolean getGenerateTopology() {
 		return generateStandaloneTopology;
 	}
 
 	@Override
-	protected File getTopologyGeneratedFile() throws MojoExecutionException {
+	protected File getTopologyGeneratedFile() {
 		return standaloneTopologyGeneratedFile;
 	}
 
@@ -160,7 +170,17 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			goOffline(goOfflineProject, standaloneLocalRepository, "3.5.0");
 		}
 
-		if (includeTIBCOInstallationPackages) {
+		if (includeTopologyTIBCOInstallationPackages && topologyTemplateFile != null && topologyTemplateFile.exists()) {
+			EnvironmentsMarshaller environmentsMarshaller = EnvironmentsMarshaller.getEnvironmentMarshaller(topologyTemplateFile);
+			Environments environments = environmentsMarshaller.getObject();
+			for (Environment environment : environments.getEnvironment()) {
+				for (Product product : environment.getProducts().getProduct()) {
+					
+				}
+			}
+		}
+
+		if (includeLocalTIBCOInstallationPackages) {
 			super.execute();
 			installPackagesToLocalRepository(standaloneLocalRepository);
 		}

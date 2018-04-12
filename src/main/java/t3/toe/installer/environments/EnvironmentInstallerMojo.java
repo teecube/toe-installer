@@ -27,7 +27,6 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -35,8 +34,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.JAXBException;
-
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.BuildPluginManager;
@@ -46,7 +45,6 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.logging.Logger;
 import org.twdata.maven.mojoexecutor.MojoExecutor.Element;
-import org.xml.sax.SAXException;
 
 import t3.AdvancedMavenLifecycleParticipant;
 import t3.CommonMojo;
@@ -73,7 +71,7 @@ import t3.toe.installer.environments.Environment.Products;
 @Mojo(name = "env-install", requiresProject = false, requiresDependencyResolution = ResolutionScope.TEST)
 public class EnvironmentInstallerMojo extends CommonMojo {
 
-	public enum TIBCOProduct {
+	public enum TIBCOProductGoalAndPriority {
 		ADMIN ("install-admin", "Administrator", 30),
 		BW5 ("install-bw5", "BusinessWorks 5", 30),
 		BW6 ("install-bw6", "BusinessWorks 6", 00),
@@ -86,7 +84,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 	    private final String name;
 	    private final Integer priority;
 
-	    TIBCOProduct(String goal, String name, Integer priority) {
+	    TIBCOProductGoalAndPriority(String goal, String name, Integer priority) {
 	        this.goal = goal;
 	        this.name = name;
 	        this.priority = priority;
@@ -116,10 +114,8 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 		CommonInstaller.firstGoal = false;
 
-		List<EnvironmentToInstall> environmentsToInstall = new ArrayList<EnvironmentToInstall>();
-		for (Environment environment : environmentsMarshaller.getObject().getEnvironment()) {
-			environmentsToInstall.add(new EnvironmentToInstall(environment));
-		}
+		List<EnvironmentToInstall> environmentsToInstall = EnvironmentToInstall.getEnvironmentsToInstall(environmentsMarshaller.getObject().getEnvironment());
+
 		int environmentsCount = environmentsToInstall.size();
 		int environmentsIndex = 1;
 		for (EnvironmentToInstall environment : environmentsToInstall) {
@@ -139,8 +135,12 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			
 			Products products = environment.getProducts();
 			List<ProductToInstall> productsToInstall = new ArrayList<ProductToInstall>();
-			for (Product product : products.getProduct()) {
-				productsToInstall.add(new ProductToInstall(product));
+			for (Product product : products.getTibcoProductOrCustomProduct()) {
+				if (product instanceof t3.toe.installer.environments.TIBCOProduct) {
+					productsToInstall.add(new TIBCOProductToInstall(((t3.toe.installer.environments.TIBCOProduct) product)));
+				} else if (product instanceof CustomProduct) {
+					productsToInstall.add(new CustomProductToInstall(((CustomProduct) product)));
+				}
 			}
 			checkAndSortProducts(productsToInstall);
 
@@ -148,15 +148,9 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			boolean noRemoteProductYet = true;
 			List<List<Element>> configurations = new ArrayList<List<Element>>();
 			for (ProductToInstall product : productsToInstall) {
-				configurations.add(initInstaller(environment, product, i, pluginManager, session, logger, getLog()));
-
-				if (productIsRemote(product)) {
-					if (!noRemoteProductYet || i == productsToInstall.size()) {
-						getLog().info(Messages.MESSAGE_SPACE);
-					} else {
-						noRemoteProductYet = false;
-					}
-				}
+			    if (product instanceof TIBCOProductToInstall) {
+                    configurations.add(initInstaller(environment, (TIBCOProductToInstall) product, i, pluginManager, session, logger, getLog()));
+                }
 
 				i++;
 			}
@@ -173,7 +167,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			});
 			int maxFullProductNameLength = productWithLongestFullProductName.fullProductName().length();
 			i = 1;
-			for (ProductToInstall product : productsToInstall) {
+			for (TIBCOProductToInstall product : productsToInstall) {
 				String skipped = (product.isSkip() ? " (skipped)" : "");
 				String alreadyInstalled = (!product.isSkip() && product.isAlreadyInstalled() ? " (already installed"
 																							  + (environment.isToBeDeleted() ? ", will be deleted then reinstalled in new environment" : "")
@@ -194,9 +188,9 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 			// execute pre-products-install commands
 			i = 1;
-			if (products.getPreInstallCommands() != null && !products.getPreInstallCommands().getCommand().isEmpty()) {
+			if (environment.getPreInstallCommands() != null && !environment.getPreInstallCommands().getCommand().isEmpty()) {
 				getLog().info("Executing pre-install commands");
-				for (Command command : products.getPreInstallCommands().getCommand()) {
+				for (Command command : environment.getPreInstallCommands().getCommand()) {
 					executeCommand(command, i, "Pre-install command");
 					i++;
 				}
@@ -204,8 +198,12 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 			i = 1;
 			for (ProductToInstall product : productsToInstall) {
-				installProduct(environment, product, i, configurations.get(i-1));
-				i++;
+                if (product instanceof TIBCOProductToInstall) {
+                    installProduct(environment, (TIBCOProductToInstall) product, i, configurations.get(i - 1));
+                } else if (product instanceof CustomProductToInstall) {
+                    getLog().info("TODO : install custom product");
+                }
+                i++;
 			}
 
 			getLog().info("");
@@ -213,10 +211,10 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 			// execute post-products-install commands
 			i = 1;
-			if (products.getPostInstallCommands() != null && !products.getPostInstallCommands().getCommand().isEmpty()) {
+			if (environment.getPostInstallCommands() != null && !environment.getPostInstallCommands().getCommand().isEmpty()) {
 				getLog().info("");
 				getLog().info("Executing post-install commands");
-				for (Command command : products.getPostInstallCommands().getCommand()) {
+				for (Command command : environment.getPostInstallCommands().getCommand()) {
 					executeCommand(command, i, "Post-install command");
 					i++;
 				}
@@ -294,19 +292,19 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		return true; // dead code anyway
 	}
 
-	private static boolean productIsLocal(ProductToInstall product) {
+	private static boolean productIsLocal(TIBCOProductToInstall product) {
 		return product != null && product.getPackage() != null && product.getPackage().getLocal() != null;
 	}
 
-	private static boolean productIsRemote(ProductToInstall product) {
+	private static boolean productIsRemote(TIBCOProductToInstall product) {
 		return product != null && product.getPackage() != null && product.getPackage().getRemote() != null;
 	}
 
-	private boolean productExists(TIBCOProduct tibcoProduct, List<ProductToInstall> productsToInstall) {
+	private boolean productExists(TIBCOProductGoalAndPriority tibcoProductGoalAndPriority, List<TIBCOProductToInstall> productsToInstall) {
 		boolean exists = false;
 
-		for (ProductToInstall product : productsToInstall) {
-			if (product.getTibcoProduct().name.equals(tibcoProduct.name)) {
+		for (TIBCOProductToInstall product : productsToInstall) {
+			if (product.getTibcoProductGoalAndPriority().name.equals(tibcoProductGoalAndPriority.name)) {
 				exists = true;
 			}
 		}
@@ -317,47 +315,55 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 	private void checkAndSortProducts(List<ProductToInstall> productsToInstall) throws MojoExecutionException {
 		// check that priorities are OK
 		boolean prioritiesOK = true;
+        List<TIBCOProductToInstall> tibcoProductsToInstall = FluentIterable.from(productsToInstall)
+                .filter(TIBCOProductToInstall.class)
+                .toList();
+
 		for (ProductToInstall product : productsToInstall) {
-			Integer productPriority = product.getPriority();
-			if (productPriority == null) { // if not set in XML, take default one
-				productPriority = product.getTibcoProduct().priority();
-			}
+            getLog().info(product.getClass().getComponentType().getCanonicalName());
+		    if (true) { // TODO : filter only TIBCOProduct
+                TIBCOProductToInstall tibcoProduct = (TIBCOProductToInstall) product;
+                Integer productPriority = tibcoProduct.getPriority();
+                if (productPriority == null) { // if not set in XML, take default one
+                    productPriority = tibcoProduct.getTibcoProductGoalAndPriority().priority();
+                }
 
-			if (product.getType().equals(ProductType.ADMIN) || product.getType().equals(ProductType.BW_5)) { // Administator and BW5 need RV and TRA before being installed
-				boolean rvExists = productExists(TIBCOProduct.RV, productsToInstall);
-				boolean traExists = productExists(TIBCOProduct.TRA, productsToInstall);
-				if (!rvExists || !traExists) {
-					getLog().info("");
-					getLog().error("The product '" + product.fullProductName() + "' has unresolved dependencies in the current topology.");
-					if (rvExists) {
-						getLog().error("-> The product '" + TIBCOProduct.RV.productName() + "' is required but is not defined.");
-					}
-					if (traExists) {
-						getLog().error("-> The product '" + TIBCOProduct.TRA.productName() + "' is required but is not defined.");
-					}
+                if (tibcoProduct.getType().equals(ProductType.ADMIN) || tibcoProduct.getType().equals(ProductType.BW_5)) { // Administator and BW5 need RV and TRA before being installed
+                    boolean rvExists = productExists(TIBCOProductGoalAndPriority.RV, tibcoProductsToInstall);
+                    boolean traExists = productExists(TIBCOProductGoalAndPriority.TRA, tibcoProductsToInstall);
+                    if (!rvExists || !traExists) {
+                        getLog().info("");
+                        getLog().error("The product '" + product.fullProductName() + "' has unresolved dependencies in the current topology.");
+                        if (rvExists) {
+                            getLog().error("-> The product '" + TIBCOProductGoalAndPriority.RV.productName() + "' is required but is not defined.");
+                        }
+                        if (traExists) {
+                            getLog().error("-> The product '" + TIBCOProductGoalAndPriority.TRA.productName() + "' is required but is not defined.");
+                        }
 
-					throw new MojoExecutionException("There are unresolved dependencies in the current topology '" + environmentsTopology.getAbsolutePath() + "'.");
-				}
-			}
-			for (ProductToInstall productToCompare : productsToInstall) {
-				if (productToCompare.equals(product)) {
-					continue;
-				}
+                        throw new MojoExecutionException("There are unresolved dependencies in the current topology '" + environmentsTopology.getAbsolutePath() + "'.");
+                    }
+                }
+                for (TIBCOProductToInstall productToCompare : tibcoProductsToInstall) {
+                    if (productToCompare.equals(product)) {
+                        continue;
+                    }
 
-				Integer productToComparePriority = productToCompare.getPriority();
-				if (productToComparePriority == null) { // if not set in XML, take default one
-					productToComparePriority = productToCompare.getTibcoProduct().priority();
-				}
+                    Integer productToComparePriority = productToCompare.getPriority();
+                    if (productToComparePriority == null) { // if not set in XML, take default one
+                        productToComparePriority = productToCompare.getTibcoProductGoalAndPriority().priority();
+                    }
 
-				if (product.getType().equals(ProductType.ADMIN) || product.getType().equals(ProductType.BW_5)) { // Administator and BW5 need RV and TRA before being installed
-					if (productToCompare.getType().equals(ProductType.RV) || productToCompare.getType().equals(ProductType.TRA)) {
-						if (productToComparePriority >= productPriority) {
-							getLog().error("The product '" + productToCompare.fullProductName() + "' (priority " + productToComparePriority + ") cannot be installed after product '" + product.fullProductName() + "' (priority " + productPriority + ").");
-							prioritiesOK = false;
-						}						
-					}
-				}
-			}
+                    if (tibcoProduct.getType().equals(ProductType.ADMIN) || tibcoProduct.getType().equals(ProductType.BW_5)) { // Administator and BW5 need RV and TRA before being installed
+                        if (productToCompare.getType().equals(ProductType.RV) || productToCompare.getType().equals(ProductType.TRA)) {
+                            if (productToComparePriority >= productPriority) {
+                                getLog().error("The product '" + productToCompare.fullProductName() + "' (priority " + productToComparePriority + ") cannot be installed after product '" + product.fullProductName() + "' (priority " + productPriority + ").");
+                                prioritiesOK = false;
+                            }
+                        }
+                    }
+                }
+            }
 		}
 
 		if (!prioritiesOK) {
@@ -368,18 +374,18 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		Collections.sort(productsToInstall, new ProductComparator());
 	}
 
-	public class ProductComparator implements Comparator<ProductToInstall> {
+	public class ProductComparator implements Comparator<TIBCOProductToInstall> {
 	    @Override
-	    public int compare(ProductToInstall p1, ProductToInstall p2) {
+	    public int compare(TIBCOProductToInstall p1, TIBCOProductToInstall p2) {
 	    	if (p1 == null || p2 == null) return 0;
 
 	    	Integer priority1 = p1.getPriority();
 	    	Integer priority2 = p2.getPriority();
 	    	if (priority1 == null) {
-	    		priority1 = p1.getTibcoProduct().priority();
+	    		priority1 = p1.getTibcoProductGoalAndPriority().priority();
 	    	}
 	    	if (priority2 == null) {
-	    		priority2 = p2.getTibcoProduct().priority();
+	    		priority2 = p2.getTibcoProductGoalAndPriority().priority();
 	    	}
 
 			return priority1.compareTo(priority2);
@@ -399,14 +405,14 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		environmentsMarshaller = EnvironmentsMarshaller.getEnvironmentMarshaller(environmentsTopology);
 	}
 
-	public static ArrayList<Element> initInstaller(EnvironmentToInstall environment, ProductToInstall product, int productIndex, BuildPluginManager pluginManager, MavenSession session, Logger logger, Log log) throws MojoExecutionException {
-		String goal = product.getTibcoProduct().goal();
+	public static ArrayList<Element> initInstaller(EnvironmentToInstall environment, TIBCOProductToInstall product, int productIndex, BuildPluginManager pluginManager, MavenSession session, Logger logger, Log log) throws MojoExecutionException {
+		String goal = product.getTibcoProductGoalAndPriority().goal();
 		CommonInstaller installer = InstallerMojosFactory.getInstallerMojo("toe:" + goal);
 
 		return initInstaller(environment, product, productIndex, pluginManager, session, logger, log, installer);
 	}
 
-	public static ArrayList<Element> initInstaller(EnvironmentToInstall environment, ProductToInstall product, int productIndex, BuildPluginManager pluginManager, MavenSession session, Logger logger, Log log, CommonInstaller installer) throws MojoExecutionException {
+	public static ArrayList<Element> initInstaller(EnvironmentToInstall environment, TIBCOProductToInstall product, int productIndex, BuildPluginManager pluginManager, MavenSession session, Logger logger, Log log, CommonInstaller installer) throws MojoExecutionException {
 		String mojoClassName = installer.getClass().getCanonicalName();
 
 		ArrayList<Element> configuration = new ArrayList<Element>();
@@ -538,10 +544,10 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		return configuration;
 	}
 
-	private void installProduct(EnvironmentToInstall environment, ProductToInstall product, int productIndex, List<Element> configuration) throws MojoExecutionException {
+	private void installProduct(EnvironmentToInstall environment, TIBCOProductToInstall product, int productIndex, List<Element> configuration) throws MojoExecutionException {
 		getLog().info("");
 
-		String goal = product.getTibcoProduct().goal();
+		String goal = product.getTibcoProductGoalAndPriority().goal();
 
 		if (product.isSkip()) {
 			getLog().info(productIndex + ". Skipping '" + product.fullProductName() + "'");
@@ -605,7 +611,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 	 * @param product
 	 * @return
 	 */
-	private static String getInstallationPackagesDirectory(EnvironmentToInstall environment, ProductToInstall product) {
+	private static String getInstallationPackagesDirectory(EnvironmentToInstall environment, TIBCOProductToInstall product) {
 		if (productIsLocal(product) && product.getPackage().getLocal().getDirectoryWithPattern() != null && product.getPackage().getLocal().getDirectoryWithPattern().getDirectory() != null) {
 			return product.getPackage().getLocal().getDirectoryWithPattern().getDirectory();
 		} else if (environment != null && environment.getPackagesDirectory() != null) {

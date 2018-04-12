@@ -42,17 +42,8 @@ import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerLifecycleParticipant;
 import t3.toe.installer.InstallerMojosFactory;
 import t3.toe.installer.InstallerMojosInformation;
-import t3.toe.installer.environments.Environment;
+import t3.toe.installer.environments.*;
 import t3.toe.installer.environments.Environment.Products;
-import t3.toe.installer.environments.EnvironmentInstallerMojo;
-import t3.toe.installer.environments.EnvironmentToInstall;
-import t3.toe.installer.environments.Environments;
-import t3.toe.installer.environments.EnvironmentsMarshaller;
-import t3.toe.installer.environments.LocalFileWithVersion;
-import t3.toe.installer.environments.LocalPackage;
-import t3.toe.installer.environments.Product;
-import t3.toe.installer.environments.ProductToInstall;
-import t3.toe.installer.environments.RemotePackage;
 
 /**
 * <p>
@@ -162,18 +153,20 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 
 			if (!environments.getEnvironment().isEmpty()) { // a template was provided
 				Integer i = 1;
-				for (Environment environment : environments.getEnvironment()) {
-					if (environment.getProducts().getProduct().isEmpty()) { // no product is provided, try to use resolved packages
+				List<EnvironmentToInstall> environmentsToInstall = EnvironmentToInstall.getEnvironmentsToInstall(environments.getEnvironment());
+
+				for (EnvironmentToInstall environment : environmentsToInstall) {
+					if (environment.getTIBCOProducts().isEmpty()) { // no product is provided, try to use resolved packages
 						environmentsToCreate.put(i.toString(), environment);
 						i++;
 					} else { // replace installers with actual needed TIBCO installation packages
 						List<CommonInstaller> resolvedInstallers = new ArrayList<CommonInstaller>();
-						for (Product product : environment.getProducts().getProduct()) {
-							String goal = new ProductToInstall(product).getTibcoProduct().goal();
+						for (TIBCOProduct tibcoProduct : environment.getTIBCOProducts()) {
+							String goal = new TIBCOProductToInstall(tibcoProduct).getTibcoProductGoalAndPriority().goal();
 							CommonInstaller installer = InstallerMojosFactory.getInstallerMojo("toe:" + goal);
 							CommonInstaller.firstGoal = false;
 
-							EnvironmentInstallerMojo.initInstaller(new EnvironmentToInstall(environment), new ProductToInstall(product), i, pluginManager, session, logger, new NoOpLogger(), installer);
+							EnvironmentInstallerMojo.initInstaller(new EnvironmentToInstall(environment), new TIBCOProductToInstall(tibcoProduct), i, pluginManager, session, logger, new NoOpLogger(), installer);
 
 							File installationPackage = installer.getInstallationPackage();
 							if (installationPackage == null || !installationPackage.exists()) {
@@ -223,8 +216,8 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 				for (CommonInstaller installer : installers) {
 					if (!osEnvironment.equals(installer.getInstallationPackageOs(true))) continue;
 
-					Product product = new Product();
-					product.setType(installer.getProductType());
+					TIBCOProduct tibcoProduct = new TIBCOProduct();
+					tibcoProduct.setType(installer.getProductType());
 					Product.Package productPackage = new Product.Package();
 					switch (topologyType) {
 					case LOCAL:
@@ -250,9 +243,9 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 
 						break;
 					}
-					product.setPackage(productPackage);
+					tibcoProduct.setPackage(productPackage);
 					
-					products.getProduct().add(product);
+					products.getTibcoProductOrCustomProduct().add(tibcoProduct);
 				}
 				environment.setProducts(products);
 				environments.getEnvironment().add(environment);

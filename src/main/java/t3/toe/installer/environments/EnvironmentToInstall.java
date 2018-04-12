@@ -16,6 +16,12 @@
  */
 package t3.toe.installer.environments;
 
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class EnvironmentToInstall extends Environment {
 	
 	private boolean toBeDeleted;
@@ -30,6 +36,14 @@ public class EnvironmentToInstall extends Environment {
 		this.toBeDeleted = false;
 	}
 
+	public static List<EnvironmentToInstall> getEnvironmentsToInstall(List<Environment> environments) {
+		List<EnvironmentToInstall> environmentsToInstall = new ArrayList<EnvironmentToInstall>();
+		for (Environment environment : environments) {
+			environmentsToInstall.add(new EnvironmentToInstall(environment));
+		}
+		return environmentsToInstall;
+	}
+
 	public boolean isToBeDeleted() {
 		return toBeDeleted;
 	}
@@ -38,4 +52,9 @@ public class EnvironmentToInstall extends Environment {
 		this.toBeDeleted = toBeDeleted;
 	}
 
+	public List<TIBCOProduct> getTIBCOProducts() {
+		return FluentIterable.from(this.getProducts().getTibcoProductOrCustomProduct())
+							 .filter(TIBCOProduct.class)
+							 .toList();
+	}
  }

@@ -16,66 +16,101 @@
  */
 package t3.toe.installer.environments;
 
-import org.apache.commons.lang.StringUtils;
+public abstract class ProductToInstall<P extends Product> {
 
-import t3.toe.installer.environments.EnvironmentInstallerMojo.TIBCOProduct;
+    private String id;
+    private IfProductExistsBehaviour ifExists;
+    private String name;
+    private Product.Package _package;
+    private Commands postInstallCommands;
+    private Commands preInstallCommands;
+    private Product.Properties properties;
+    private Integer priority;
+    private boolean skip;
 
-public class ProductToInstall extends Product {
-	
-	private boolean alreadyInstalled;
-	private TIBCOProduct tibcoProduct;
-	private boolean toBeDeleted;
-	private String version;
+    public ProductToInstall(P product) {
+        this.setId(product.getId());
+        this.setIfExists(product.getIfExists());
+        this.setName(product.getName());
+        this.setPackage(product.getPackage());
+        this.setPostInstallCommands(product.getPostInstallCommands());
+        this.setPreInstallCommands(product.getPreInstallCommands());
+        this.setPriority(product.getPriority());
+        this.setProperties(product.getProperties());
+        this.setSkip(product.isSkip());
+    }
 
-	public ProductToInstall(Product product) {
-		this.setHotfixes(product.getHotfixes());
-		this.setId(product.getId());
-		this.setIfExists(product.getIfExists());
-		this.setName(product.getName());
-		this.setPackage(product.getPackage());
-		this.setPostInstallCommands(product.getPostInstallCommands());
-		this.setPreInstallCommands(product.getPreInstallCommands());
-		this.setPriority(product.getPriority());
-		this.setProperties(product.getProperties());
-		this.setSkip(product.isSkip());
-		this.setType(product.getType());
+    public abstract String fullProductName();
 
-		this.setTibcoProduct(TIBCOProduct.valueOf(product.getType().value().toUpperCase()));
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public boolean isAlreadyInstalled() {
-		return alreadyInstalled;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public void setAlreadyInstalled(boolean alreadyInstalled) {
-		this.alreadyInstalled = alreadyInstalled;
-	}
+    public void setIfExists(IfProductExistsBehaviour ifExists) {
+        this.ifExists = ifExists;
+    }
 
-	public TIBCOProduct getTibcoProduct() {
-		return tibcoProduct;
-	}
+    public IfProductExistsBehaviour getIfExists() {
+        return ifExists;
+    }
 
-	public void setTibcoProduct(TIBCOProduct tibcoProduct) {
-		this.tibcoProduct = tibcoProduct;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String fullProductName() {
-		return tibcoProduct.productName() + (StringUtils.isNotEmpty(this.id) ? " (id: " + this.id + ")" : "");
-	}
+    public String getName() {
+        return name;
+    }
 
-	public boolean isToBeDeleted() {
-		return toBeDeleted;
-	}
+    public void setPackage(Product.Package _package) {
+        this._package = _package;
+    }
 
-	public void setToBeDeleted(boolean toBeDeleted) {
-		this.toBeDeleted = toBeDeleted;
-	}
+    public Product.Package getPackage() {
+        return _package;
+    }
 
-	public String getVersion() {
-		return version;
-	}
+    public void setPostInstallCommands(Commands postInstallCommands) {
+        this.postInstallCommands = postInstallCommands;
+    }
 
-	public void setVersion(String version) {
-		this.version = version;
-	}
+    public Commands getPostInstallCommands() {
+        return postInstallCommands;
+    }
+
+    public void setPreInstallCommands(Commands preInstallCommands) {
+        this.preInstallCommands = preInstallCommands;
+    }
+
+    public Commands getPreInstallCommands() {
+        return preInstallCommands;
+    }
+
+    public void setProperties(Product.Properties properties) {
+        this.properties = properties;
+    }
+
+    public Product.Properties getProperties() {
+        return properties;
+    }
+
+    public void setPriority(Integer priority) {
+        this.priority = priority;
+    }
+
+    public Integer getPriority() {
+        return priority;
+    }
+
+    public void setSkip(boolean skip) {
+        this.skip = skip;
+    }
+
+    public boolean isSkip() {
+        return skip;
+    }
 }

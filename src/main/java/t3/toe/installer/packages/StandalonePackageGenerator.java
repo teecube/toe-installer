@@ -174,7 +174,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			EnvironmentsMarshaller environmentsMarshaller = EnvironmentsMarshaller.getEnvironmentMarshaller(topologyTemplateFile);
 			Environments environments = environmentsMarshaller.getObject();
 			for (Environment environment : environments.getEnvironment()) {
-				for (Product product : environment.getProducts().getProduct()) {
+				for (Product product : environment.getProducts().getTibcoProductOrCustomProduct()) {
 					
 				}
 			}

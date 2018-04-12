@@ -86,21 +86,18 @@
 
 	<xs:complexType name="Product">
 		<xs:sequence>
-			<xs:element name="preInstallCommands" minOccurs="0" type="Commands"/>
-			<xs:element name="package" minOccurs="0">
+			<xs:element name="preInstallCommands" minOccurs="0" type="Commands">
+				<xs:annotation>
+					<xs:documentation>Pre-install commands of a product are executed before the installation of the product.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="package" minOccurs="1">
 				<xs:complexType>
 					<xs:sequence>
 						<xs:choice>
 							<xs:element name="local" type="LocalPackage"/>
 							<xs:element name="remote" type="RemotePackage"/>
 						</xs:choice>
-					</xs:sequence>
-				</xs:complexType>
-			</xs:element>
-			<xs:element name="hotfixes" minOccurs="0">
-				<xs:complexType>
-					<xs:sequence>
-						<xs:element name="hotfix" type="xs:string"/>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
@@ -111,14 +108,44 @@
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-			<xs:element name="postInstallCommands" minOccurs="0" type="Commands"/>
+			<xs:element name="postInstallCommands" minOccurs="0" type="Commands">
+				<xs:annotation>
+					<xs:documentation>Post-install commands of a product are executed after the installation of the product.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 		</xs:sequence>
 		<xs:attribute name="id" type="xs:string" use="optional"/>
 		<xs:attribute name="name" type="xs:string" use="optional" default="@type"/>
-		<xs:attribute name="type" type="ProductType" use="required"/>
 		<xs:attribute name="priority" type="xs:int" use="optional"/>
 		<xs:attribute name="skip" type="xs:boolean" use="optional" default="false"/>
 		<xs:attribute name="ifExists" type="IfProductExistsBehaviour" default="keep" />
+	</xs:complexType>
+
+	<xs:complexType name="TIBCOProduct">
+		<xs:complexContent>
+			<xs:extension base="Product">
+				<xs:sequence>
+					<xs:element name="hotfixes" minOccurs="0">
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element name="hotfix" type="xs:string"/>
+							</xs:sequence>
+						</xs:complexType>
+					</xs:element>
+				</xs:sequence>
+				<xs:attribute name="type" type="ProductType" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="CustomProduct">
+		<xs:complexContent>
+			<xs:extension base="Product">
+				<xs:sequence>
+					<xs:element name="installCommand" type="Command"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
 	</xs:complexType>
 
 	<!-- Commands -->
@@ -155,15 +182,22 @@
 			<xs:element name="environmentName" type="xs:string"/>
 			<xs:element name="tibcoRoot" type="xs:string"/>
 			<xs:element name="packagesDirectory" type="xs:string" minOccurs="0"/>
+			<xs:element name="preInstallCommands" minOccurs="0" type="Commands"/>
 			<xs:element name="products">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element name="preInstallCommands" minOccurs="0" type="Commands"/>
-						<xs:element name="product" type="Product" minOccurs="1" maxOccurs="unbounded"/>
-						<xs:element name="postInstallCommands" minOccurs="0" type="Commands"/>
+					<!--<xs:element name="product" minOccurs="1" maxOccurs="unbounded">-->
+						<!--<xs:complexType>-->
+                            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                                <xs:element name="tibcoProduct" type="TIBCOProduct"/>
+                                <xs:element name="customProduct" type="CustomProduct"/>
+                            </xs:choice>
+						<!--</xs:complexType>-->
+                    <!--</xs:element>-->
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
+			<xs:element name="postInstallCommands" minOccurs="0" type="Commands"/>
 		</xs:sequence>
 		<xs:attribute name="ifExists" type="IfEnvironmentExistsBehaviour" default="fail" />
 	</xs:complexType>
@@ -183,4 +217,5 @@
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
+
 </xs:schema>

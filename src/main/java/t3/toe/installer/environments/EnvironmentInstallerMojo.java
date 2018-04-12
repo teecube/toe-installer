@@ -125,7 +125,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		for (EnvironmentToInstall environment : environmentsToInstall) {
 			if (environmentsCount > 1) { // multiple environments to install
 				getLog().info("=== " + StringUtils.leftPad(Utils.toRoman(environmentsIndex), 3, " ") + ". Environment: " + environment.getEnvironmentName() + " ===");
-				getLog().info("");
+				getLog().info(Messages.MESSAGE_SPACE);
 
                 firstDependency = true;
 			}
@@ -145,9 +145,19 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			checkAndSortProducts(productsToInstall);
 
 			int i = 1;
+			boolean noRemoteProductYet = true;
 			List<List<Element>> configurations = new ArrayList<List<Element>>();
 			for (ProductToInstall product : productsToInstall) {
 				configurations.add(initInstaller(environment, product, i, pluginManager, session, logger, getLog()));
+
+				if (productIsRemote(product)) {
+					if (!noRemoteProductYet || i == productsToInstall.size()) {
+						getLog().info(Messages.MESSAGE_SPACE);
+					} else {
+						noRemoteProductYet = false;
+					}
+				}
+
 				i++;
 			}
 
@@ -155,6 +165,13 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			getLog().info("TIBCO root is                  : " + environment.getTibcoRoot());
 			getLog().info("");
 
+			ProductToInstall productWithLongestFullProductName = Collections.max(productsToInstall, new Comparator<ProductToInstall>() {
+				@Override
+				public int compare(ProductToInstall p1, ProductToInstall p2) {
+					return p1.fullProductName().length() - p2.fullProductName().length();
+				}
+			});
+			int maxFullProductNameLength = productWithLongestFullProductName.fullProductName().length();
 			i = 1;
 			for (ProductToInstall product : productsToInstall) {
 				String skipped = (product.isSkip() ? " (skipped)" : "");
@@ -163,6 +180,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 																							  + (!environment.isToBeDeleted() && IfProductExistsBehaviour.DELETE.equals(product.getIfExists()) ? ", will be deleted then reinstalled in current environment" : "")
 																							  + (!environment.isToBeDeleted() && IfProductExistsBehaviour.KEEP.equals(product.getIfExists()) ? ", will not be reinstalled" : "")
 																							  + ")" : "");
+				String version = (StringUtils.isNotBlank(product.getVersion()) ? " v" + product.getVersion() : "");
 
 				String prefix;
 				if (i == 1) {
@@ -170,7 +188,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 				} else {
 					prefix = "                                 " + i + ". ";
 				}
-				getLog().info(prefix + product.fullProductName() + alreadyInstalled + skipped);
+				getLog().info(prefix + StringUtils.rightPad(product.fullProductName(), maxFullProductNameLength, " ") + version + alreadyInstalled + skipped);
 				i++;
 			}
 
@@ -399,6 +417,8 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		} else {
 			if (environment.isToBeDeleted()) {
 				addProperty(configuration, ignoredParameters, "removeExistingEnvironment", "true", CommonInstaller.class);
+			} else {
+				addProperty(configuration, ignoredParameters, "createNewEnvironment", "false", CommonInstaller.class);
 			}
 			firstDependency = false;
 		}
@@ -490,6 +510,9 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 		if (installer.installationExists()) {
 			product.setAlreadyInstalled(true);
+		}
+		if (StringUtils.isNotBlank(installer.getInstallationPackageVersion())) {
+			product.setVersion(installer.getInstallationPackageVersion());
 		}
 
 		if (product.isAlreadyInstalled() && !environment.isToBeDeleted()) {

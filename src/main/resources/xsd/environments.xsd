@@ -84,7 +84,7 @@
 		</xs:restriction>
 	</xs:simpleType>
 
-	<xs:complexType name="Product">
+	<xs:complexType name="Product" abstract="true">
 		<xs:sequence>
 			<xs:element name="preInstallCommands" minOccurs="0" type="Commands">
 				<xs:annotation>
@@ -115,7 +115,6 @@
 			</xs:element>
 		</xs:sequence>
 		<xs:attribute name="id" type="xs:string" use="optional"/>
-		<xs:attribute name="name" type="xs:string" use="optional" default="@type"/>
 		<xs:attribute name="priority" type="xs:int" use="optional"/>
 		<xs:attribute name="skip" type="xs:boolean" use="optional" default="false"/>
 		<xs:attribute name="ifExists" type="IfProductExistsBehaviour" default="keep" />
@@ -133,6 +132,7 @@
 						</xs:complexType>
 					</xs:element>
 				</xs:sequence>
+				<xs:attribute name="name" type="xs:string" use="optional" default="@type"/>
 				<xs:attribute name="type" type="ProductType" use="required"/>
 			</xs:extension>
 		</xs:complexContent>
@@ -142,25 +142,49 @@
 		<xs:complexContent>
 			<xs:extension base="Product">
 				<xs:sequence>
-					<xs:element name="installCommand" type="Command"/>
+					<xs:choice minOccurs="0" maxOccurs="unbounded">
+						<xs:element name="installCommand" type="SystemCommand"/>
+						<xs:element name="uncompressCommand" type="UncompressCommand"/>
+					</xs:choice>
 				</xs:sequence>
+				<xs:attribute name="name" type="xs:string" use="required"/>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
 
 	<!-- Commands -->
-	<xs:complexType name="Command">
-		<xs:simpleContent>
-			<xs:extension base="xs:string">
-				<xs:attribute name="id" type="xs:string" use="optional" />
-				<xs:attribute name="name" type="xs:string" use="required" />
-				<xs:attribute name="description" type="xs:string" use="optional" />
-				<xs:attribute name="onError" type="CommandOnErrorBehaviour" default="fail" />
-				<xs:attribute name="skip" type="xs:boolean" use="optional" default="false" />
-				<xs:attribute name="workingDirectory" type="xs:string" use="optional" />
-			</xs:extension>
-		</xs:simpleContent>
+	<xs:complexType name="AbstractCommand" abstract="true">
+		<xs:attribute name="id" type="xs:string" use="optional" />
+		<xs:attribute name="name" type="xs:string" use="optional" />
+		<xs:attribute name="description" type="xs:string" use="optional" />
+		<xs:attribute name="onError" type="CommandOnErrorBehaviour" default="fail" />
+		<xs:attribute name="skip" type="xs:boolean" use="optional" default="false" />
+		<xs:attribute name="workingDirectory" type="xs:string" use="optional" />
 	</xs:complexType>
+
+	<xs:complexType name="SystemCommand">
+		<xs:complexContent>
+			<xs:extension base="AbstractCommand">
+				<xs:attribute name="command" type="xs:string" use="required" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="UncompressCommand">
+		<xs:complexContent>
+			<xs:extension base="AbstractCommand">
+				<xs:attribute name="format" type="UncompressFormat" default="auto"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:simpleType name="UncompressFormat">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="auto" />
+			<xs:enumeration value="zip" />
+			<xs:enumeration value="tar" />
+		</xs:restriction>
+	</xs:simpleType>
 
 	<xs:simpleType name="CommandOnErrorBehaviour">
 		<xs:restriction base="xs:string">
@@ -172,7 +196,7 @@
 
 	<xs:complexType name="Commands">
 		<xs:sequence>
-			<xs:element name="command" type="Command" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="command" type="SystemCommand" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 
@@ -186,14 +210,10 @@
 			<xs:element name="products">
 				<xs:complexType>
 					<xs:sequence>
-					<!--<xs:element name="product" minOccurs="1" maxOccurs="unbounded">-->
-						<!--<xs:complexType>-->
-                            <xs:choice minOccurs="0" maxOccurs="unbounded">
-                                <xs:element name="tibcoProduct" type="TIBCOProduct"/>
-                                <xs:element name="customProduct" type="CustomProduct"/>
-                            </xs:choice>
-						<!--</xs:complexType>-->
-                    <!--</xs:element>-->
+						<xs:choice minOccurs="0" maxOccurs="unbounded">
+							<xs:element name="tibcoProduct" type="TIBCOProduct"/>
+							<xs:element name="customProduct" type="CustomProduct"/>
+						</xs:choice>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>

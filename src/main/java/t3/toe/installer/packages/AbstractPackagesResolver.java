@@ -163,11 +163,11 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 					} else { // replace installers with actual needed TIBCO installation packages
 						List<CommonInstaller> resolvedInstallers = new ArrayList<CommonInstaller>();
 						for (TIBCOProduct tibcoProduct : environment.getTIBCOProducts()) {
-							String goal = new TIBCOProductToInstall(tibcoProduct).getTibcoProductGoalAndPriority().goal();
+							String goal = new TIBCOProductToInstall(tibcoProduct, getLog(), getEnvironment(pluginManager), pluginDescriptor).getTibcoProductGoalAndPriority().goal();
 							CommonInstaller installer = InstallerMojosFactory.getInstallerMojo("toe:" + goal);
 							CommonInstaller.firstGoal = false;
 
-							EnvironmentInstallerMojo.initInstaller(new EnvironmentToInstall(environment), new TIBCOProductToInstall(tibcoProduct), i, pluginManager, session, logger, new NoOpLogger(), installer);
+							EnvironmentInstallerMojo.initInstaller(new EnvironmentToInstall(environment), new TIBCOProductToInstall(tibcoProduct, getLog(), getEnvironment(pluginManager), pluginDescriptor), i, pluginManager, session, logger, new NoOpLogger(), installer);
 
 							File installationPackage = installer.getInstallationPackage();
 							if (installationPackage == null || !installationPackage.exists()) {

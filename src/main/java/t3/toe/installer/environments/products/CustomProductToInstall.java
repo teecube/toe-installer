@@ -16,16 +16,46 @@
  */
 package t3.toe.installer.environments.products;
 
-import t3.toe.installer.environments.CustomProduct;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.logging.Logger;
+import org.twdata.maven.mojoexecutor.MojoExecutor;
+import t3.toe.installer.environments.*;
+import t3.toe.installer.environments.commands.CommandToExecute;
+import t3.toe.installer.environments.commands.SystemCommandToExecute;
+import t3.toe.installer.environments.commands.UncompressCommandToExecute;
+
+import java.util.List;
 
 public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
 
-    public CustomProductToInstall(CustomProduct customProduct) {
-        super(customProduct);
+    private final CustomProduct customProduct;
+
+    public CustomProductToInstall(CustomProduct customProduct, Log logger, MojoExecutor.ExecutionEnvironment executionEnvironment, PluginDescriptor pluginDescriptor) {
+        super(customProduct, logger, executionEnvironment, pluginDescriptor);
+
+        this.setName(customProduct.getName());
+
+        this.customProduct = customProduct;
     }
 
     public String fullProductName() {
-        return "Custom product name (TODO)";
+        return this.getName();
+    }
+
+    @Override
+    public void doInstall(EnvironmentToInstall environment, int productIndex, List<MojoExecutor.Element> configuration) throws MojoExecutionException {
+        int i = 1;
+        for (AbstractCommand command : customProduct.getInstallCommandOrUncompressCommand()) {
+            if (command instanceof SystemCommand) {
+                new SystemCommandToExecute(logger, executionEnvironment, (SystemCommand) command, i, CommandToExecute.CommandType.CUSTOM_PRODUCT).executeCommand();
+            } else if (command instanceof UncompressCommand) {
+                new UncompressCommandToExecute(logger, executionEnvironment, (UncompressCommand) command, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, customProduct).executeCommand();
+            }
+            i++;
+        }
     }
 
 }

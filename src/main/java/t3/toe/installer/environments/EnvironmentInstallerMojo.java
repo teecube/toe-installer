@@ -115,9 +115,9 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			List<ProductToInstall> productsToInstall = new ArrayList<ProductToInstall>();
 			for (Product product : products.getTibcoProductOrCustomProduct()) {
 				if (product instanceof t3.toe.installer.environments.TIBCOProduct) {
-					productsToInstall.add(new TIBCOProductToInstall(((t3.toe.installer.environments.TIBCOProduct) product)));
+					productsToInstall.add(new TIBCOProductToInstall(((t3.toe.installer.environments.TIBCOProduct) product), getLog(), getEnvironment(pluginManager), pluginDescriptor));
 				} else if (product instanceof CustomProduct) {
-					productsToInstall.add(new CustomProductToInstall(((CustomProduct) product)));
+					productsToInstall.add(new CustomProductToInstall(((CustomProduct) product), getLog(), getEnvironment(pluginManager), pluginDescriptor));
 				}
 			}
 			checkAndSortProducts(productsToInstall);
@@ -128,7 +128,9 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			for (ProductToInstall product : productsToInstall) {
 			    if (product instanceof TIBCOProductToInstall) {
                     configurations.add(initInstaller(environment, (TIBCOProductToInstall) product, i, pluginManager, session, logger, getLog()));
-                }
+                } else {
+			    	configurations.add(new ArrayList<Element>());
+				}
 
 				i++;
 			}
@@ -140,7 +142,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			ProductToInstall productWithLongestFullProductName = Collections.max(productsToInstall, new Comparator<ProductToInstall>() {
 				@Override
 				public int compare(ProductToInstall p1, ProductToInstall p2) {
-					return p1.fullProductName().length() - p2.fullProductName().length();
+				return p1.fullProductName().length() - p2.fullProductName().length();
 				}
 			});
 			int maxFullProductNameLength = productWithLongestFullProductName.fullProductName().length();
@@ -168,7 +170,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			i = 1;
 			if (environment.getPreInstallCommands() != null && !environment.getPreInstallCommands().getCommand().isEmpty()) {
 				getLog().info("Executing pre-install commands");
-				for (Command command : environment.getPreInstallCommands().getCommand()) {
+				for (SystemCommand command : environment.getPreInstallCommands().getCommand()) {
 					executeCommand(command, i, "Pre-install command");
 					i++;
 				}
@@ -176,11 +178,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 			i = 1;
 			for (ProductToInstall product : productsToInstall) {
-                if (product instanceof TIBCOProductToInstall) {
-                    installProduct(environment, (TIBCOProductToInstall) product, i, configurations.get(i - 1));
-                } else if (product instanceof CustomProductToInstall) {
-                    getLog().info("TODO : install custom product");
-                }
+				product.install(environment, i, configurations.get(i - 1));
                 i++;
 			}
 
@@ -192,7 +190,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			if (environment.getPostInstallCommands() != null && !environment.getPostInstallCommands().getCommand().isEmpty()) {
 				getLog().info("");
 				getLog().info("Executing post-install commands");
-				for (Command command : environment.getPostInstallCommands().getCommand()) {
+				for (SystemCommand command : environment.getPostInstallCommands().getCommand()) {
 					executeCommand(command, i, "Post-install command");
 					i++;
 				}
@@ -205,7 +203,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		}
 	}
 
-	private void executeCommand(Command command, int commandIndex, String commandType) throws MojoExecutionException {
+	private void executeCommand(SystemCommand command, int commandIndex, String commandType) throws MojoExecutionException {
 		if (command.isSkip()) {
 			getLog().info("Skipping command '" + command.getName() + "'");
 			return;
@@ -213,7 +211,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 		getLog().info("");
 
-		String commandLine = command.getValue().trim();
+		String commandLine = command.command.trim();
 		String commandCaption = command.getName() + (command.getId() != null ? " (id: " + command.getId() + ")" : "");
 		String commandPrefix =  "[" + commandType + " #" + commandIndex + "]" + (command.getId() != null ? " [" + command.getId() + "]": "") + " ";
 
@@ -235,7 +233,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		}
 	}
 
-	private void failedCommand(Command command) throws MojoExecutionException {
+	private void failedCommand(SystemCommand command) throws MojoExecutionException {
 		switch (command.getOnError()) {
 		case FAIL:
 			getLog().info("");
@@ -525,61 +523,6 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		}
 
 		return configuration;
-	}
-
-	private void installProduct(EnvironmentToInstall environment, TIBCOProductToInstall product, int productIndex, List<Element> configuration) throws MojoExecutionException {
-		getLog().info("");
-
-		String goal = product.getTibcoProductGoalAndPriority().goal();
-
-		if (product.isSkip()) {
-			getLog().info(productIndex + ". Skipping '" + product.fullProductName() + "'");
-			return;
-		} else if (product.isAlreadyInstalled() && !environment.isToBeDeleted()) {
-			getLog().info(productIndex + ". Skipping '" + product.fullProductName() + "' (already installed)");
-			return;
-		} else {
-			// execute pre-product-install commands
-			if (product.getPreInstallCommands() != null && !product.getPreInstallCommands().getCommand().isEmpty()) {
-				getLog().info("Executing pre-install commands for current product");
-				int i = 1;
-				for (Command command : product.getPreInstallCommands().getCommand()) {
-					executeCommand(command, i, "");
-					i++;
-				}
-			}
-
-			getLog().info(productIndex + ". Installing '" + product.fullProductName() + "'");
-		}
-		getLog().info("");
-		getLog().info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
-
-		executeMojo(
-			plugin(
-				groupId(pluginDescriptor.getGroupId()),
-				artifactId(pluginDescriptor.getArtifactId()),
-				version(pluginDescriptor.getVersion())
-			),
-			goal(goal),
-			configuration(
-				configuration.toArray(new Element[0])
-			),
-			getEnvironment(pluginManager)
-		);
-
-		getLog().info("");
-		getLog().info("<<< " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " <<<");
-
-		// execute post-product-install commands
-		if (product.getPostInstallCommands() != null && !product.getPostInstallCommands().getCommand().isEmpty()) {
-			getLog().info("");
-			getLog().info("Executing post-install commands for current product");
-			int i = 1;
-			for (Command command : product.getPostInstallCommands().getCommand()) {
-				executeCommand(command, i, "");
-				i++;
-			}
-		}
 	}
 
 	private static void addProperty(ArrayList<Element> configuration, ArrayList<Element> ignoredParameters, String key, String value, Class<?> clazz) {

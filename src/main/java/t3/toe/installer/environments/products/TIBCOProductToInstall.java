@@ -18,8 +18,21 @@ package t3.toe.installer.environments.products;
 
 import org.apache.commons.lang.StringUtils;
 
-import t3.toe.installer.environments.ProductType;
-import t3.toe.installer.environments.TIBCOProduct;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.logging.Logger;
+import org.twdata.maven.mojoexecutor.MojoExecutor;
+import t3.toe.installer.environments.*;
+import t3.toe.installer.environments.commands.CommandToExecute;
+import t3.toe.installer.environments.commands.SystemCommandToExecute;
+
+import java.util.List;
+
+import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
 
 public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
@@ -54,10 +67,11 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 	private TIBCOProductGoalAndPriority tibcoProductGoalAndPriority;
 	private String version;
 
-	public TIBCOProductToInstall(TIBCOProduct tibcoProduct) {
-		super(tibcoProduct);
+	public TIBCOProductToInstall(TIBCOProduct tibcoProduct, Log logger, MojoExecutor.ExecutionEnvironment executionEnvironment, PluginDescriptor pluginDescriptor) {
+		super(tibcoProduct, logger, executionEnvironment, pluginDescriptor);
 
 		this.setHotfixes(tibcoProduct.getHotfixes());
+		this.setName(tibcoProduct.getName());
 		this.setType(tibcoProduct.getType());
 
 		this.setTibcoProductGoalAndPriority(TIBCOProductGoalAndPriority.valueOf(tibcoProduct.getType().value().toUpperCase()));
@@ -89,6 +103,30 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 	public String fullProductName() {
 		return tibcoProductGoalAndPriority.productName() + (StringUtils.isNotEmpty(this.getId()) ? " (id: " + this.getId() + ")" : "");
+	}
+
+	@Override
+	public void doInstall(EnvironmentToInstall environment, int productIndex, List<MojoExecutor.Element> configuration) throws MojoExecutionException {
+		String goal = this.getTibcoProductGoalAndPriority().goal();
+
+		logger.info("");
+		logger.info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
+
+		executeMojo(
+			plugin(
+				groupId(pluginDescriptor.getGroupId()),
+				artifactId(pluginDescriptor.getArtifactId()),
+				version(pluginDescriptor.getVersion())
+			),
+			goal(goal),
+			configuration(
+				configuration.toArray(new Element[0])
+			),
+			executionEnvironment
+		);
+
+		logger.info("");
+		logger.info("<<< " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " <<<");
 	}
 
 }

@@ -14,13 +14,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package t3.toe.installer.environments;
+package t3.toe.installer.environments.products;
 
 import org.apache.commons.lang.StringUtils;
 
-import t3.toe.installer.environments.EnvironmentInstallerMojo.TIBCOProductGoalAndPriority;
+import t3.toe.installer.environments.ProductType;
+import t3.toe.installer.environments.TIBCOProduct;
 
 public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
+
+	public enum TIBCOProductGoalAndPriority {
+		ADMIN ("install-admin", "Administrator", 30),
+		BW5 ("install-bw5", "BusinessWorks 5", 30),
+		BW6 ("install-bw6", "BusinessWorks 6", 00),
+		EMS ("install-ems", "EMS", 30),
+		RV ("install-rv", "RendezVous", 10),
+		TEA ("install-tea", "TEA", 00),
+		TRA ("install-tra", "TRA", 20);
+
+		private final String goal;
+		private final String name;
+		private final Integer priority;
+
+		TIBCOProductGoalAndPriority(String goal, String name, Integer priority) {
+			this.goal = goal;
+			this.name = name;
+			this.priority = priority;
+		}
+
+		public String goal() { return goal; }
+		public String getName() { return name; }
+		public String productName() { return "TIBCO " + name; }
+		public Integer priority() { return priority; }
+	}
 
 	private TIBCOProduct.Hotfixes hotfixes;
 	private ProductType type;

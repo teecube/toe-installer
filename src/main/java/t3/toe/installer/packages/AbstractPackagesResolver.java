@@ -44,6 +44,7 @@ import t3.toe.installer.InstallerMojosFactory;
 import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.*;
 import t3.toe.installer.environments.Environment.Products;
+import t3.toe.installer.environments.products.TIBCOProductToInstall;
 
 /**
 * <p>

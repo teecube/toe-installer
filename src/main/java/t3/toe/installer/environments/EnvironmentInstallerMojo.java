@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.BuildPluginManager;
@@ -57,6 +56,9 @@ import t3.toe.installer.InstallerLifecycleParticipant;
 import t3.toe.installer.InstallerMojosFactory;
 import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.Environment.Products;
+import t3.toe.installer.environments.products.CustomProductToInstall;
+import t3.toe.installer.environments.products.ProductToInstall;
+import t3.toe.installer.environments.products.TIBCOProductToInstall;
 
 /**
 * <p>
@@ -70,30 +72,6 @@ import t3.toe.installer.environments.Environment.Products;
 */
 @Mojo(name = "env-install", requiresProject = false, requiresDependencyResolution = ResolutionScope.TEST)
 public class EnvironmentInstallerMojo extends CommonMojo {
-
-	public enum TIBCOProductGoalAndPriority {
-		ADMIN ("install-admin", "Administrator", 30),
-		BW5 ("install-bw5", "BusinessWorks 5", 30),
-		BW6 ("install-bw6", "BusinessWorks 6", 00),
-		EMS ("install-ems", "EMS", 30),
-		RV ("install-rv", "RendezVous", 10),
-		TEA ("install-tea", "TEA", 00),
-		TRA ("install-tra", "TRA", 20);
-
-	    private final String goal;
-	    private final String name;
-	    private final Integer priority;
-
-	    TIBCOProductGoalAndPriority(String goal, String name, Integer priority) {
-	        this.goal = goal;
-	        this.name = name;
-	        this.priority = priority;
-	    }
-
-	    public String goal() { return goal; }
-	    protected String productName() { return "TIBCO " + name; }
-	    protected Integer priority() { return priority; }
-	}
 
 	@Parameter (property = InstallerMojosInformation.FullEnvironment.topologyFile, defaultValue = InstallerMojosInformation.FullEnvironment.topologyFile_default)
 	protected File environmentsTopology;
@@ -300,11 +278,11 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		return product != null && product.getPackage() != null && product.getPackage().getRemote() != null;
 	}
 
-	private boolean productExists(TIBCOProductGoalAndPriority tibcoProductGoalAndPriority, List<TIBCOProductToInstall> productsToInstall) {
+	private boolean productExists(TIBCOProductToInstall.TIBCOProductGoalAndPriority tibcoProductGoalAndPriority, List<TIBCOProductToInstall> productsToInstall) {
 		boolean exists = false;
 
 		for (TIBCOProductToInstall product : productsToInstall) {
-			if (product.getTibcoProductGoalAndPriority().name.equals(tibcoProductGoalAndPriority.name)) {
+			if (product.getTibcoProductGoalAndPriority().getName().equals(tibcoProductGoalAndPriority.getName())) {
 				exists = true;
 			}
 		}
@@ -328,16 +306,16 @@ public class EnvironmentInstallerMojo extends CommonMojo {
                 }
 
                 if (tibcoProduct.getType().equals(ProductType.ADMIN) || tibcoProduct.getType().equals(ProductType.BW_5)) { // Administator and BW5 need RV and TRA before being installed
-                    boolean rvExists = productExists(TIBCOProductGoalAndPriority.RV, tibcoProductsToInstall);
-                    boolean traExists = productExists(TIBCOProductGoalAndPriority.TRA, tibcoProductsToInstall);
+                    boolean rvExists = productExists(TIBCOProductToInstall.TIBCOProductGoalAndPriority.RV, tibcoProductsToInstall);
+                    boolean traExists = productExists(TIBCOProductToInstall.TIBCOProductGoalAndPriority.TRA, tibcoProductsToInstall);
                     if (!rvExists || !traExists) {
                         getLog().info("");
                         getLog().error("The product '" + product.fullProductName() + "' has unresolved dependencies in the current topology.");
                         if (rvExists) {
-                            getLog().error("-> The product '" + TIBCOProductGoalAndPriority.RV.productName() + "' is required but is not defined.");
+                            getLog().error("-> The product '" + TIBCOProductToInstall.TIBCOProductGoalAndPriority.RV.productName() + "' is required but is not defined.");
                         }
                         if (traExists) {
-                            getLog().error("-> The product '" + TIBCOProductGoalAndPriority.TRA.productName() + "' is required but is not defined.");
+                            getLog().error("-> The product '" + TIBCOProductToInstall.TIBCOProductGoalAndPriority.TRA.productName() + "' is required but is not defined.");
                         }
 
                         throw new MojoExecutionException("There are unresolved dependencies in the current topology '" + environmentsTopology.getAbsolutePath() + "'.");

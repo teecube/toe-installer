@@ -14,7 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package t3.toe.installer.environments;
+package t3.toe.installer.environments.products;
+
+import t3.toe.installer.environments.Commands;
+import t3.toe.installer.environments.IfProductExistsBehaviour;
+import t3.toe.installer.environments.Product;
 
 public abstract class ProductToInstall<P extends Product> {
 

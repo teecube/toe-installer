@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package t3.toe.installer.environments;
+package t3.toe.installer.environments.products;
 
-import org.apache.commons.lang.StringUtils;
+import t3.toe.installer.environments.CustomProduct;
 
 public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
 

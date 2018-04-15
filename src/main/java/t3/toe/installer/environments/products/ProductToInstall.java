@@ -16,24 +16,35 @@
  */
 package t3.toe.installer.environments.products;
 
+import com.google.common.collect.FluentIterable;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
+import t3.CommonMojo;
 import t3.toe.installer.environments.*;
 import t3.toe.installer.environments.commands.CommandToExecute;
 import t3.toe.installer.environments.commands.SystemCommandToExecute;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class ProductToInstall<P extends Product> {
 
+    protected final EnvironmentToInstall environment;
     protected final MojoExecutor.ExecutionEnvironment executionEnvironment;
     protected final PluginDescriptor pluginDescriptor;
     protected final MavenProject project;
-    private final MavenSession session;
+    protected final MavenSession session;
+    protected final CommonMojo commonMojo;
+
+    public void setLog(Log log) {
+        this.logger = log;
+    }
 
     protected Log logger;
 
@@ -47,11 +58,20 @@ public abstract class ProductToInstall<P extends Product> {
     private Integer priority;
     private boolean skip;
 
+    public File getResolvedInstallationPackage() {
+        return resolvedInstallationPackage;
+    }
+
+    public void setResolvedInstallationPackage(File resolvedInstallationPackage) {
+        this.resolvedInstallationPackage = resolvedInstallationPackage;
+    }
+
     private boolean alreadyInstalled;
+    private File resolvedInstallationPackage;
     private boolean toBeDeleted;
     private String version;
 
-    public ProductToInstall(P product, Log logger, MojoExecutor.ExecutionEnvironment executionEnvironment, PluginDescriptor pluginDescriptor) {
+    public ProductToInstall(P product, EnvironmentToInstall environment, CommonMojo commonMojo) {
         this.setId(product.getId());
         this.setIfExists(product.getIfExists());
         this.setPackage(product.getPackage());
@@ -61,17 +81,21 @@ public abstract class ProductToInstall<P extends Product> {
         this.setProperties(product.getProperties());
         this.setSkip(product.isSkip());
 
-        this.executionEnvironment = executionEnvironment;
-        this.logger = logger;
-        this.pluginDescriptor = pluginDescriptor;
-        this.project = executionEnvironment.getMavenProject();
-        this.session = executionEnvironment.getMavenSession();
+        this.environment = environment;
+
+        this.commonMojo = commonMojo;
+        this.logger = commonMojo.getLog();
+        this.pluginDescriptor = commonMojo.getPluginDescriptor();
+        this.project = commonMojo.getProject();
+        this.session = commonMojo.getSession();
+        this.executionEnvironment = new MojoExecutor.ExecutionEnvironment(this.project, this.session, this.commonMojo.getPluginManager());
     }
 
+    public abstract void doInstall(EnvironmentToInstall environment, int productIndex) throws MojoExecutionException;
     public abstract String fullProductName();
-    public abstract void doInstall(EnvironmentToInstall environment, int productIndex, List<MojoExecutor.Element> elements) throws MojoExecutionException;
+    public abstract void init(int productIndex) throws MojoExecutionException;
 
-    public void install(EnvironmentToInstall environment, int productIndex, List<MojoExecutor.Element> configuration) throws MojoExecutionException {
+    public void install(EnvironmentToInstall environment, int productIndex) throws MojoExecutionException {
         logger.info("");
 
         if (this.isSkip()) {
@@ -95,7 +119,7 @@ public abstract class ProductToInstall<P extends Product> {
             logger.info(productIndex + ". Installing '" + this.fullProductName() + "'");
         }
 
-        doInstall(environment, productIndex, configuration);
+        doInstall(environment, productIndex);
 
         // execute post-product-install commands
         if (this.getPostInstallCommands() != null && !this.getPostInstallCommands().getCommand().isEmpty()) {

@@ -154,7 +154,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 
 			if (!environments.getEnvironment().isEmpty()) { // a template was provided
 				Integer i = 1;
-				List<EnvironmentToInstall> environmentsToInstall = EnvironmentToInstall.getEnvironmentsToInstall(environments.getEnvironment());
+				List<EnvironmentToInstall> environmentsToInstall = EnvironmentToInstall.getEnvironmentsToInstall(environments.getEnvironment(), topologyGeneratedFile);
 
 				for (EnvironmentToInstall environment : environmentsToInstall) {
 					if (environment.getTIBCOProducts().isEmpty()) { // no product is provided, try to use resolved packages
@@ -163,11 +163,13 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 					} else { // replace installers with actual needed TIBCO installation packages
 						List<CommonInstaller> resolvedInstallers = new ArrayList<CommonInstaller>();
 						for (TIBCOProduct tibcoProduct : environment.getTIBCOProducts()) {
-							String goal = new TIBCOProductToInstall(tibcoProduct, getLog(), getEnvironment(pluginManager), pluginDescriptor).getTibcoProductGoalAndPriority().goal();
+							String goal = new TIBCOProductToInstall(tibcoProduct, environment, this).getTibcoProductGoalAndPriority().goal();
 							CommonInstaller installer = InstallerMojosFactory.getInstallerMojo("toe:" + goal);
 							CommonInstaller.firstGoal = false;
 
-							EnvironmentInstallerMojo.initInstaller(new EnvironmentToInstall(environment), new TIBCOProductToInstall(tibcoProduct, getLog(), getEnvironment(pluginManager), pluginDescriptor), i, pluginManager, session, logger, new NoOpLogger(), installer);
+                            TIBCOProductToInstall tibcoProductToInstall = new TIBCOProductToInstall(tibcoProduct, environment, this);
+                            tibcoProductToInstall.setLog(new NoOpLogger());
+                            tibcoProductToInstall.init(i);
 
 							File installationPackage = installer.getInstallationPackage();
 							if (installationPackage == null || !installationPackage.exists()) {

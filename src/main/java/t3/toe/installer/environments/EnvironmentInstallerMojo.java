@@ -58,6 +58,7 @@ import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.Environment.Products;
 import t3.toe.installer.environments.products.CustomProductToInstall;
 import t3.toe.installer.environments.products.ProductToInstall;
+import t3.toe.installer.environments.products.ProductsToInstall;
 import t3.toe.installer.environments.products.TIBCOProductToInstall;
 
 /**
@@ -77,7 +78,6 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 	protected File environmentsTopology;
 
 	protected EnvironmentsMarshaller environmentsMarshaller;
-	private static boolean firstDependency = true;
 
 	@Override
 	protected AdvancedMavenLifecycleParticipant getLifecycleParticipant() {
@@ -92,7 +92,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 		CommonInstaller.firstGoal = false;
 
-		List<EnvironmentToInstall> environmentsToInstall = EnvironmentToInstall.getEnvironmentsToInstall(environmentsMarshaller.getObject().getEnvironment());
+		List<EnvironmentToInstall> environmentsToInstall = EnvironmentToInstall.getEnvironmentsToInstall(environmentsMarshaller.getObject().getEnvironment(), environmentsTopology);
 
 		int environmentsCount = environmentsToInstall.size();
 		int environmentsIndex = 1;
@@ -101,52 +101,26 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 				getLog().info("=== " + StringUtils.leftPad(Utils.toRoman(environmentsIndex), 3, " ") + ". Environment: " + environment.getEnvironmentName() + " ===");
 				getLog().info(Messages.MESSAGE_SPACE);
 
-                firstDependency = true;
+                TIBCOProductToInstall.firstDependency = true;
 			}
+
 			// first check if environment exists and if we can continue according to current strategy (keep, fail, delete)
 			com.tibco.envinfo.TIBCOEnvironment.Environment localEnvironment = CommonInstaller.getCurrentEnvironment(environment.getEnvironmentName());
 			if (CommonInstaller.environmentExists(localEnvironment)) {
 				getLog().info("The environment already exists.");
 
-				environment.setToBeDeleted(deleteEnvironment(environment));
-			}
-			
-			Products products = environment.getProducts();
-			List<ProductToInstall> productsToInstall = new ArrayList<ProductToInstall>();
-			for (Product product : products.getTibcoProductOrCustomProduct()) {
-				if (product instanceof t3.toe.installer.environments.TIBCOProduct) {
-					productsToInstall.add(new TIBCOProductToInstall(((t3.toe.installer.environments.TIBCOProduct) product), getLog(), getEnvironment(pluginManager), pluginDescriptor));
-				} else if (product instanceof CustomProduct) {
-					productsToInstall.add(new CustomProductToInstall(((CustomProduct) product), getLog(), getEnvironment(pluginManager), pluginDescriptor));
-				}
-			}
-			checkAndSortProducts(productsToInstall);
-
-			int i = 1;
-			boolean noRemoteProductYet = true;
-			List<List<Element>> configurations = new ArrayList<List<Element>>();
-			for (ProductToInstall product : productsToInstall) {
-			    if (product instanceof TIBCOProductToInstall) {
-                    configurations.add(initInstaller(environment, (TIBCOProductToInstall) product, i, pluginManager, session, logger, getLog()));
-                } else {
-			    	configurations.add(new ArrayList<Element>());
-				}
-
-				i++;
+				environment.setToBeDeleted(deleteEnvironment(environment)); // check whether environment can be deleted
 			}
 
 			getLog().info("Environment name to install is : " + environment.getEnvironmentName());
 			getLog().info("TIBCO root is                  : " + environment.getTibcoRoot());
 			getLog().info("");
 
-			ProductToInstall productWithLongestFullProductName = Collections.max(productsToInstall, new Comparator<ProductToInstall>() {
-				@Override
-				public int compare(ProductToInstall p1, ProductToInstall p2) {
-				return p1.fullProductName().length() - p2.fullProductName().length();
-				}
-			});
-			int maxFullProductNameLength = productWithLongestFullProductName.fullProductName().length();
-			i = 1;
+			// populate list of products to install in environment
+			ProductsToInstall productsToInstall = new ProductsToInstall(environment, this);
+
+			// display the list of products to be installed
+			int i = 1;
 			for (ProductToInstall product : productsToInstall) {
 				String skipped = (product.isSkip() ? " (skipped)" : "");
 				String alreadyInstalled = (!product.isSkip() && product.isAlreadyInstalled() ? " (already installed"
@@ -162,7 +136,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 				} else {
 					prefix = "                                 " + i + ". ";
 				}
-				getLog().info(prefix + StringUtils.rightPad(product.fullProductName(), maxFullProductNameLength, " ") + version + alreadyInstalled + skipped);
+				getLog().info(prefix + StringUtils.rightPad(product.fullProductName(), productsToInstall.getMaxFullProductNameLength(), " ") + version + alreadyInstalled + skipped);
 				i++;
 			}
 
@@ -176,9 +150,10 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 				}
 			}
 
+			// install products
 			i = 1;
 			for (ProductToInstall product : productsToInstall) {
-				product.install(environment, i, configurations.get(i - 1));
+				product.install(environment, i);
                 i++;
 			}
 
@@ -268,111 +243,6 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		return true; // dead code anyway
 	}
 
-	private static boolean productIsLocal(TIBCOProductToInstall product) {
-		return product != null && product.getPackage() != null && product.getPackage().getLocal() != null;
-	}
-
-	private static boolean productIsRemote(TIBCOProductToInstall product) {
-		return product != null && product.getPackage() != null && product.getPackage().getRemote() != null;
-	}
-
-	private boolean productExists(TIBCOProductToInstall.TIBCOProductGoalAndPriority tibcoProductGoalAndPriority, List<TIBCOProductToInstall> productsToInstall) {
-		boolean exists = false;
-
-		for (TIBCOProductToInstall product : productsToInstall) {
-			if (product.getTibcoProductGoalAndPriority().getName().equals(tibcoProductGoalAndPriority.getName())) {
-				exists = true;
-			}
-		}
-
-		return exists;
-	}
-
-	private void checkAndSortProducts(List<ProductToInstall> productsToInstall) throws MojoExecutionException {
-		// check that priorities are OK
-		boolean prioritiesOK = true;
-        List<TIBCOProductToInstall> tibcoProductsToInstall = FluentIterable.from(productsToInstall)
-                .filter(TIBCOProductToInstall.class)
-                .toList();
-
-		for (ProductToInstall product : productsToInstall) {
-		    if (product instanceof TIBCOProductToInstall) {
-                TIBCOProductToInstall tibcoProduct = (TIBCOProductToInstall) product;
-                Integer productPriority = tibcoProduct.getPriority();
-                if (productPriority == null) { // if not set in XML, take default one
-                    productPriority = tibcoProduct.getTibcoProductGoalAndPriority().priority();
-                }
-
-                if (tibcoProduct.getType().equals(ProductType.ADMIN) || tibcoProduct.getType().equals(ProductType.BW_5)) { // Administator and BW5 need RV and TRA before being installed
-                    boolean rvExists = productExists(TIBCOProductToInstall.TIBCOProductGoalAndPriority.RV, tibcoProductsToInstall);
-                    boolean traExists = productExists(TIBCOProductToInstall.TIBCOProductGoalAndPriority.TRA, tibcoProductsToInstall);
-                    if (!rvExists || !traExists) {
-                        getLog().info("");
-                        getLog().error("The product '" + product.fullProductName() + "' has unresolved dependencies in the current topology.");
-                        if (rvExists) {
-                            getLog().error("-> The product '" + TIBCOProductToInstall.TIBCOProductGoalAndPriority.RV.productName() + "' is required but is not defined.");
-                        }
-                        if (traExists) {
-                            getLog().error("-> The product '" + TIBCOProductToInstall.TIBCOProductGoalAndPriority.TRA.productName() + "' is required but is not defined.");
-                        }
-
-                        throw new MojoExecutionException("There are unresolved dependencies in the current topology '" + environmentsTopology.getAbsolutePath() + "'.");
-                    }
-                }
-                for (TIBCOProductToInstall productToCompare : tibcoProductsToInstall) {
-                    if (productToCompare.equals(product)) {
-                        continue;
-                    }
-
-                    Integer productToComparePriority = productToCompare.getPriority();
-                    if (productToComparePriority == null) { // if not set in XML, take default one
-                        productToComparePriority = productToCompare.getTibcoProductGoalAndPriority().priority();
-                    }
-
-                    if (tibcoProduct.getType().equals(ProductType.ADMIN) || tibcoProduct.getType().equals(ProductType.BW_5)) { // Administator and BW5 need RV and TRA before being installed
-                        if (productToCompare.getType().equals(ProductType.RV) || productToCompare.getType().equals(ProductType.TRA)) {
-                            if (productToComparePriority >= productPriority) {
-                                getLog().error("The product '" + productToCompare.fullProductName() + "' (priority " + productToComparePriority + ") cannot be installed after product '" + product.fullProductName() + "' (priority " + productPriority + ").");
-                                prioritiesOK = false;
-                            }
-                        }
-                    }
-                }
-            }
-		}
-
-		if (!prioritiesOK) {
-			throw new MojoExecutionException("The topology has errors in products priorities.");
-		}
-
-		// sort products by priorities
-		Collections.sort(productsToInstall, new ProductComparator());
-	}
-
-	public class ProductComparator implements Comparator<ProductToInstall> {
-	    @Override
-	    public int compare(ProductToInstall p1, ProductToInstall p2) {
-	    	if (p1 == null || p2 == null) return 0;
-
-	    	Integer priority1 = p1.getPriority();
-	    	Integer priority2 = p2.getPriority();
-	    	if (priority1 == null) {
-	    		if (p1 instanceof TIBCOProductToInstall) {
-					priority1 = ((TIBCOProductToInstall) p1).getTibcoProductGoalAndPriority().priority();
-				} else {
-	    			return 0;
-				}
-	    	}
-	    	if (priority2 == null) {
-				if (p2 instanceof TIBCOProductToInstall) {
-					priority2 = ((TIBCOProductToInstall) p2).getTibcoProductGoalAndPriority().priority();
-				}
-	    	}
-
-			return priority1.compareTo(priority2);
-	    }
-	}
-
 	protected void loadTopology() throws MojoExecutionException {
 		getLog().info("Using topology file: " + environmentsTopology.getAbsolutePath());
 		getLog().info(Messages.MESSAGE_SPACE);
@@ -384,166 +254,6 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		}
 
 		environmentsMarshaller = EnvironmentsMarshaller.getEnvironmentMarshaller(environmentsTopology);
-	}
-
-	public static ArrayList<Element> initInstaller(EnvironmentToInstall environment, TIBCOProductToInstall product, int productIndex, BuildPluginManager pluginManager, MavenSession session, Logger logger, Log log) throws MojoExecutionException {
-		String goal = product.getTibcoProductGoalAndPriority().goal();
-		CommonInstaller installer = InstallerMojosFactory.getInstallerMojo("toe:" + goal);
-
-		return initInstaller(environment, product, productIndex, pluginManager, session, logger, log, installer);
-	}
-
-	public static ArrayList<Element> initInstaller(EnvironmentToInstall environment, TIBCOProductToInstall product, int productIndex, BuildPluginManager pluginManager, MavenSession session, Logger logger, Log log, CommonInstaller installer) throws MojoExecutionException {
-		String mojoClassName = installer.getClass().getCanonicalName();
-
-		ArrayList<Element> configuration = new ArrayList<Element>();
-		ArrayList<Element> ignoredParameters = new ArrayList<Element>();
-
-		if (!firstDependency) {
-			addProperty(configuration, ignoredParameters, "createNewEnvironment", "false", CommonInstaller.class);
-		} else {
-			if (environment.isToBeDeleted()) {
-				addProperty(configuration, ignoredParameters, "removeExistingEnvironment", "true", CommonInstaller.class);
-			} else {
-				addProperty(configuration, ignoredParameters, "createNewEnvironment", "false", CommonInstaller.class);
-			}
-			firstDependency = false;
-		}
-		
-		addProperty(configuration, ignoredParameters, "ignoreDependencies", "true", CommonInstaller.class); // disable resolution of dependencies in the product goal since dependency are managed here
-		installer.setIgnoreDependencies(true);
-		addProperty(configuration, ignoredParameters, "environmentName", environment.getEnvironmentName(), CommonInstaller.class);
-		installer.setEnvironmentName(environment.getEnvironmentName());
-		addProperty(configuration, ignoredParameters, "installationRoot", environment.getTibcoRoot(), CommonInstaller.class);
-		installer.setInstallationRoot(new File(environment.getTibcoRoot()));
-		if (product.getPackage() != null) {
-			if (product.getPackage().getRemote() != null) { // use remote package
-				RemotePackage remotePackage = product.getPackage().getRemote();
-	
-				// version and classifier are mandatory
-				addProperty(configuration, ignoredParameters, "remoteInstallationPackageVersion", remotePackage.getVersion(), installer.getClass());
-				installer.setRemoteInstallationPackageVersion(remotePackage.getVersion());
-				installer.setInstallationPackageVersion(remotePackage.getVersion());
-				addProperty(configuration, ignoredParameters, "remoteInstallationPackageClassifier", remotePackage.getClassifier(), installer.getClass());
-				installer.setRemoteInstallationPackageClassifier(remotePackage.getClassifier());
-				if (StringUtils.isNotBlank(remotePackage.getGroupId())) {
-					addProperty(configuration, ignoredParameters, "remoteInstallationPackageGroupId", remotePackage.getGroupId(), installer.getClass());
-					installer.setRemoteInstallationPackageGroupId(remotePackage.getGroupId());
-				}
-				if (StringUtils.isNotBlank(remotePackage.getArtifactId())) {
-					addProperty(configuration, ignoredParameters, "remoteInstallationPackageArtifactId", remotePackage.getArtifactId(), installer.getClass());
-					installer.setRemoteInstallationPackageArtifactId(remotePackage.getArtifactId());
-				}
-			} else if (product.getPackage().getLocal() != null) { // use local package
-				LocalPackage localPackage = product.getPackage().getLocal();
-				if (localPackage.getDirectoryWithPattern() != null) {
-					if (StringUtils.isNotBlank(localPackage.getDirectoryWithPattern().getDirectory())) {
-						addProperty(configuration, ignoredParameters, "installationPackageDirectory", localPackage.getDirectoryWithPattern().getDirectory(), CommonInstaller.class);
-						installer.setInstallationPackageDirectory(new File(localPackage.getDirectoryWithPattern().getDirectory()));					
-					}
-					if (StringUtils.isNotBlank(localPackage.getDirectoryWithPattern().getPattern())) {
-						addProperty(configuration, ignoredParameters, "installationPackageRegex", localPackage.getDirectoryWithPattern().getPattern(), installer.getClass());
-						installer.setInstallationPackageRegex(localPackage.getDirectoryWithPattern().getPattern());
-					}
-					if (localPackage.getDirectoryWithPattern().getVersionGroupIndex() != null) {
-						addProperty(configuration, ignoredParameters, "installationPackageRegexVersionGroupIndex", localPackage.getDirectoryWithPattern().getVersionGroupIndex().toString(), installer.getClass());
-						installer.setInstallationPackageRegexVersionGroupIndex(localPackage.getDirectoryWithPattern().getVersionGroupIndex());
-					}
-				} else if (localPackage.getFileWithVersion() != null) {
-					addProperty(configuration, ignoredParameters, "installationPackage", localPackage.getFileWithVersion().getFile(), installer.getClass());
-					installer.setInstallationPackage(new File(localPackage.getFileWithVersion().getFile()));
-
-					addProperty(configuration, ignoredParameters, "installationPackageVersion", localPackage.getFileWithVersion().getVersion(), installer.getClass());
-					installer.setInstallationPackageVersion(localPackage.getFileWithVersion().getVersion());
-				}
-			}
-		} else { // no remote or local package defined -> create a local package with default values
-			String installationPackagesDirectory = getInstallationPackagesDirectory(environment, product);
-			File installationPackagesDirectoryFile = null;
-			if (installationPackagesDirectory != null) {
-				installationPackagesDirectoryFile = new File(installationPackagesDirectory);
-			}
-			if (installationPackagesDirectoryFile == null || !installationPackagesDirectoryFile.exists() || !installationPackagesDirectoryFile.isDirectory()) {
-				throw new MojoExecutionException("The product '" + product.fullProductName() + "' has no package directory set in this topology");
-			}
-			addProperty(configuration, ignoredParameters, "installationPackageDirectory", installationPackagesDirectory, CommonInstaller.class);
-			installer.setInstallationPackageDirectory(installationPackagesDirectoryFile);
-		}
-
-		if (product.getProperties() != null && product.getProperties().getProperty() != null) {
-			for (Property property : product.getProperties().getProperty()) {
-				if (StringUtils.isNotEmpty(property.getKey())) {
-					configuration.add(element(property.getKey(), property.getValue()));
-					ignoredParameters.add(element(property.getKey(), mojoClassName));
-				}
-			}
-		}
-		configuration.add(element("ignoredParameters", ignoredParameters.toArray(new Element[0])));
-
-		// init the Mojo to check if installation already exists
-		installer.setLog(log);
-		installer.setLogger(logger);
-		installer.setPluginManager(pluginManager);
-		installer.setSession(session);
-		Map<String, String> mojoIgnoredParameters = new HashMap<String, String>();
-		for (Element ignoredParameter : ignoredParameters) {
-			mojoIgnoredParameters.put(ignoredParameter.toDom().getName(), ignoredParameter.toDom().getValue());
-		}
-		installer.setIgnoredParameters(mojoIgnoredParameters);
-		installer.initStandalonePOM();
-		if (!installer.installationPackageWasAlreadyResolved() && productIsRemote(product)) {
-		    logger.info(Messages.MESSAGE_SPACE);
-        }
-
-		if (installer.installationExists()) {
-			product.setAlreadyInstalled(true);
-		}
-		if (StringUtils.isNotBlank(installer.getInstallationPackageVersion())) {
-			product.setVersion(installer.getInstallationPackageVersion());
-		}
-
-		if (product.isAlreadyInstalled() && !environment.isToBeDeleted()) {
-			switch (product.getIfExists()) {
-			case DELETE:
-				product.setToBeDeleted(true);
-
-				throw new MojoExecutionException("Unable to delete product '" + product.fullProductName() + "'", new UnsupportedOperationException()); // TODO : implement uninstall of products
-
-//				break;
-			case FAIL:
-				log.error("Product '" + product.fullProductName() + "' already exists and cannot be kept nor deleted (as specified in topology).");
-				log.info(Messages.MESSAGE_SPACE);
-
-				throw new MojoExecutionException("Product '" + product.fullProductName()  + "' already exists and cannot be deleted.");
-			case KEEP:
-				product.setToBeDeleted(false);
-
-				break;
-			}
-		}
-
-		return configuration;
-	}
-
-	private static void addProperty(ArrayList<Element> configuration, ArrayList<Element> ignoredParameters, String key, String value, Class<?> clazz) {
-		configuration.add(element(key, value));
-		ignoredParameters.add(element(key, clazz.getCanonicalName()));
-	}
-
-	/**
-	 * Retrieves a directory where to look for the installation package.
-	 *
-	 * @param environment
-	 * @param product
-	 * @return
-	 */
-	private static String getInstallationPackagesDirectory(EnvironmentToInstall environment, TIBCOProductToInstall product) {
-		if (productIsLocal(product) && product.getPackage().getLocal().getDirectoryWithPattern() != null && product.getPackage().getLocal().getDirectoryWithPattern().getDirectory() != null) {
-			return product.getPackage().getLocal().getDirectoryWithPattern().getDirectory();
-		} else if (environment != null && environment.getPackagesDirectory() != null) {
-			return environment.getPackagesDirectory();
-		}
-		return null;
 	}
 
 }

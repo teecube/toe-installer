@@ -17,29 +17,31 @@
 package t3.toe.installer.environments;
 
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Iterables;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class EnvironmentToInstall extends Environment {
-	
+
+	private File environmentsTopology; // file where the environment is defined
 	private boolean toBeDeleted;
 
-	public EnvironmentToInstall(Environment environment) {
+	public EnvironmentToInstall(Environment environment, File environmentsTopology) {
 		this.setEnvironmentName(environment.getEnvironmentName());
 		this.setIfExists(environment.getIfExists());
 		this.setPackagesDirectory(environment.getPackagesDirectory());
 		this.setProducts(environment.getProducts());
 		this.setTibcoRoot(environment.getTibcoRoot());
 
+		this.environmentsTopology = environmentsTopology;
 		this.toBeDeleted = false;
 	}
 
-	public static List<EnvironmentToInstall> getEnvironmentsToInstall(List<Environment> environments) {
+	public static List<EnvironmentToInstall> getEnvironmentsToInstall(List<Environment> environments, File environmentsTopology) {
 		List<EnvironmentToInstall> environmentsToInstall = new ArrayList<EnvironmentToInstall>();
 		for (Environment environment : environments) {
-			environmentsToInstall.add(new EnvironmentToInstall(environment));
+			environmentsToInstall.add(new EnvironmentToInstall(environment, environmentsTopology));
 		}
 		return environmentsToInstall;
 	}
@@ -52,6 +54,11 @@ public class EnvironmentToInstall extends Environment {
 		this.toBeDeleted = toBeDeleted;
 	}
 
+	/**
+	 * Filter products of environment to keep only TIBCO products.
+	 *
+	 * @return the list of TIBCO products of the environment
+	 */
 	public List<TIBCOProduct> getTIBCOProducts() {
 		return FluentIterable.from(this.getProducts().getTibcoProductOrCustomProduct())
 							 .filter(TIBCOProduct.class)

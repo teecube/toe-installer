@@ -21,16 +21,17 @@ import org.apache.maven.plugin.logging.Log;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
 import t3.toe.installer.environments.CustomProduct;
 import t3.toe.installer.environments.UncompressCommand;
+import t3.toe.installer.environments.products.CustomProductToInstall;
 
 public class UncompressCommandToExecute extends CommandToExecute<UncompressCommand> {
 
-    private final CustomProduct customProduct;
+    private final CustomProductToInstall customProduct;
 
     public UncompressCommandToExecute(Log logger, MojoExecutor.ExecutionEnvironment executionEnvironment, UncompressCommand command, int commandIndex, CommandType commandType) {
         this(logger, executionEnvironment, command, commandIndex, commandType, null);
     }
 
-    public UncompressCommandToExecute(Log logger, MojoExecutor.ExecutionEnvironment executionEnvironment, UncompressCommand command, int commandIndex, CommandType commandType, CustomProduct customProduct) {
+    public UncompressCommandToExecute(Log logger, MojoExecutor.ExecutionEnvironment executionEnvironment, UncompressCommand command, int commandIndex, CommandType commandType, CustomProductToInstall customProduct) {
         super(logger, executionEnvironment, command, commandIndex, commandType);
 
         this.customProduct = customProduct;
@@ -38,7 +39,9 @@ public class UncompressCommandToExecute extends CommandToExecute<UncompressComma
 
     @Override
     public void doExecuteCommand(String commandPrefix, String commandCaption) throws MojoExecutionException {
-        getLog().info("Uncompress file");
+        if (customProduct != null && customProduct.getResolvedInstallationPackage() != null && customProduct.getResolvedInstallationPackage().exists()) {
+            getLog().info("Uncompressing file '" + customProduct.getResolvedInstallationPackage().getAbsolutePath() + "'");
+        }
     }
 
     @Override

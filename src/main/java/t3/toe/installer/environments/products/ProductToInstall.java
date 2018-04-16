@@ -16,7 +16,6 @@
  */
 package t3.toe.installer.environments.products;
 
-import com.google.common.collect.FluentIterable;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
@@ -29,9 +28,6 @@ import t3.toe.installer.environments.commands.CommandToExecute;
 import t3.toe.installer.environments.commands.SystemCommandToExecute;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public abstract class ProductToInstall<P extends Product> {
 
@@ -110,7 +106,7 @@ public abstract class ProductToInstall<P extends Product> {
                 logger.info("Executing pre-install commands for current product");
                 int i = 1;
                 for (SystemCommand command : this.getPreInstallCommands().getCommand()) {
-                    CommandToExecute commandToExecute = new SystemCommandToExecute(logger, executionEnvironment, command, i, CommandToExecute.CommandType.PRODUCT_PRE);
+                    CommandToExecute commandToExecute = new SystemCommandToExecute(command, commonMojo, i, CommandToExecute.CommandType.PRODUCT_PRE, this);
                     commandToExecute.executeCommand();
                     i++;
                 }
@@ -127,7 +123,7 @@ public abstract class ProductToInstall<P extends Product> {
             logger.info("Executing post-install commands for current product");
             int i = 1;
             for (SystemCommand command : this.getPostInstallCommands().getCommand()) {
-                CommandToExecute commandToExecute = new SystemCommandToExecute(logger, executionEnvironment, command, i, CommandToExecute.CommandType.PRODUCT_POST);
+                CommandToExecute commandToExecute = new SystemCommandToExecute(command, commonMojo, i, CommandToExecute.CommandType.PRODUCT_POST, this);
                 commandToExecute.executeCommand();
                 i++;
             }

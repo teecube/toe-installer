@@ -16,30 +16,44 @@
  */
 package t3.toe.installer.environments.commands;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
-import org.twdata.maven.mojoexecutor.MojoExecutor;
 import t3.CommonMojo;
-import t3.log.PrefixedLogger;
+import t3.toe.installer.environments.CustomProduct;
 import t3.toe.installer.environments.SystemCommand;
+import t3.toe.installer.environments.products.CustomProductToInstall;
+import t3.toe.installer.environments.products.ProductToInstall;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.util.regex.Matcher;
 
 public class SystemCommandToExecute extends CommandToExecute<SystemCommand> {
 
-    public SystemCommandToExecute(Log logger, MojoExecutor.ExecutionEnvironment executionEnvironment, SystemCommand command, int commandIndex, CommandType commandType) {
-        super(logger, executionEnvironment, command, commandIndex, commandType);
+    public SystemCommandToExecute(SystemCommand command, CommonMojo commonMojo, int commandIndex, CommandType commandType) {
+        super(command, commonMojo, commandIndex, commandType);
+    }
+
+    public SystemCommandToExecute(SystemCommand command, CommonMojo commonMojo, int commandIndex, CommandType commandType, ProductToInstall productToInstall) {
+        super(command, commonMojo, commandIndex, commandType, productToInstall);
+    }
+
+    public SystemCommandToExecute(SystemCommand command, CommonMojo commonMojo, int commandIndex, CommandType commandType, CustomProductToInstall customProductToInstall) {
+        super(command, commonMojo, commandIndex, commandType, customProductToInstall);
     }
 
     @Override
     public void doExecuteCommand(String commandPrefix, String commandCaption) throws MojoExecutionException {
-        String commandLine = this.command.getCommand().trim();
+        String commandLine = getCommandLine(this.command);
 
+        File workingDirectory = getWorkingDirectory();
         CollectingLogOutputStream commandOutputStream = null;
         try {
             CommonMojo.commandOutputStream = new CollectingLogOutputStream(getLog(), commandPrefix, false);
-            if (executeBinary(commandLine, new File(session.getRequest().getBaseDirectory()), "The command '" + commandCaption + "' failed.") != 0) {
+            if (executeBinary(commandLine, workingDirectory, "The command '" + commandCaption + "' failed.") != 0) {
                 failedCommand(command);
             }
         } catch (MojoExecutionException | IOException e) {
@@ -52,6 +66,49 @@ public class SystemCommandToExecute extends CommandToExecute<SystemCommand> {
             } catch (IOException e) {
             }
         }
+    }
+
+    private String getCommandLine(SystemCommand command) {
+        if (command.getShell() != null) {
+            File shellScript = null;
+            try {
+                shellScript = File.createTempFile("shell", "");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try (PrintWriter out = new PrintWriter(shellScript)) {
+                out.println(command.getShell());
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            return "sh -c " + shellScript.getAbsolutePath();
+        }
+        return "";
+    }
+
+    private File getWorkingDirectory() {
+        File workingDirectory = new File(session.getRequest().getBaseDirectory());
+
+        String commandWorkingDirectory = command.getWorkingDirectory();
+        if (StringUtils.isNotEmpty(commandWorkingDirectory)) {
+            Matcher m = mavenPropertyPattern.matcher(commandWorkingDirectory);
+
+            StringBuffer sb = new StringBuffer();
+
+            while (m.find()) {
+                String propertyKey = m.group(1);
+                String propertyValue = getCommandPropertyValue(propertyKey);
+                if (propertyValue != null) {
+                    m.appendReplacement(sb, Matcher.quoteReplacement(propertyValue));
+                }
+            }
+            m.appendTail(sb);
+            commandWorkingDirectory = sb.toString();
+
+            workingDirectory = new File(commandWorkingDirectory);
+        }
+
+        return workingDirectory;
     }
 
     @Override

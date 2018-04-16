@@ -233,16 +233,16 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 
 						break;
 					case REMOTE:
-						RemotePackage remotePackage = new RemotePackage();
-						remotePackage.setGroupId(installer.getRemoteInstallationPackageGroupId());
-						remotePackage.setArtifactId(installer.getRemoteInstallationPackageArtifactId());
-						remotePackage.setVersion(installer.getInstallationPackageVersion());
+						MavenRemotePackage mavenRemotePackage = new MavenRemotePackage();
+						mavenRemotePackage.setGroupId(installer.getRemoteInstallationPackageGroupId());
+						mavenRemotePackage.setArtifactId(installer.getRemoteInstallationPackageArtifactId());
+						mavenRemotePackage.setVersion(installer.getInstallationPackageVersion());
 						String classifier = getInstallerClassifier(installer);
 						if (classifier != null) {
-							remotePackage.setClassifier(classifier);
+							mavenRemotePackage.setClassifier(classifier);
 						}
 
-						productPackage.setRemote(remotePackage);
+						productPackage.setMavenRemote(mavenRemotePackage);
 
 						break;
 					}

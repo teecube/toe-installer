@@ -18,12 +18,7 @@ package t3.toe.installer.environments.products;
 
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.descriptor.PluginDescriptor;
-import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.logging.Logger;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
-import org.twdata.maven.mojoexecutor.MojoExecutor;
 import t3.CommonMojo;
 import t3.toe.installer.environments.*;
 import t3.toe.installer.environments.commands.CommandToExecute;
@@ -49,20 +44,27 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
         return this.getName();
     }
 
+    public List<AbstractCommand> getSystemCommandOrUncompressCommand() {
+        return customProduct.getSystemCommandOrUncompressCommand();
+    }
+
     @Override
     public void init(int productIndex) throws MojoExecutionException {
-        // TODO : resolve installation package
         if (customProduct.getPackage().getLocal() != null) {
             if (customProduct.getPackage().getLocal().getFileWithVersion() != null) {
                 setResolvedInstallationPackage(new File(customProduct.getPackage().getLocal().getFileWithVersion().getFile()));
             } else if (customProduct.getPackage().getLocal().getDirectoryWithPattern() != null) {
                 logger.warn("directory with pattern is not supported for custom products");
             }
-        } else if (customProduct.getPackage().getRemote() != null) {
-            String groupId = customProduct.getPackage().getRemote().getGroupId();
-            String artifactId = customProduct.getPackage().getRemote().getArtifactId();
-            String version = customProduct.getPackage().getRemote().getVersion();
-            String classifier = customProduct.getPackage().getRemote().getClassifier();
+        } else if (customProduct.getPackage().getHttpRemote() != null) {
+            String url = customProduct.getPackage().getHttpRemote().getUrl();
+            // TODO : fetch URL
+            logger.warn("Fetch URL not supported");
+        } else if (customProduct.getPackage().getMavenRemote() != null) {
+            String groupId = customProduct.getPackage().getMavenRemote().getGroupId();
+            String artifactId = customProduct.getPackage().getMavenRemote().getArtifactId();
+            String version = customProduct.getPackage().getMavenRemote().getVersion();
+            String classifier = customProduct.getPackage().getMavenRemote().getClassifier();
             try {
                 File resolvedDependency = commonMojo.getDependency(groupId, artifactId, version, "zip", classifier, true);
                 if (resolvedDependency != null && resolvedDependency.exists()) {
@@ -77,11 +79,11 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
     @Override
     public void doInstall(EnvironmentToInstall environment, int productIndex) throws MojoExecutionException {
         int i = 1;
-        for (AbstractCommand command : customProduct.getInstallCommandOrUncompressCommand()) {
+        for (AbstractCommand command : customProduct.getSystemCommandOrUncompressCommand()) {
             if (command instanceof SystemCommand) {
-                new SystemCommandToExecute(logger, executionEnvironment, (SystemCommand) command, i, CommandToExecute.CommandType.CUSTOM_PRODUCT).executeCommand();
+                new SystemCommandToExecute((SystemCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this).executeCommand();
             } else if (command instanceof UncompressCommand) {
-                new UncompressCommandToExecute(logger, executionEnvironment, (UncompressCommand) command, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this).executeCommand();
+                new UncompressCommandToExecute((UncompressCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this).executeCommand();
             }
             i++;
         }

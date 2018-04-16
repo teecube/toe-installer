@@ -16,17 +16,21 @@
  */
 package t3.toe.installer.environments.commands;
 
+import org.apache.commons.jxpath.JXPathContext;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.Mojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
-import org.codehaus.plexus.logging.Logger;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
 import t3.CommonMojo;
 import t3.Utils;
 import t3.log.PrefixedLogger;
 import t3.toe.installer.environments.AbstractCommand;
+import t3.toe.installer.environments.CustomProduct;
+import t3.toe.installer.environments.UncompressCommand;
+import t3.toe.installer.environments.products.CustomProductToInstall;
+import t3.toe.installer.environments.products.ProductToInstall;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public abstract class CommandToExecute<Command extends AbstractCommand> extends CommonMojo {
 
@@ -48,22 +52,29 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
         }
     }
 
-    private Log logger;
+    private final MojoExecutor.ExecutionEnvironment executionEnvironment;
 
     protected final Command command;
     protected final int commandIndex;
     protected final CommandType commandType;
+    protected final ProductToInstall<CustomProduct> productToInstall;
 
-    public CommandToExecute(Log logger, MojoExecutor.ExecutionEnvironment executionEnvironment, Command command, int commandIndex, CommandType commandType) {
-        this.logger = logger;
+    public CommandToExecute(Command command, CommonMojo commonMojo, int commandIndex, CommandType commandType) {
+        this(command, commonMojo, commandIndex, commandType, null);
+    }
 
+    public CommandToExecute(Command command, CommonMojo commonMojo, int commandIndex, CommandType commandType, ProductToInstall<CustomProduct> productToInstall) {
         this.command = command;
         this.commandIndex = commandIndex;
         this.commandType = commandType;
+        this.productToInstall = productToInstall;
 
-        this.setProject(executionEnvironment.getMavenProject());
-        this.setSession(executionEnvironment.getMavenSession());
-        this.setLog(logger);
+        this.setLog(commonMojo.getLog());
+        this.logger = PrefixedLogger.getLoggerFromLog(getLog());
+        this.pluginDescriptor = commonMojo.getPluginDescriptor();
+        this.project = commonMojo.getProject();
+        this.session = commonMojo.getSession();
+        this.executionEnvironment = new MojoExecutor.ExecutionEnvironment(this.project, this.session, commonMojo.getPluginManager());
     }
 
     public abstract void doExecuteCommand(String commandPrefix, String commandCaption) throws MojoExecutionException;
@@ -71,11 +82,11 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
 
     public void executeCommand() throws MojoExecutionException {
         if (this.command.isSkip()) {
-            logger.info("Skipping command '" + this.command.getName() + "'");
+            getLog().info("Skipping command '" + this.command.getName() + "'");
             return;
         }
 
-        logger.info("");
+        getLog().info("");
 
         String name = this.command.getName();
         String commandCaption = (name != null ? name : getCommandTypeCaption()) + (this.command.getId() != null ? " (id: " + this.command.getId() + ")" : "");
@@ -91,12 +102,14 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
         }
         commandDisplay = prefix + commandCaption;
         prefix = StringUtils.repeat(" ", prefix.length() - 2);
-        this.setLog(new PrefixedLogger(PrefixedLogger.getLoggerFromLog(logger), prefix + "| "));
+        String prefixShort = StringUtils.repeat(" ", prefix.length() - 1);
 
-        logger.info(commandDisplay);
+        getLog().info(commandDisplay);
+
+        this.setLog(new PrefixedLogger(logger, prefixShort + "| ", prefix + "| ", prefix + "| ", prefixShort + "| "));
 
         if (StringUtils.isNotBlank(this.command.getDescription())) {
-            logger.info("   Description: " + this.command.getDescription());
+            getLog().info("   Description: " + this.command.getDescription());
         }
 
         doExecuteCommand("", commandCaption);
@@ -105,17 +118,71 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
     protected void failedCommand(AbstractCommand command) throws MojoExecutionException {
         switch (command.getOnError()) {
             case FAIL:
-                logger.info("");
-                logger.error("The command failed.");
+                getLog().info("");
+                getLog().error("The command failed.");
                 throw new MojoExecutionException("The command failed.");
             case IGNORE:
-                logger.info("");
+                getLog().info("");
                 break;
             case WARN:
-                logger.info("");
-                logger.warn("The command failed.");
+                getLog().info("");
+                getLog().warn("The command failed.");
                 break;
         }
+    }
+
+    /**
+     * Resolves properties relatively to current product to install.
+     *
+     * @param property
+     * @return
+     */
+    protected String getCommandPropertyValue(String property) {
+        if (!(this.productToInstall instanceof CustomProductToInstall)) {
+            return null;
+        }
+
+        CustomProductToInstall customProductToInstall = (CustomProductToInstall) productToInstall;
+
+        Pattern p = Pattern.compile("([^\\[\\]\\.]*)(\\[(\\d+)\\])?[\\.]?");
+        Matcher m = p.matcher(property);
+
+        Object o = null;
+
+        String lastSelector = "";
+
+        while (m.find()) {
+            String selector = m.group(1);
+            if (StringUtils.isEmpty(selector)) {
+                break;
+            }
+
+            int index;
+            String _index = m.group(3);
+            if (_index == null) {
+                index = 1;
+            } else {
+                index = Integer.parseInt(_index);
+            }
+            int i = 1; // XPath-like so starts from 1
+            if (selector.equals("uncompressCommand")) {
+                for (AbstractCommand abstractCommand : customProductToInstall.getSystemCommandOrUncompressCommand()) {
+                    if (abstractCommand instanceof UncompressCommand) {
+                        if (index == i) {
+                            o = (UncompressCommand) customProductToInstall.getSystemCommandOrUncompressCommand().get(i-1);
+                            break;
+                        }
+                        i++;
+                    }
+                }
+            }
+            if (lastSelector.equals("uncompressCommand") && selector.equals("destinationDirectory")) {
+                o = ((UncompressCommand) o).getDestinationDirectory();
+            }
+            lastSelector = selector;
+        }
+
+        return o.toString();
     }
 
 }

@@ -18,7 +18,7 @@
 
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://teecu.be/toe-installer/environments"
-	targetNamespace="http://teecu.be/toe-installer/environments"
+	targetNamespace="http://teecu.be/toe-installer/environments" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
 	elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<!-- Products -->
@@ -38,6 +38,16 @@
 		<xs:sequence>
 			<xs:element name="key" type="xs:string"/>
 			<xs:element name="value" type="xs:string"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<!-- Packages -->
+	<xs:complexType name="AbstractPackage" abstract="true">
+		<xs:sequence>
+			<xs:choice>
+				<xs:element name="local" type="LocalPackage"/>
+				<xs:element name="remote" type="AbstractRemotePackage"/>
+			</xs:choice>
 		</xs:sequence>
 	</xs:complexType>
 
@@ -66,14 +76,43 @@
 			<xs:element name="osGroupIndex" type="xs:int" minOccurs="0" />
 		</xs:sequence>
 	</xs:complexType>
-		
-	<xs:complexType name="RemotePackage">
-		<xs:sequence>
-			<xs:element name="groupId" type="xs:string" minOccurs="0"/>
-			<xs:element name="artifactId" type="xs:string" minOccurs="0"/>
-			<xs:element name="version" type="xs:string"/>
-			<xs:element name="classifier" type="xs:string"/>
-		</xs:sequence>
+
+	<xs:complexType name="AbstractRemotePackage" abstract="true"/>
+
+	<xs:complexType name="HttpRemotePackage">
+		<xs:complexContent>
+			<xs:extension base="AbstractRemotePackage">
+				<xs:sequence>
+					<xs:element name="url" type="xs:string"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="MavenRemotePackage">
+		<xs:complexContent>
+			<xs:extension base="AbstractRemotePackage">
+				<xs:sequence>
+					<xs:element name="groupId" type="xs:string"/>
+					<xs:element name="artifactId" type="xs:string"/>
+					<xs:element name="version" type="xs:string"/>
+					<xs:element name="classifier" type="xs:string" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="MavenRemoteTIBCOPackage">
+		<xs:complexContent>
+			<xs:extension base="AbstractRemotePackage">
+				<xs:sequence>
+					<xs:element name="groupId" type="xs:string" minOccurs="0"/>
+					<xs:element name="artifactId" type="xs:string" minOccurs="0"/>
+					<xs:element name="version" type="xs:string"/>
+					<xs:element name="classifier" type="xs:string"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
 	</xs:complexType>
 
 	<xs:simpleType name="IfProductExistsBehaviour">
@@ -93,12 +132,12 @@
 			</xs:element>
 			<xs:element name="package" minOccurs="1">
 				<xs:complexType>
-					<xs:sequence>
-						<xs:choice>
-							<xs:element name="local" type="LocalPackage"/>
-							<xs:element name="remote" type="RemotePackage"/>
-						</xs:choice>
-					</xs:sequence>
+					<xs:choice>
+						<xs:element name="httpRemote" type="HttpRemotePackage"/>
+						<xs:element name="mavenRemote" type="MavenRemotePackage"/>
+						<xs:element name="mavenRemoteTIBCO" type="MavenRemoteTIBCOPackage"/>
+						<xs:element name="local" type="LocalPackage"/>
+					</xs:choice>
 				</xs:complexType>
 			</xs:element>
 			<xs:element name="properties" minOccurs="0">
@@ -142,8 +181,8 @@
 		<xs:complexContent>
 			<xs:extension base="Product">
 				<xs:sequence>
-					<xs:choice minOccurs="0" maxOccurs="unbounded">
-						<xs:element name="installCommand" type="SystemCommand"/>
+					<xs:choice minOccurs="1" maxOccurs="unbounded">
+						<xs:element name="systemCommand" type="SystemCommand"/>
 						<xs:element name="uncompressCommand" type="UncompressCommand"/>
 					</xs:choice>
 				</xs:sequence>
@@ -165,15 +204,26 @@
 	<xs:complexType name="SystemCommand">
 		<xs:complexContent>
 			<xs:extension base="AbstractCommand">
-				<xs:attribute name="command" type="xs:string" use="required" />
+				<xs:sequence>
+					<xs:choice>
+						<xs:element name="shell"/>
+					</xs:choice>
+				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
 
+	<xs:element name="test">
+
+	</xs:element>
 	<xs:complexType name="UncompressCommand">
 		<xs:complexContent>
 			<xs:extension base="AbstractCommand">
+				<xs:sequence>
+					<xs:element name="destinationDirectory" type="xs:string" minOccurs="0" maxOccurs="1"/>
+				</xs:sequence>
 				<xs:attribute name="format" type="UncompressFormat" default="auto"/>
+				<xs:attribute name="toTempDirectory" type="xs:boolean" default="false" />
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>

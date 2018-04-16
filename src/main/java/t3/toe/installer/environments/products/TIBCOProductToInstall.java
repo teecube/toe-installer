@@ -144,7 +144,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 	}
 
 	private boolean productIsRemote(TIBCOProductToInstall product) {
-		return product != null && product.getPackage() != null && product.getPackage().getRemote() != null;
+		return product != null && product.getPackage() != null && (product.getPackage().getHttpRemote() != null || product.getPackage().getMavenRemote() != null);
 	}
 
 	@Override
@@ -175,22 +175,22 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 		addProperty(configuration, ignoredParameters, "installationRoot", environment.getTibcoRoot(), CommonInstaller.class);
 		installer.setInstallationRoot(new File(environment.getTibcoRoot()));
 		if (this.getPackage() != null) {
-			if (this.getPackage().getRemote() != null) { // use remote package
-				RemotePackage remotePackage = this.getPackage().getRemote();
+			if (this.getPackage().getMavenRemoteTIBCO() != null) { // use remote package
+				MavenRemoteTIBCOPackage mavenRemotePackage = this.getPackage().getMavenRemoteTIBCO();
 
 				// version and classifier are mandatory
-				addProperty(configuration, ignoredParameters, "remoteInstallationPackageVersion", remotePackage.getVersion(), installer.getClass());
-				installer.setRemoteInstallationPackageVersion(remotePackage.getVersion());
-				installer.setInstallationPackageVersion(remotePackage.getVersion());
-				addProperty(configuration, ignoredParameters, "remoteInstallationPackageClassifier", remotePackage.getClassifier(), installer.getClass());
-				installer.setRemoteInstallationPackageClassifier(remotePackage.getClassifier());
-				if (org.apache.commons.lang3.StringUtils.isNotBlank(remotePackage.getGroupId())) {
-					addProperty(configuration, ignoredParameters, "remoteInstallationPackageGroupId", remotePackage.getGroupId(), installer.getClass());
-					installer.setRemoteInstallationPackageGroupId(remotePackage.getGroupId());
+				addProperty(configuration, ignoredParameters, "remoteInstallationPackageVersion", mavenRemotePackage.getVersion(), installer.getClass());
+				installer.setRemoteInstallationPackageVersion(mavenRemotePackage.getVersion());
+				installer.setInstallationPackageVersion(mavenRemotePackage.getVersion());
+				addProperty(configuration, ignoredParameters, "remoteInstallationPackageClassifier", mavenRemotePackage.getClassifier(), installer.getClass());
+				installer.setRemoteInstallationPackageClassifier(mavenRemotePackage.getClassifier());
+				if (org.apache.commons.lang3.StringUtils.isNotBlank(mavenRemotePackage.getGroupId())) {
+					addProperty(configuration, ignoredParameters, "remoteInstallationPackageGroupId", mavenRemotePackage.getGroupId(), installer.getClass());
+					installer.setRemoteInstallationPackageGroupId(mavenRemotePackage.getGroupId());
 				}
-				if (org.apache.commons.lang3.StringUtils.isNotBlank(remotePackage.getArtifactId())) {
-					addProperty(configuration, ignoredParameters, "remoteInstallationPackageArtifactId", remotePackage.getArtifactId(), installer.getClass());
-					installer.setRemoteInstallationPackageArtifactId(remotePackage.getArtifactId());
+				if (org.apache.commons.lang3.StringUtils.isNotBlank(mavenRemotePackage.getArtifactId())) {
+					addProperty(configuration, ignoredParameters, "remoteInstallationPackageArtifactId", mavenRemotePackage.getArtifactId(), installer.getClass());
+					installer.setRemoteInstallationPackageArtifactId(mavenRemotePackage.getArtifactId());
 				}
 			} else if (this.getPackage().getLocal() != null) { // use local package
 				LocalPackage localPackage = this.getPackage().getLocal();
@@ -250,7 +250,12 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 		installer.setIgnoredParameters(mojoIgnoredParameters);
 		installer.initStandalonePOM();
 
-		this.setResolvedInstallationPackage(installer.getInstallationPackage());
+		File resolvedInstallationPackage = installer.getInstallationPackage();
+		if (resolvedInstallationPackage != null && resolvedInstallationPackage.exists()) {
+            this.setResolvedInstallationPackage(installer.getInstallationPackage());
+        } else {
+		    logger.error("Unresolved TIBCO installation package!");
+        }
 
 		if (!installer.installationPackageWasAlreadyResolved() && productIsRemote(this)) {
 			logger.info(Messages.MESSAGE_SPACE);

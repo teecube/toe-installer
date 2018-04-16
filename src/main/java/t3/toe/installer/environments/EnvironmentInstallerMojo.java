@@ -16,35 +16,10 @@
  */
 package t3.toe.installer.environments;
 
-import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.groupId;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.google.common.collect.FluentIterable;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.codehaus.plexus.logging.Logger;
-import org.twdata.maven.mojoexecutor.MojoExecutor.Element;
-
 import t3.AdvancedMavenLifecycleParticipant;
 import t3.CommonMojo;
 import t3.Messages;
@@ -53,13 +28,16 @@ import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerLifecycleParticipant;
-import t3.toe.installer.InstallerMojosFactory;
 import t3.toe.installer.InstallerMojosInformation;
-import t3.toe.installer.environments.Environment.Products;
-import t3.toe.installer.environments.products.CustomProductToInstall;
+import t3.toe.installer.environments.commands.CommandToExecute;
+import t3.toe.installer.environments.commands.SystemCommandToExecute;
 import t3.toe.installer.environments.products.ProductToInstall;
 import t3.toe.installer.environments.products.ProductsToInstall;
 import t3.toe.installer.environments.products.TIBCOProductToInstall;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.List;
 
 /**
 * <p>
@@ -140,12 +118,12 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 				i++;
 			}
 
-			// execute pre-products-install commands
+			// execute environment pre-install commands
 			i = 1;
 			if (environment.getPreInstallCommands() != null && !environment.getPreInstallCommands().getCommand().isEmpty()) {
 				getLog().info("Executing pre-install commands");
 				for (SystemCommand command : environment.getPreInstallCommands().getCommand()) {
-					executeCommand(command, i, "Pre-install command");
+					new SystemCommandToExecute(command, this, i, CommandToExecute.CommandType.GLOBAL_PRE).executeCommand();
 					i++;
 				}
 			}
@@ -160,13 +138,13 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			getLog().info("");
 			getLog().info("End of products installation.");
 
-			// execute post-products-install commands
+			// execute environment post-install commands
 			i = 1;
 			if (environment.getPostInstallCommands() != null && !environment.getPostInstallCommands().getCommand().isEmpty()) {
 				getLog().info("");
 				getLog().info("Executing post-install commands");
 				for (SystemCommand command : environment.getPostInstallCommands().getCommand()) {
-					executeCommand(command, i, "Post-install command");
+					new SystemCommandToExecute(command, this, i, CommandToExecute.CommandType.GLOBAL_POST).executeCommand();
 					i++;
 				}
 			}
@@ -178,53 +156,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		}
 	}
 
-	private void executeCommand(SystemCommand command, int commandIndex, String commandType) throws MojoExecutionException {
-		if (command.isSkip()) {
-			getLog().info("Skipping command '" + command.getName() + "'");
-			return;
-		}
-
-		getLog().info("");
-
-		String commandLine = command.command.trim();
-		String commandCaption = command.getName() + (command.getId() != null ? " (id: " + command.getId() + ")" : "");
-		String commandPrefix =  "[" + commandType + " #" + commandIndex + "]" + (command.getId() != null ? " [" + command.getId() + "]": "") + " ";
-
-		getLog().info(commandIndex + ". Name: " + commandCaption);
-		if (StringUtils.isNotBlank(command.getDescription())) {
-			getLog().info("   Description: " + command.getDescription());
-		}
-		getLog().info("");
-
-		try {
-			CommonMojo.commandOutputStream = new CollectingLogOutputStream(getLog(), commandPrefix);
-			if (executeBinary(commandLine, new File(session.getRequest().getBaseDirectory()), "The command '" + commandCaption + "' failed.") != 0) {
-				failedCommand(command);
-			}
-		} catch (MojoExecutionException | IOException e) {
-			failedCommand(command);
-		} finally {
-			CommonMojo.commandOutputStream = null;
-		}
-	}
-
-	private void failedCommand(SystemCommand command) throws MojoExecutionException {
-		switch (command.getOnError()) {
-		case FAIL:
-			getLog().info("");
-			getLog().error("The command failed.");
-			throw new MojoExecutionException("The command failed.");
-		case IGNORE:
-			getLog().info("");
-			break;
-		case WARN:
-			getLog().info("");
-			getLog().warn("The command failed.");
-			break;
-		}		
-	}
-
-	private boolean deleteEnvironment(EnvironmentToInstall environment) throws MojoExecutionException, MojoFailureException {
+	private boolean deleteEnvironment(EnvironmentToInstall environment) throws MojoExecutionException {
 		switch (environment.getIfExists()) {
 		case DELETE:
 			getLog().info("Environment '" + environment.environmentName + "' will be deleted and reinstalled (as specified in topology).");

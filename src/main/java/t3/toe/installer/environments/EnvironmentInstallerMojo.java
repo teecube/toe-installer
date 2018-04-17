@@ -23,7 +23,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import t3.AdvancedMavenLifecycleParticipant;
 import t3.CommonMojo;
 import t3.Messages;
-import t3.Utils;
+import t3.utils.Utils;
 import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.CommonInstaller;

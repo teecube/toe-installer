@@ -21,9 +21,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import t3.CommonMojo;
 import t3.toe.installer.environments.*;
-import t3.toe.installer.environments.commands.CommandToExecute;
-import t3.toe.installer.environments.commands.SystemCommandToExecute;
-import t3.toe.installer.environments.commands.UncompressCommandToExecute;
+import t3.toe.installer.environments.commands.*;
 
 import java.io.File;
 import java.util.List;
@@ -45,7 +43,7 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
     }
 
     public List<AbstractCommand> getSystemCommandOrUncompressCommand() {
-        return customProduct.getSystemCommandOrUncompressCommand();
+        return customProduct.getAntCommandOrMavenCommandOrSystemCommand();
     }
 
     @Override
@@ -79,8 +77,12 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
     @Override
     public void doInstall(EnvironmentToInstall environment, int productIndex) throws MojoExecutionException {
         int i = 1;
-        for (AbstractCommand command : customProduct.getSystemCommandOrUncompressCommand()) {
-            if (command instanceof SystemCommand) {
+        for (AbstractCommand command : customProduct.getAntCommandOrMavenCommandOrSystemCommand()) {
+            if (command instanceof AntCommand) {
+                new AntCommandToExecute((AntCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this).executeCommand();
+            } else if (command instanceof MavenCommand) {
+                new MavenCommandToExecute((MavenCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this).executeCommand();
+            } else if (command instanceof SystemCommand) {
                 new SystemCommandToExecute((SystemCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this).executeCommand();
             } else if (command instanceof UncompressCommand) {
                 new UncompressCommandToExecute((UncompressCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this).executeCommand();

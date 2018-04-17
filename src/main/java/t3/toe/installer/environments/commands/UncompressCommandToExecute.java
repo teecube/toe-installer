@@ -70,7 +70,7 @@ public class UncompressCommandToExecute extends CommandToExecute<UncompressComma
             throw new MojoExecutionException("The package file for this custom product was not resolved.", new FileNotFoundException());
         }
 
-        File resovledPackage = productToInstall.getResolvedInstallationPackage();
+        File resolvedInstallationPackage = productToInstall.getResolvedInstallationPackage();
         File destinationDirectory;
 
         if (this.command.isToTempDirectory()) {
@@ -95,18 +95,18 @@ public class UncompressCommandToExecute extends CommandToExecute<UncompressComma
 
         switch (this.uncompressCommand.getFormat()) {
             case TAR:
-                untarPackage(resovledPackage, destinationDirectory);
+                untarPackage(resolvedInstallationPackage, destinationDirectory);
                 break;
             case ZIP:
-                unzipPackage(resovledPackage, destinationDirectory);
+                unzipPackage(resolvedInstallationPackage, destinationDirectory);
                 break;
             case AUTO:
-                switch (FilenameUtils.getExtension(resovledPackage.getAbsolutePath()).toLowerCase()) {
+                switch (FilenameUtils.getExtension(resolvedInstallationPackage.getAbsolutePath()).toLowerCase()) {
                     case "tar":
-                        untarPackage(resovledPackage, destinationDirectory);
+                        untarPackage(resolvedInstallationPackage, destinationDirectory);
                         break;
                     case "zip":
-                        unzipPackage(resovledPackage, destinationDirectory);
+                        unzipPackage(resolvedInstallationPackage, destinationDirectory);
                         break;
                     default:
                         getLog().error("Unsupported compression format.");

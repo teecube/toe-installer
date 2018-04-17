@@ -182,6 +182,8 @@
 			<xs:extension base="Product">
 				<xs:sequence>
 					<xs:choice minOccurs="1" maxOccurs="unbounded">
+						<xs:element name="antCommand" type="AntCommand"/>
+						<xs:element name="mavenCommand" type="MavenCommand"/>
 						<xs:element name="systemCommand" type="SystemCommand"/>
 						<xs:element name="uncompressCommand" type="UncompressCommand"/>
 					</xs:choice>
@@ -201,21 +203,51 @@
 		<xs:attribute name="workingDirectory" type="xs:string" use="optional" />
 	</xs:complexType>
 
+	<xs:complexType name="AntCommand">
+		<xs:complexContent>
+			<xs:extension base="AbstractCommand">
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="MavenCommand">
+		<xs:complexContent>
+			<xs:extension base="AbstractCommand">
+				<xs:sequence>
+					<xs:element name="goals" type="xs:string"/>
+					<xs:element name="arguments" minOccurs="0">
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element name="argument" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+							</xs:sequence>
+						</xs:complexType>
+					</xs:element>
+					<xs:element name="profiles" minOccurs="0">
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element name="profile" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+							</xs:sequence>
+						</xs:complexType>
+					</xs:element>
+				</xs:sequence>
+				<xs:attribute name="enableDebugOutput" type="xs:boolean" default="false"/>
+				<xs:attribute name="nonRecursive" type="xs:boolean" default="false"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
 	<xs:complexType name="SystemCommand">
 		<xs:complexContent>
 			<xs:extension base="AbstractCommand">
 				<xs:sequence>
 					<xs:choice>
-						<xs:element name="shell"/>
+						<xs:element name="shell" type="xs:string"/>
 					</xs:choice>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
 
-	<xs:element name="test">
-
-	</xs:element>
 	<xs:complexType name="UncompressCommand">
 		<xs:complexContent>
 			<xs:extension base="AbstractCommand">

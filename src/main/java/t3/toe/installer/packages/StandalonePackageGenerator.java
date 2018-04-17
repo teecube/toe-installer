@@ -16,15 +16,6 @@
  */
 package t3.toe.installer.packages;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Level;
-
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -35,6 +26,7 @@ import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.apache.maven.model.Build;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -46,15 +38,27 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.io.DefaultSettingsWriter;
 import org.codehaus.mojo.versions.api.ArtifactVersions;
 import org.codehaus.mojo.versions.api.DefaultVersionsHelper;
-
-import org.xml.sax.SAXException;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.jboss.shrinkwrap.resolver.api.maven.MavenFormatStage;
+import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.InstallerLifecycleParticipant;
 import t3.toe.installer.InstallerMojosInformation;
-import t3.toe.installer.environments.*;
+import t3.toe.installer.environments.Environment;
+import t3.toe.installer.environments.Environments;
+import t3.toe.installer.environments.EnvironmentsMarshaller;
+import t3.toe.installer.environments.Product;
+import t3.utils.POMManager;
+import t3.utils.Utils;
 
-import javax.xml.bind.JAXBException;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
 
 /**
 * <p>
@@ -154,6 +158,21 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		MavenProject goOfflineProject = generateGoOfflineProject();
+
+		/*
+		File f = new File("C:/tools/pom.xml");
+		try {
+			POMManager.writeModelToPOM(goOfflineProject.getModel(), f);
+			MavenFormatStage r = Maven.resolver().loadPomFromFile(f).importCompileAndRuntimeDependencies().resolve().withTransitivity();
+			File[] archive = r.asFile();
+			MavenCoordinate[] coordinates = r.as(MavenCoordinate.class);
+			getLog().info(archive.toString());
+			getLog().info(coordinates.toString());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		*/
+
 		getLog().info("Creating a standalone Maven repository in '" + standaloneLocalRepository.getAbsolutePath() + "'");
 
 		if (includePluginsInStandalone && !plugins.isEmpty()) {
@@ -167,7 +186,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			logTransferListener.setLevel(Level.OFF);
 			getLog().info("This might take some minutes...");
 			
-			goOffline(goOfflineProject, standaloneLocalRepository, "3.5.0");
+			goOffline(goOfflineProject, standaloneLocalRepository, "3.3.9");
 		}
 
 		if (includeTopologyTIBCOInstallationPackages && topologyTemplateFile != null && topologyTemplateFile.exists()) {
@@ -194,7 +213,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			getLog().info("Copying standalone directory '" + standaloneDirectory.getAbsolutePath() + "' to archive '" + standaloneArchive.getAbsolutePath() + "'");
 			try {
 				standaloneArchive.delete();
-				addFilesToZip(standaloneDirectory, standaloneArchive);
+				Utils.addFilesToZip(standaloneDirectory, standaloneArchive);
 			} catch (IOException | ArchiveException e) {
 				throw new MojoExecutionException(e.getLocalizedMessage(), e);
 			}
@@ -408,6 +427,13 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		Build build = new Build();
 		for (Plugin plugin : getPluginArtifacts()) {
 			build.addPlugin(plugin);
+
+			Dependency d = new Dependency();
+			d.setGroupId(plugin.getGroupId());
+			d.setArtifactId(plugin.getArtifactId());
+			d.setVersion(plugin.getVersion());
+
+			result.getDependencies().add(d);
 		}
 
 		result.setBuild(build);

@@ -16,12 +16,11 @@
  */
 package t3.toe.installer.environments.commands;
 
-import org.apache.commons.jxpath.JXPathContext;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
 import t3.CommonMojo;
-import t3.Utils;
+import t3.utils.Utils;
 import t3.log.PrefixedLogger;
 import t3.toe.installer.environments.AbstractCommand;
 import t3.toe.installer.environments.CustomProduct;

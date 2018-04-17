@@ -10,20 +10,19 @@ package t3.toe.installer.environments;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for AbstractRemotePackage complex type.
+ * <p>Java class for AntCommand complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="AbstractRemotePackage"&gt;
+ * &lt;complexType name="AntCommand"&gt;
  *   &lt;complexContent&gt;
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
- *     &lt;/restriction&gt;
+ *     &lt;extension base="{http://teecu.be/toe-installer/environments}AbstractCommand"&gt;
+ *     &lt;/extension&gt;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
  * </pre>
@@ -31,13 +30,10 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "AbstractRemotePackage")
-@XmlSeeAlso({
-    HttpRemotePackage.class,
-    MavenRemotePackage.class,
-    MavenRemoteTIBCOPackage.class
-})
-public abstract class AbstractRemotePackage {
+@XmlType(name = "AntCommand")
+public class AntCommand
+    extends AbstractCommand
+{
 
 
 }

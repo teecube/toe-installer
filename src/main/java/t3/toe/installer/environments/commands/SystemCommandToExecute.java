@@ -47,7 +47,12 @@ public class SystemCommandToExecute extends CommandToExecute<SystemCommand> {
 
     @Override
     public void doExecuteCommand(String commandPrefix, String commandCaption) throws MojoExecutionException {
-        String commandLine = getCommandLine(this.command);
+        String commandLine = null;
+        try {
+            commandLine = getCommandLine(this.command);
+        } catch (IOException e) {
+            throw new MojoExecutionException(e.getLocalizedMessage(), e);
+        }
 
         File workingDirectory = getWorkingDirectory();
         CollectingLogOutputStream commandOutputStream = null;
@@ -68,20 +73,19 @@ public class SystemCommandToExecute extends CommandToExecute<SystemCommand> {
         }
     }
 
-    private String getCommandLine(SystemCommand command) {
+    private String getCommandLine(SystemCommand command) throws IOException {
         if (command.getShell() != null) {
             File shellScript = null;
-            try {
-                shellScript = File.createTempFile("shell", "");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            shellScript = File.createTempFile("shell", ".sh");
             try (PrintWriter out = new PrintWriter(shellScript)) {
-                out.println(command.getShell());
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                String shellScriptContent = command.getShell().trim();
+                shellScriptContent = shellScriptContent.replaceAll("(?m)^[ \t]*\r?\n", ""); // remove all blank lines
+                logger.debug("Shell script content is:");
+                logger.debug(shellScriptContent);
+                out.println("#!/bin/sh");
+                out.print(shellScriptContent);
             }
-            return "sh -c " + shellScript.getAbsolutePath();
+            return "sh -c " + shellScript.getAbsolutePath().replace("\\", "/");
         }
         return "";
     }

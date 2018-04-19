@@ -36,16 +36,22 @@ public class ProductsToInstall extends ArrayList<ProductToInstall<?>> {
     private final Log logger;
     private File environmentsTopology;
     private final int maxFullProductNameLength;
+    private boolean atLeastOneMavenArtifactResolved;
 
     public int getMaxFullProductNameLength() {
         return maxFullProductNameLength;
     }
 
+    public boolean isAtLeastOneMavenArtifactResolved() {
+        return atLeastOneMavenArtifactResolved;
+    }
+
     public ProductsToInstall(EnvironmentToInstall environment, CommonMojo commonMojo) throws MojoExecutionException {
         super();
 
-        this.environment = environment;
+        this.atLeastOneMavenArtifactResolved = false;
         this.commonMojo = commonMojo;
+        this.environment = environment;
         this.logger = commonMojo.getLog();
 
         init(environment.getProducts());
@@ -76,6 +82,10 @@ public class ProductsToInstall extends ArrayList<ProductToInstall<?>> {
         for (ProductToInstall product : this) {
             product.init(i);
 
+            if (!atLeastOneMavenArtifactResolved && product.getPackage() != null &&
+                (product.getPackage().getMavenRemoteTIBCO() != null || product.getPackage().getMavenRemote() != null)) {
+                atLeastOneMavenArtifactResolved = true;
+            }
             i++;
         }
 

@@ -17,31 +17,20 @@
 package t3.toe.installer.environments.products;
 
 import org.apache.commons.lang.StringUtils;
-
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.descriptor.PluginDescriptor;
-import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.logging.Logger;
-import org.twdata.maven.mojoexecutor.MojoExecutor;
 import t3.CommonMojo;
 import t3.Messages;
 import t3.log.PrefixedLogger;
 import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosFactory;
 import t3.toe.installer.environments.*;
-import t3.toe.installer.environments.commands.CommandToExecute;
-import t3.toe.installer.environments.commands.SystemCommandToExecute;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
 
 public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
@@ -149,6 +138,8 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 	@Override
 	public void init(int productIndex) throws MojoExecutionException {
+		CommonInstaller.firstGoal = false; // to ignore rules enforcement
+
 		String goal = this.getTibcoProductGoalAndPriority().goal();
 		CommonInstaller installer = InstallerMojosFactory.getInstallerMojo("toe:" + goal);
 

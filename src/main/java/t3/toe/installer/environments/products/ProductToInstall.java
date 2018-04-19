@@ -28,6 +28,7 @@ import t3.toe.installer.environments.commands.CommandToExecute;
 import t3.toe.installer.environments.commands.SystemCommandToExecute;
 
 import java.io.File;
+import java.io.IOException;
 
 public abstract class ProductToInstall<P extends Product> {
 
@@ -226,4 +227,24 @@ public abstract class ProductToInstall<P extends Product> {
         this.version = version;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        }
+        if (o instanceof ProductToInstall) {
+            File resolvedInstallationPackage = ((ProductToInstall) o).getResolvedInstallationPackage();
+            if (resolvedInstallationPackage == null) {
+                return this.getResolvedInstallationPackage() == null;
+            } else {
+                try {
+                    return (this.getResolvedInstallationPackage() != null) && resolvedInstallationPackage.getCanonicalPath().equals(this.getResolvedInstallationPackage().getCanonicalPath());
+                } catch (IOException e) {
+                    return false;
+                }
+            }
+        } else {
+            return false;
+        }
+    }
 }

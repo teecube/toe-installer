@@ -16,24 +16,12 @@
  */
 package t3.toe.installer.packages;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
-import javax.xml.bind.JAXBException;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.kohsuke.randname.RandomNameGenerator;
 import org.xml.sax.SAXException;
-
 import t3.AdvancedMavenLifecycleParticipant;
 import t3.CommonMojo;
 import t3.log.NoOpLogger;
@@ -45,6 +33,12 @@ import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.*;
 import t3.toe.installer.environments.Environment.Products;
 import t3.toe.installer.environments.products.TIBCOProductToInstall;
+
+import javax.xml.bind.JAXBException;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
 /**
 * <p>
@@ -99,6 +93,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 				installer.setSession(session);
 				installer.setInstallationPackageDirectory(this.installationPackageDirectory);
 				installer.initStandalonePOMNoDefaultParameters();
+				installer.setInstallationPackage(null);
 				installer.setIgnoredInstallationPackages(ignoredInstallationPackages);
 
 				installationPackage = installer.getInstallationPackage();
@@ -165,7 +160,6 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 						for (TIBCOProduct tibcoProduct : environment.getTIBCOProducts()) {
 							String goal = new TIBCOProductToInstall(tibcoProduct, environment, this).getTibcoProductGoalAndPriority().goal();
 							CommonInstaller installer = InstallerMojosFactory.getInstallerMojo("toe:" + goal);
-							CommonInstaller.firstGoal = false;
 
                             TIBCOProductToInstall tibcoProductToInstall = new TIBCOProductToInstall(tibcoProduct, environment, this);
                             tibcoProductToInstall.setLog(new NoOpLogger());

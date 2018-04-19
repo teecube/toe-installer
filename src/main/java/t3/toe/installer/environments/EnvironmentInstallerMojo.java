@@ -23,7 +23,6 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import t3.AdvancedMavenLifecycleParticipant;
 import t3.CommonMojo;
 import t3.Messages;
-import t3.utils.Utils;
 import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.CommonInstaller;
@@ -34,6 +33,7 @@ import t3.toe.installer.environments.commands.SystemCommandToExecute;
 import t3.toe.installer.environments.products.ProductToInstall;
 import t3.toe.installer.environments.products.ProductsToInstall;
 import t3.toe.installer.environments.products.TIBCOProductToInstall;
+import t3.utils.Utils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -67,8 +67,6 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		super.execute();
 
 		loadTopology();
-
-		CommonInstaller.firstGoal = false;
 
 		List<EnvironmentToInstall> environmentsToInstall = EnvironmentToInstall.getEnvironmentsToInstall(environmentsMarshaller.getObject().getEnvironment(), environmentsTopology);
 

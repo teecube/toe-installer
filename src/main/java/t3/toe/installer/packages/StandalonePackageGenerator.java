@@ -29,7 +29,10 @@ import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
-import org.apache.maven.model.*;
+import org.apache.maven.model.Build;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -42,9 +45,7 @@ import org.codehaus.mojo.versions.api.DefaultVersionsHelper;
 import org.eclipse.aether.resolution.ArtifactResult;
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
-import org.jboss.shrinkwrap.resolver.api.maven.MavenFormatStage;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenResolvedArtifact;
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.jboss.shrinkwrap.resolver.api.maven.embedded.BuiltProject;
 import org.jboss.shrinkwrap.resolver.impl.maven.bootstrap.MavenSettingsBuilder;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
@@ -53,10 +54,10 @@ import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.InstallerLifecycleParticipant;
 import t3.toe.installer.InstallerMojosInformation;
-import t3.toe.installer.environments.Environment;
-import t3.toe.installer.environments.Environments;
+import t3.toe.installer.environments.EnvironmentToInstall;
 import t3.toe.installer.environments.EnvironmentsMarshaller;
-import t3.toe.installer.environments.Product;
+import t3.toe.installer.environments.products.ProductToInstall;
+import t3.toe.installer.environments.products.ProductsToInstall;
 import t3.utils.POMManager;
 import t3.utils.Utils;
 
@@ -164,7 +165,82 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		return standaloneTopologyGeneratedFile;
 	}
 
-    protected List<Map.Entry<File, List<String>>> getPOMsFromProject(MavenProject project, File tmpDirectory) throws MojoExecutionException {
+	@Override
+	public void execute() throws MojoExecutionException, MojoFailureException {
+		getLog().info("Creating a standalone Maven repository in '" + standaloneLocalRepository.getAbsolutePath() + "'");
+
+		MavenProject goOfflineProject = generateGoOfflineProject();
+
+		if (includeTopologyTIBCOInstallationPackages && topologyTemplateFile != null && topologyTemplateFile.exists()) {
+			getLog().info("");
+			getLog().info("Include packages from topology '" + topologyTemplateFile.getAbsolutePath() + "'");
+			getLog().info("");
+
+			EnvironmentsMarshaller environmentsMarshaller = EnvironmentsMarshaller.getEnvironmentMarshaller(topologyTemplateFile);
+			List<EnvironmentToInstall> environmentsToInstall = EnvironmentToInstall.getEnvironmentsToInstall(environmentsMarshaller.getObject().getEnvironment(), topologyTemplateFile);
+
+			List<ProductToInstall<?>> uniqueProductsList = new ArrayList<ProductToInstall<?>>();
+
+			boolean atLeastOneMavenArtifactResolved = false;
+			for (EnvironmentToInstall environment : environmentsToInstall) {
+				ProductsToInstall productsToInstall = new ProductsToInstall(environment, this);
+
+				for (ProductToInstall product : productsToInstall) {
+					if (!uniqueProductsList.contains(product)) {
+						uniqueProductsList.add(product);
+					}
+				}
+
+				if (!atLeastOneMavenArtifactResolved && productsToInstall.isAtLeastOneMavenArtifactResolved()) {
+					atLeastOneMavenArtifactResolved = true;
+				}
+			}
+
+			if (atLeastOneMavenArtifactResolved) {
+				getLog().info("");
+			}
+
+			for (ProductToInstall<?> productToInstall : uniqueProductsList) {
+				getLog().info(productToInstall.getResolvedInstallationPackage().getAbsolutePath());
+			}
+		}
+
+		if (includePluginsInStandalone && !plugins.isEmpty()) {
+			getLog().info("");
+			getLog().info("This repository will include following plugins:");
+			for (T3Plugins plugin : plugins) {
+				getLog().info("-> " + plugin.getProductName());
+			}
+			getLog().info("");
+			java.util.logging.Logger logTransferListener = java.util.logging.Logger.getLogger("org.jboss.shrinkwrap.resolver.impl.maven.logging.LogTransferListener");
+			logTransferListener.setLevel(Level.OFF);
+			getLog().info("This might take some minutes...");
+
+			goOffline(goOfflineProject, standaloneLocalRepository, "3.3.9");
+		}
+
+		if (includeLocalTIBCOInstallationPackages) {
+			super.execute();
+			installPackagesToLocalRepository(standaloneLocalRepository);
+		}
+
+		if (generateSettings) {
+			generateOfflineSettings();
+		}
+
+		if (generateStandaloneArchive) {
+			getLog().info("");
+			getLog().info("Copying standalone directory '" + standaloneDirectory.getAbsolutePath() + "' to archive '" + standaloneArchive.getAbsolutePath() + "'");
+			try {
+				standaloneArchive.delete();
+				Utils.addFilesToZip(standaloneDirectory, standaloneArchive);
+			} catch (IOException | ArchiveException e) {
+				throw new MojoExecutionException(e.getLocalizedMessage(), e);
+			}
+		}
+	}
+
+	protected List<Map.Entry<File, List<String>>> getPOMsFromProject(MavenProject project, File tmpDirectory) throws MojoExecutionException {
         List<Map.Entry<File, List<String>>> result = new ArrayList<Map.Entry<File, List<String>>>();
 
         for (Plugin plugin : project.getModel().getBuild().getPlugins()) {
@@ -421,94 +497,30 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
 			for (Map.Entry<File, List<String>> pomWithGoals : pomsWithGoal) {
 				BuiltProject result = executeGoal(pomWithGoals.getKey(), globalSettingsFile, localRepositoryPath, mavenVersion, pomWithGoals.getValue());
+				if (result == null || result.getMavenBuildExitCode() != 0) {
+					File goOfflineDirectory = new File(directory, "go-offline");
+					goOfflineDirectory.mkdirs();
 
-				File goOfflineDirectory = new File(directory, "go-offline");
-				goOfflineDirectory.mkdirs();
+					File logOutput = new File(goOfflineDirectory, "go-offline.log");
+					try {
+						FileUtils.writeStringToFile(logOutput, result.getMavenLog(), StandardCharsets.UTF_8);
+					} catch (IOException e) {
 
-				File logOutput = new File(goOfflineDirectory, "go-offline.log");
-				try {
-					FileUtils.writeStringToFile(logOutput, result.getMavenLog(), StandardCharsets.UTF_8);
-				} catch (IOException e) {
+					}
 
+					if (result.getMavenLog().contains("[ERROR] " + Messages.ENFORCER_RULES_FAILURE) ||
+							result.getMavenLog().contains("Nothing to merge.") ||
+							result.getMavenLog().contains("Unable to load topology from file")) {
+						continue;
+					}
+					getLog().error("Something went wrong in Maven build to go offline. Log file is: '" + logOutput.getAbsolutePath() + "'");
+
+					throw new MojoExecutionException("Unable to execute plugins goals to go offline.");
 				}
-
-				if (result.getMavenLog().contains("[ERROR] " + Messages.ENFORCER_RULES_FAILURE) ||
-					result.getMavenLog().contains("Nothing to merge.") ||
-					result.getMavenLog().contains("Unable to load topology from file")) {
-					return;
-				}
-				getLog().error("Something went wrong in Maven build to go offline. Log file is: '" + logOutput.getAbsolutePath() + "'");
-
-				throw new MojoExecutionException("Unable to execute plugins goals to go offline.");
 			}
 		} finally {
 			System.setErr(oldSystemErr);
 			System.setOut(oldSystemOut);
-		}
-	}
-
-	@Override
-	public void execute() throws MojoExecutionException, MojoFailureException {
-		MavenProject goOfflineProject = generateGoOfflineProject();
-
-		/*
-		File f = new File("C:/tools/pom.xml");
-		try {
-			POMManager.writeModelToPOM(goOfflineProject.getModel(), f);
-			MavenFormatStage r = Maven.resolver().loadPomFromFile(f).importCompileAndRuntimeDependencies().resolve().withTransitivity();
-			File[] archive = r.asFile();
-			MavenCoordinate[] coordinates = r.as(MavenCoordinate.class);
-			getLog().info(archive.toString());
-			getLog().info(coordinates.toString());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		*/
-
-		getLog().info("Creating a standalone Maven repository in '" + standaloneLocalRepository.getAbsolutePath() + "'");
-
-		if (includePluginsInStandalone && !plugins.isEmpty()) {
-			getLog().info("");
-			getLog().info("This repository will include following plugins:");
-			for (T3Plugins plugin : plugins) {
-				getLog().info("-> " + plugin.getProductName());
-			}
-			getLog().info("");
-			java.util.logging.Logger logTransferListener = java.util.logging.Logger.getLogger("org.jboss.shrinkwrap.resolver.impl.maven.logging.LogTransferListener");
-			logTransferListener.setLevel(Level.OFF);
-			getLog().info("This might take some minutes...");
-			
-			goOffline(goOfflineProject, standaloneLocalRepository, "3.3.9");
-		}
-
-		if (includeTopologyTIBCOInstallationPackages && topologyTemplateFile != null && topologyTemplateFile.exists()) {
-			EnvironmentsMarshaller environmentsMarshaller = EnvironmentsMarshaller.getEnvironmentMarshaller(topologyTemplateFile);
-			Environments environments = environmentsMarshaller.getObject();
-			for (Environment environment : environments.getEnvironment()) {
-				for (Product product : environment.getProducts().getTibcoProductOrCustomProduct()) {
-					
-				}
-			}
-		}
-
-		if (includeLocalTIBCOInstallationPackages) {
-			super.execute();
-			installPackagesToLocalRepository(standaloneLocalRepository);
-		}
-
-		if (generateSettings) {
-			generateOfflineSettings();
-		}
-
-		if (generateStandaloneArchive) {
-			getLog().info("");
-			getLog().info("Copying standalone directory '" + standaloneDirectory.getAbsolutePath() + "' to archive '" + standaloneArchive.getAbsolutePath() + "'");
-			try {
-				standaloneArchive.delete();
-				Utils.addFilesToZip(standaloneDirectory, standaloneArchive);
-			} catch (IOException | ArchiveException e) {
-				throw new MojoExecutionException(e.getLocalizedMessage(), e);
-			}
 		}
 	}
 
@@ -527,7 +539,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 				throw new MojoExecutionException(e.getLocalizedMessage(), e);
 			}
 			ArtifactVersion lowerBound = new DefaultArtifactVersion("0.0.0");
-			ArtifactVersion upperBound = new DefaultArtifactVersion("10.0.0"); // upper bound : we have time
+			ArtifactVersion upperBound = new DefaultArtifactVersion("1000.0.0"); // upper bound : we have time
 			ArtifactVersion newest = artifactVersions.getNewestVersion(lowerBound, upperBound);
 			if (newest != null) {
 				getLog().debug("Newest version for " + pluginArtifact.getGroupId() + ":" + pluginArtifact.getArtifactId() + " is " + newest.toString());
@@ -720,12 +732,14 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		for (Plugin plugin : getPluginArtifacts()) {
 			build.addPlugin(plugin);
 
+			/*
 			Dependency d = new Dependency();
 			d.setGroupId(plugin.getGroupId());
 			d.setArtifactId(plugin.getArtifactId());
 			d.setVersion(plugin.getVersion());
 
 			result.getDependencies().add(d);
+			*/
 		}
 
 		result.setBuild(build);

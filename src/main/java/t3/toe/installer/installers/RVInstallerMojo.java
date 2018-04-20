@@ -72,6 +72,9 @@ public class RVInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.RV.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.RV.remoteInstallationPackageVersion_description)
 	protected String remoteInstallationPackageVersion;
 
+	@Parameter(property = InstallerMojosInformation.RV.remoteInstallationPackagePackaging, defaultValue = InstallerMojosInformation.RV.remoteInstallationPackagePackaging_default, description = InstallerMojosInformation.RV.remoteInstallationPackagePackaging_description)
+	protected String remoteInstallationPackagePackaging;
+
 	@Parameter(property = InstallerMojosInformation.RV.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.RV.remoteInstallationPackageClassifier_description)
 	protected String remoteInstallationPackageClassifier;
 
@@ -162,6 +165,11 @@ public class RVInstallerMojo extends CommonInstaller {
 	@Override
 	public String getRemoteInstallationPackageVersion() {
 		return remoteInstallationPackageVersion;
+	}
+
+	@Override
+	public String getRemoteInstallationPackagePackaging() {
+		return remoteInstallationPackagePackaging;
 	}
 
 	@Override

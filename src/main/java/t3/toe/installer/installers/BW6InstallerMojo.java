@@ -73,6 +73,9 @@ public class BW6InstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.BW6.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.BW6.remoteInstallationPackageVersion_description)
 	protected String remoteInstallationPackageVersion;
 
+	@Parameter(property = InstallerMojosInformation.BW6.remoteInstallationPackagePackaging, defaultValue = InstallerMojosInformation.BW6.remoteInstallationPackagePackaging_default, description = InstallerMojosInformation.BW6.remoteInstallationPackagePackaging_description)
+	protected String remoteInstallationPackagePackaging;
+
 	@Parameter(property = InstallerMojosInformation.BW6.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.BW6.remoteInstallationPackageClassifier_description)
 	protected String remoteInstallationPackageClassifier;
 
@@ -163,6 +166,11 @@ public class BW6InstallerMojo extends CommonInstaller {
 	@Override
 	public String getRemoteInstallationPackageVersion() {
 		return remoteInstallationPackageVersion;
+	}
+
+	@Override
+	public String getRemoteInstallationPackagePackaging() {
+		return remoteInstallationPackagePackaging;
 	}
 
 	@Override

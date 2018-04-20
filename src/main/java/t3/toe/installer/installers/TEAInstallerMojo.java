@@ -72,6 +72,9 @@ public class TEAInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageVersion_description)
 	protected String remoteInstallationPackageVersion;
 
+	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackagePackaging, defaultValue = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackagePackaging_default, description = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackagePackaging_description)
+	protected String remoteInstallationPackagePackaging;
+
 	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageClassifier_description)
 	protected String remoteInstallationPackageClassifier;
 
@@ -176,6 +179,11 @@ public class TEAInstallerMojo extends CommonInstaller {
 	@Override
 	public String getRemoteInstallationPackageVersion() {
 		return remoteInstallationPackageVersion;
+	}
+
+	@Override
+	public String getRemoteInstallationPackagePackaging() {
+		return remoteInstallationPackagePackaging;
 	}
 
 	@Override

@@ -62,9 +62,10 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
             String groupId = customProduct.getPackage().getMavenRemote().getGroupId();
             String artifactId = customProduct.getPackage().getMavenRemote().getArtifactId();
             String version = customProduct.getPackage().getMavenRemote().getVersion();
+            String packaging = customProduct.getPackage().getMavenRemote().getPackaging();
             String classifier = customProduct.getPackage().getMavenRemote().getClassifier();
             try {
-                File resolvedDependency = commonMojo.getDependency(groupId, artifactId, version, "zip", classifier, true);
+                File resolvedDependency = commonMojo.getDependency(groupId, artifactId, version, packaging, classifier, true);
                 if (resolvedDependency != null && resolvedDependency.exists()) {
                     this.setResolvedInstallationPackage(resolvedDependency);
                 }

@@ -227,7 +227,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 
 						break;
 					case REMOTE:
-						MavenRemotePackage mavenRemotePackage = new MavenRemotePackage();
+						MavenArtifactPackage mavenRemotePackage = new MavenArtifactPackage();
 						mavenRemotePackage.setGroupId(installer.getRemoteInstallationPackageGroupId());
 						mavenRemotePackage.setArtifactId(installer.getRemoteInstallationPackageArtifactId());
 						mavenRemotePackage.setVersion(installer.getInstallationPackageVersion());
@@ -257,20 +257,24 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 	}
 
 	protected void installPackagesToLocalRepository(File localRepositoryPath) throws MojoExecutionException {
+		if (installers.isEmpty()) {
+			return;
+		}
+
 		getLog().info("Installing " + installers.size() + " TIBCO installation packages...");
 		getLog().info("");
 		getLog().info("Using local repository: " + localRepositoryPath.getAbsolutePath());
-		if (!installers.isEmpty()) {
-			getLog().info("");
 
-			for (CommonInstaller installer : installers) {
-				String groupId = installer.getRemoteInstallationPackageGroupId();
-				String artifactId = installer.getRemoteInstallationPackageArtifactId();
-				String version = installer.getInstallationPackageVersion();
-				String classifier = getInstallerClassifier(installer);
-				getLog().info("Installing '" + installer.getInstallationPackage().getAbsolutePath() + "' to '" + localRepositoryPath.getAbsolutePath().replace("\\", "/") + "/" + groupId.replace(".", "/") + "/" + artifactId + "/" + version + "'");
-				this.installDependency(groupId, artifactId, version, "zip", classifier, installer.getInstallationPackage(), localRepositoryPath, true);
-			}
+		getLog().info("");
+
+		for (CommonInstaller installer : installers) {
+			String groupId = installer.getRemoteInstallationPackageGroupId();
+			String artifactId = installer.getRemoteInstallationPackageArtifactId();
+			String version = installer.getInstallationPackageVersion();
+			String packaging = installer.getRemoteInstallationPackagePackaging();
+			String classifier = getInstallerClassifier(installer);
+			getLog().info("Installing '" + installer.getInstallationPackage().getAbsolutePath() + "' to '" + localRepositoryPath.getAbsolutePath().replace("\\", "/") + "/" + groupId.replace(".", "/") + "/" + artifactId + "/" + version + "'");
+			this.installDependency(groupId, artifactId, version, packaging, classifier, installer.getInstallationPackage(), localRepositoryPath, true);
 		}
 	}
 

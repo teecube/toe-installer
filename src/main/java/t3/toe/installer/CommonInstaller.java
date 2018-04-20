@@ -299,6 +299,7 @@ public abstract class CommonInstaller extends CommonMojo {
 	public abstract String getRemoteInstallationPackageGroupId();
 	public abstract String getRemoteInstallationPackageArtifactId();
 	public abstract String getRemoteInstallationPackageVersion();
+	public abstract String getRemoteInstallationPackagePackaging();
 	public abstract String getRemoteInstallationPackageClassifier();
 	public abstract void setRemoteInstallationPackageGroupId(String remoteInstallationPackageGroupId);
 	public abstract void setRemoteInstallationPackageArtifactId(String remoteInstallationPackageArtifactId);
@@ -400,9 +401,10 @@ public abstract class CommonInstaller extends CommonMojo {
 		String groupId = getRemoteInstallationPackageGroupId();
 		String artifactId = getRemoteInstallationPackageArtifactId();
 		String version = getRemoteInstallationPackageVersion();
+		String packaging = getRemoteInstallationPackagePackaging();
 		String classifier = getRemoteInstallationPackageClassifier();
 
-		return getDependency(groupId, artifactId, version, "zip", classifier, true);
+		return getDependency(groupId, artifactId, version, packaging, classifier, true);
 	}
 
 	/**

@@ -80,6 +80,9 @@ public class AdminInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.Administrator.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.Administrator.remoteInstallationPackageVersion_description)
 	protected String remoteInstallationPackageVersion;
 
+	@Parameter(property = InstallerMojosInformation.Administrator.remoteInstallationPackagePackaging, defaultValue = InstallerMojosInformation.Administrator.remoteInstallationPackagePackaging_default, description = InstallerMojosInformation.Administrator.remoteInstallationPackagePackaging_description)
+	protected String remoteInstallationPackagePackaging;
+
 	@Parameter(property = InstallerMojosInformation.Administrator.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.Administrator.remoteInstallationPackageClassifier_description)
 	protected String remoteInstallationPackageClassifier;
 
@@ -188,6 +191,11 @@ public class AdminInstallerMojo extends CommonInstaller {
 	@Override
 	public String getRemoteInstallationPackageVersion() {
 		return remoteInstallationPackageVersion;
+	}
+
+	@Override
+	public String getRemoteInstallationPackagePackaging() {
+		return remoteInstallationPackagePackaging;
 	}
 
 	@Override

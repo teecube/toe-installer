@@ -110,6 +110,10 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String remoteInstallationPackageVersion = "tibco.rv.installation.remotePackage.version";
 		public static final String remoteInstallationPackageVersion_description = "tibco.rv.installation.remotePackage.version";
 
+		public static final String remoteInstallationPackagePackaging = "tibco.rv.installation.remotePackage.packaging";
+		public static final String remoteInstallationPackagePackaging_description = "tibco.rv.installation.remotePackage.packaging";
+		public static final String remoteInstallationPackagePackaging_default = "zip";
+
 		public static final String remoteInstallationPackageClassifier = "tibco.rv.installation.remotePackage.classifier";
 		public static final String remoteInstallationPackageClassifier_description = "tibco.rv.installation.remotePackage.classifier";
 
@@ -150,6 +154,10 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String remoteInstallationPackageVersion = "tibco.tra.installation.remotePackage.version";
 		public static final String remoteInstallationPackageVersion_description = "tibco.tra.installation.remotePackage.version";
+
+		public static final String remoteInstallationPackagePackaging = "tibco.tra.installation.remotePackage.packaging";
+		public static final String remoteInstallationPackagePackaging_description = "tibco.tra.installation.remotePackage.packaging";
+		public static final String remoteInstallationPackagePackaging_default = "zip";
 
 		public static final String remoteInstallationPackageClassifier = "tibco.tra.installation.remotePackage.classifier";
 		public static final String remoteInstallationPackageClassifier_description = "tibco.tra.installation.remotePackage.classifier";
@@ -192,6 +200,10 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String remoteInstallationPackageVersion = "tibco.ems.installation.remotePackage.version";
 		public static final String remoteInstallationPackageVersion_description = "tibco.ems.installation.remotePackage.version";
 
+		public static final String remoteInstallationPackagePackaging = "tibco.ems.installation.remotePackage.packaging";
+		public static final String remoteInstallationPackagePackaging_description = "tibco.admin.installation.remotePackage.packaging";
+		public static final String remoteInstallationPackagePackaging_default = "zip";
+
 		public static final String remoteInstallationPackageClassifier = "tibco.ems.installation.remotePackage.classifier";
 		public static final String remoteInstallationPackageClassifier_description = "tibco.ems.installation.remotePackage.classifier";
 	}
@@ -230,6 +242,10 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String remoteInstallationPackageVersion = "tibco.bw5.installation.remotePackage.version";
 		public static final String remoteInstallationPackageVersion_description = "tibco.bw5.installation.remotePackage.version";
+
+		public static final String remoteInstallationPackagePackaging = "tibco.bw5.installation.remotePackage.packaging";
+		public static final String remoteInstallationPackagePackaging_description = "tibco.bw5.installation.remotePackage.packaging";
+		public static final String remoteInstallationPackagePackaging_default = "zip";
 
 		public static final String remoteInstallationPackageClassifier = "tibco.bw5.installation.remotePackage.classifier";
 		public static final String remoteInstallationPackageClassifier_description = "tibco.bw5.installation.remotePackage.classifier";
@@ -277,6 +293,10 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String remoteInstallationPackageVersion = "tibco.bw6.installation.remotePackage.version";
 		public static final String remoteInstallationPackageVersion_description = "tibco.bw6.installation.remotePackage.version";
 
+		public static final String remoteInstallationPackagePackaging = "tibco.bw6.installation.remotePackage.packaging";
+		public static final String remoteInstallationPackagePackaging_description = "tibco.bw6.installation.remotePackage.packaging";
+		public static final String remoteInstallationPackagePackaging_default = "zip";
+
 		public static final String remoteInstallationPackageClassifier = "tibco.bw6.installation.remotePackage.classifier";
 		public static final String remoteInstallationPackageClassifier_description = "tibco.bw6.installation.remotePackage.classifier";
 
@@ -323,6 +343,10 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String remoteInstallationPackageVersion = "tibco.admin.installation.remotePackage.version";
 		public static final String remoteInstallationPackageVersion_description = "tibco.admin.installation.remotePackage.version";
 
+		public static final String remoteInstallationPackagePackaging = "tibco.admin.installation.remotePackage.packaging";
+		public static final String remoteInstallationPackagePackaging_description = "tibco.admin.installation.remotePackage.packaging";
+		public static final String remoteInstallationPackagePackaging_default = "zip";
+
 		public static final String remoteInstallationPackageClassifier = "tibco.admin.installation.remotePackage.classifier";
 		public static final String remoteInstallationPackageClassifier_description = "tibco.admin.installation.remotePackage.classifier";
 	}
@@ -361,6 +385,10 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String remoteInstallationPackageVersion = "tibco.tea.installation.remotePackage.version";
 		public static final String remoteInstallationPackageVersion_description = "tibco.tea.installation.remotePackage.version";
+
+		public static final String remoteInstallationPackagePackaging = "tibco.tea.installation.remotePackage.packaging";
+		public static final String remoteInstallationPackagePackaging_description = "tibco.tea.installation.remotePackage.packaging";
+		public static final String remoteInstallationPackagePackaging_default = "zip";
 
 		public static final String remoteInstallationPackageClassifier = "tibco.tea.installation.remotePackage.classifier";
 		public static final String remoteInstallationPackageClassifier_description = "tibco.tea.installation.remotePackage.classifier";

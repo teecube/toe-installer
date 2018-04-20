@@ -54,8 +54,7 @@ import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.InstallerLifecycleParticipant;
 import t3.toe.installer.InstallerMojosInformation;
-import t3.toe.installer.environments.EnvironmentToInstall;
-import t3.toe.installer.environments.EnvironmentsMarshaller;
+import t3.toe.installer.environments.*;
 import t3.toe.installer.environments.products.ProductToInstall;
 import t3.toe.installer.environments.products.ProductsToInstall;
 import t3.utils.POMManager;
@@ -72,14 +71,15 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
 /**
 * <p>
-* This goal generates a <strong>self-contained</strong> and <strong>ready-to-use</strong>&nbsp;
-* <em>standalone package</em>.
+* This goal generates a <strong>self-contained</strong> and <strong>ready-to-use</strong>&nbsp;<em>standalone package
+* </em>.
 * </p>
 * <p>
 * This <em>standalone package</em> can be composed of:
 *  <ul>
+*   <li>locally resolved TIBCO installation packages
+ *   (see <a href="packages-display-mojo.html">packages-display goal</a>)</li>
 *   <li>T3 plugins and their dependencies</li>
-*   <li>resolved TIBCO installation packages (see <a href="packages-display-mojo.html">packages-display goal</a>)</li>
 *   <li>a Maven settings.xml preconfigured to use T3 plugins</li>
 *   <li>a preconfigured <a href="env-install-mojo.html">environment installation definition</a></li>
 *  </ul>
@@ -165,15 +165,55 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		return standaloneTopologyGeneratedFile;
 	}
 
+	private static final String messageIncludeTIBCOInstallationPackagesFromTopology  = "TIBCO and custom installation packages from topology file";
+	private static final String messageIncludeLocalTIBCOInstallationPackages  = "TIBCO installation packages resolved locally";
+	private static final String messageIncludePlugins  = "Maven plugins";
+	private static final String messageGenerateSettings  = "Maven settings.xml to use included Maven plugins";
+	private static final String messageGenerateStandaloneArchive  = "a standalone archive wrapping all elements above";
+
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		getLog().info("Creating a standalone Maven repository in '" + standaloneLocalRepository.getAbsolutePath() + "'");
+		getLog().info("Creating a standalone package in directory '" + standaloneDirectory.getAbsolutePath() + "'");
+		if (generateStandaloneArchive) {
+			getLog().info("Created standalone package will be archived to '" + standaloneArchive.getAbsolutePath() + "'");
+		}
+		getLog().info("");
 
-		MavenProject goOfflineProject = generateGoOfflineProject();
+		getLog().info("List of included elements:");
+		int elementIncludedIndex = 0;
+		if (includeTIBCOInstallationPackagesFromTopology()) {
+			getLog().info(++elementIncludedIndex + ". " + messageIncludeTIBCOInstallationPackagesFromTopology);
+		}
+		if (includeLocalTIBCOInstallationPackages) {
+			getLog().info(++elementIncludedIndex + ". " + messageIncludeLocalTIBCOInstallationPackages);
+		}
+		if (includePlugins()) {
+			getLog().info(++elementIncludedIndex + ". " + messageIncludePlugins);
+		}
+		if (generateSettings) {
+			getLog().info(++elementIncludedIndex + ". " + messageGenerateSettings);
+		}
+		if (generateStandaloneArchive) {
+			getLog().info(++elementIncludedIndex + ". " + messageGenerateStandaloneArchive);
+		}
 
-		if (includeTopologyTIBCOInstallationPackages && topologyTemplateFile != null && topologyTemplateFile.exists()) {
+		if (elementIncludedIndex == 0) {
 			getLog().info("");
-			getLog().info("Include packages from topology '" + topologyTemplateFile.getAbsolutePath() + "'");
+			getLog().warn("Configuration specifies no element to include. Skipping generation of standalone package.");
+			return;
+		}
+
+		getLog().info("");
+		getLog().info("---");
+
+		elementIncludedIndex = 0;
+
+		if (includeTIBCOInstallationPackagesFromTopology()) {
+			getLog().info("");
+			getLog().info(++elementIncludedIndex + ". Include " + messageIncludeTIBCOInstallationPackagesFromTopology);
+			getLog().info("");
+
+			getLog().info("Using topology file '" + topologyTemplateFile.getAbsolutePath() + "'");
 			getLog().info("");
 
 			EnvironmentsMarshaller environmentsMarshaller = EnvironmentsMarshaller.getEnvironmentMarshaller(topologyTemplateFile);
@@ -201,13 +241,60 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			}
 
 			for (ProductToInstall<?> productToInstall : uniqueProductsList) {
+				if (productToInstall.getPackage().getMavenRemote() != null || productToInstall.getPackage().getMavenRemoteTIBCO() != null) {
+					// product package was defined as a Maven artifact in topology template, hence deploy this artifact in standalone Maven repository
+					String groupId = "";
+					String artifactId = "";
+					String version = "";
+					String packaging = "";
+					String classifier = "";
+					if (productToInstall.getPackage().getMavenRemote() != null) {
+						MavenArtifactPackage mavenRemote = productToInstall.getPackage().getMavenRemote();
+						groupId = mavenRemote.getGroupId();
+						artifactId = mavenRemote.getArtifactId();
+						version = mavenRemote.getVersion();
+						packaging = mavenRemote.getPackaging();
+						if (StringUtils.isNotEmpty(mavenRemote.getClassifier())) {
+							classifier = mavenRemote.getClassifier();
+						}
+					} else if (productToInstall.getPackage().getMavenRemoteTIBCO() != null) {
+						MavenTIBCOArtifactPackage mavenRemoteTIBCO = productToInstall.getPackage().getMavenRemoteTIBCO();
+						groupId = mavenRemoteTIBCO.getGroupId();
+						artifactId = mavenRemoteTIBCO.getArtifactId();
+						version = mavenRemoteTIBCO.getVersion();
+						packaging = mavenRemoteTIBCO.getPackaging();
+						if (StringUtils.isNotEmpty(mavenRemoteTIBCO.getClassifier())) {
+							classifier = mavenRemoteTIBCO.getClassifier();
+						}
+					}
+					String coords = groupId + ":" + artifactId + ":" + version;
+					org.eclipse.aether.artifact.Artifact artifact = new org.eclipse.aether.artifact.DefaultArtifact(coords);
+					artifact.setFile(productToInstall.getResolvedInstallationPackage());
+					//artifact.
+				} else {
+					// copy product package in separate directory
+				}
+
 				getLog().info(productToInstall.getResolvedInstallationPackage().getAbsolutePath());
 			}
 		}
 
-		if (includePluginsInStandalone && !plugins.isEmpty()) {
+		if (includeLocalTIBCOInstallationPackages) {
 			getLog().info("");
-			getLog().info("This repository will include following plugins:");
+			getLog().info(++elementIncludedIndex + ". Include " + messageIncludeLocalTIBCOInstallationPackages);
+
+			super.execute();
+			installPackagesToLocalRepository(standaloneLocalRepository);
+		}
+
+		if (includePlugins()) {
+			getLog().info("");
+			getLog().info(++elementIncludedIndex + ". Include " + messageIncludePlugins);
+			getLog().info("");
+			getLog().info("Following plugins (and their dependencies) will be included:");
+
+			MavenProject goOfflineProject = generateGoOfflineProject();
+
 			for (T3Plugins plugin : plugins) {
 				getLog().info("-> " + plugin.getProductName());
 			}
@@ -219,18 +306,24 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			goOffline(goOfflineProject, standaloneLocalRepository, "3.3.9");
 		}
 
-		if (includeLocalTIBCOInstallationPackages) {
-			super.execute();
-			installPackagesToLocalRepository(standaloneLocalRepository);
-		}
-
 		if (generateSettings) {
+			getLog().info("");
+			getLog().info(++elementIncludedIndex + ". Include " + messageGenerateSettings);
+
 			generateOfflineSettings();
 		}
 
 		if (generateStandaloneArchive) {
 			getLog().info("");
-			getLog().info("Copying standalone directory '" + standaloneDirectory.getAbsolutePath() + "' to archive '" + standaloneArchive.getAbsolutePath() + "'");
+			getLog().info(++elementIncludedIndex + ". Generate " + messageGenerateStandaloneArchive);
+			getLog().info("");
+
+			if (!standaloneDirectory.exists()) {
+				getLog().warn("Standalone package directory '" + standaloneDirectory.getAbsolutePath() + "' does not exist. Skipping standalone archive generation.");
+				return;
+			}
+
+			getLog().info("Copying standalone package directory '" + standaloneDirectory.getAbsolutePath() + "' to standalone archive '" + standaloneArchive.getAbsolutePath() + "'");
 			try {
 				standaloneArchive.delete();
 				Utils.addFilesToZip(standaloneDirectory, standaloneArchive);
@@ -270,6 +363,14 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
         }
         return result;
     }
+
+    private boolean includeTIBCOInstallationPackagesFromTopology() {
+		return (includeTopologyTIBCOInstallationPackages && topologyTemplateFile != null && topologyTemplateFile.exists());
+	}
+
+	private boolean includePlugins() {
+		return includePluginsInStandalone && !plugins.isEmpty();
+	}
 
 	protected void goOffline(MavenProject project, File localRepositoryPath, String mavenVersion) throws MojoExecutionException {
 		localRepositoryPath.mkdirs();
@@ -731,15 +832,6 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		Build build = new Build();
 		for (Plugin plugin : getPluginArtifacts()) {
 			build.addPlugin(plugin);
-
-			/*
-			Dependency d = new Dependency();
-			d.setGroupId(plugin.getGroupId());
-			d.setArtifactId(plugin.getArtifactId());
-			d.setVersion(plugin.getVersion());
-
-			result.getDependencies().add(d);
-			*/
 		}
 
 		result.setBuild(build);
@@ -748,9 +840,6 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 	}
 
 	private void generateOfflineSettings() throws MojoExecutionException {
-		getLog().info("");
-		getLog().info("Generating a standalone Maven settings.xml in '" + standaloneDirectory.getAbsolutePath() + "'");
-
 		Settings defaultSettings = new Settings();
 
 		defaultSettings.setLocalRepository("./repository"); // use only offline repository

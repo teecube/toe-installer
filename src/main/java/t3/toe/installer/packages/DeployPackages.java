@@ -94,11 +94,12 @@ public class DeployPackages extends AbstractPackagesResolver {
 			String groupId = installer.getRemoteInstallationPackageGroupId();
 			String artifactId = installer.getRemoteInstallationPackageArtifactId();
 			String version = installer.getInstallationPackageVersion();
+			String packaging = installer.getRemoteInstallationPackagePackaging();
 
 			getLog().info("Deploying product '" + installer.getProductName() + "'");
 
 			getLog().info("");
-			this.deployDependency(groupId, artifactId, version, "zip", classifier, installer.getInstallationPackage(), remoteRepositoryId, remoteRepositoryURL, false);
+			this.deployDependency(groupId, artifactId, version, packaging, classifier, installer.getInstallationPackage(), remoteRepositoryId, remoteRepositoryURL, false);
 			getLog().info("");
 		}
 	}

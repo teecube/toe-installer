@@ -80,6 +80,9 @@ public class TRAInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.TRA.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.TRA.remoteInstallationPackageVersion_description)
 	protected String remoteInstallationPackageVersion;
 
+	@Parameter(property = InstallerMojosInformation.TRA.remoteInstallationPackagePackaging, defaultValue = InstallerMojosInformation.TRA.remoteInstallationPackagePackaging_default, description = InstallerMojosInformation.TRA.remoteInstallationPackagePackaging_description)
+	protected String remoteInstallationPackagePackaging;
+
 	@Parameter(property = InstallerMojosInformation.TRA.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.TRA.remoteInstallationPackageClassifier_description)
 	protected String remoteInstallationPackageClassifier;
 
@@ -192,6 +195,11 @@ public class TRAInstallerMojo extends CommonInstaller {
 	@Override
 	public String getRemoteInstallationPackageVersion() {
 		return remoteInstallationPackageVersion;
+	}
+
+	@Override
+	public String getRemoteInstallationPackagePackaging() {
+		return remoteInstallationPackagePackaging;
 	}
 
 	@Override

@@ -89,26 +89,28 @@
 		</xs:complexContent>
 	</xs:complexType>
 
-	<xs:complexType name="MavenRemotePackage">
+	<xs:complexType name="MavenArtifactPackage">
 		<xs:complexContent>
 			<xs:extension base="AbstractRemotePackage">
 				<xs:sequence>
 					<xs:element name="groupId" type="xs:string"/>
 					<xs:element name="artifactId" type="xs:string"/>
 					<xs:element name="version" type="xs:string"/>
+					<xs:element name="packaging" type="xs:string"/>
 					<xs:element name="classifier" type="xs:string" minOccurs="0"/>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
 
-	<xs:complexType name="MavenRemoteTIBCOPackage">
+	<xs:complexType name="MavenTIBCOArtifactPackage">
 		<xs:complexContent>
 			<xs:extension base="AbstractRemotePackage">
 				<xs:sequence>
 					<xs:element name="groupId" type="xs:string" minOccurs="0"/>
 					<xs:element name="artifactId" type="xs:string" minOccurs="0"/>
 					<xs:element name="version" type="xs:string"/>
+					<xs:element name="packaging" type="xs:string" minOccurs="0"/>
 					<xs:element name="classifier" type="xs:string"/>
 				</xs:sequence>
 			</xs:extension>
@@ -134,8 +136,8 @@
 				<xs:complexType>
 					<xs:choice>
 						<xs:element name="httpRemote" type="HttpRemotePackage"/>
-						<xs:element name="mavenRemote" type="MavenRemotePackage"/>
-						<xs:element name="mavenRemoteTIBCO" type="MavenRemoteTIBCOPackage"/>
+						<xs:element name="mavenRemote" type="MavenArtifactPackage"/>
+						<xs:element name="mavenRemoteTIBCO" type="MavenTIBCOArtifactPackage"/>
 						<xs:element name="local" type="LocalPackage"/>
 					</xs:choice>
 				</xs:complexType>

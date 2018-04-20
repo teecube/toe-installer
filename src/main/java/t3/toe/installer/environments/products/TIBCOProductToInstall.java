@@ -23,6 +23,7 @@ import t3.Messages;
 import t3.log.PrefixedLogger;
 import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosFactory;
+import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.*;
 
 import java.io.File;
@@ -136,6 +137,79 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 		return product != null && product.getPackage() != null && (product.getPackage().getHttpRemote() != null || product.getPackage().getMavenRemote() != null);
 	}
 
+	private Product.Package cachedPackage = null;
+
+	@Override
+	public Product.Package getPackage() {
+		if (cachedPackage != null) {
+			return cachedPackage;
+		}
+
+		Product.Package superPackage = super.getPackage();
+
+		MavenTIBCOArtifactPackage mavenRemoteTIBCO = superPackage.getMavenRemoteTIBCO();
+		if (mavenRemoteTIBCO != null) {
+			if (StringUtils.isEmpty(mavenRemoteTIBCO.getGroupId())) {
+				switch (type) {
+					case ADMIN:
+						mavenRemoteTIBCO.setGroupId(InstallerMojosInformation.Administrator.remoteInstallationPackageGroupId_default);
+						break;
+					case BW_5:
+						mavenRemoteTIBCO.setGroupId(InstallerMojosInformation.BW5.remoteInstallationPackageGroupId_default);
+						break;
+					case BW_6:
+						mavenRemoteTIBCO.setGroupId(InstallerMojosInformation.BW6.remoteInstallationPackageGroupId_default);
+						break;
+					case EMS:
+						mavenRemoteTIBCO.setGroupId(InstallerMojosInformation.EMS.remoteInstallationPackageGroupId_default);
+						break;
+					case TEA:
+						mavenRemoteTIBCO.setGroupId(InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageGroupId_default);
+						break;
+					case TRA:
+						mavenRemoteTIBCO.setGroupId(InstallerMojosInformation.TRA.remoteInstallationPackageGroupId_default);
+						break;
+					case RV:
+						mavenRemoteTIBCO.setGroupId(InstallerMojosInformation.RV.remoteInstallationPackageGroupId_default);
+						break;
+				}
+			}
+			if (StringUtils.isEmpty(mavenRemoteTIBCO.getArtifactId())) {
+				switch (type) {
+					case ADMIN:
+						mavenRemoteTIBCO.setArtifactId(InstallerMojosInformation.Administrator.remoteInstallationPackageArtifactId_default);
+						break;
+					case BW_5:
+						mavenRemoteTIBCO.setArtifactId(InstallerMojosInformation.BW5.remoteInstallationPackageArtifactId_default);
+						break;
+					case BW_6:
+						mavenRemoteTIBCO.setArtifactId(InstallerMojosInformation.BW6.remoteInstallationPackageArtifactId_default);
+						break;
+					case EMS:
+						mavenRemoteTIBCO.setArtifactId(InstallerMojosInformation.EMS.remoteInstallationPackageArtifactId_default);
+						break;
+					case TEA:
+						mavenRemoteTIBCO.setArtifactId(InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageArtifactId_default);
+						break;
+					case TRA:
+						mavenRemoteTIBCO.setArtifactId(InstallerMojosInformation.TRA.remoteInstallationPackageArtifactId_default);
+						break;
+					case RV:
+						mavenRemoteTIBCO.setArtifactId(InstallerMojosInformation.RV.remoteInstallationPackageArtifactId_default);
+						break;
+				}
+			}
+			if (StringUtils.isEmpty(mavenRemoteTIBCO.getPackaging())) {
+				mavenRemoteTIBCO.setPackaging("zip");
+			}
+			superPackage.setMavenRemoteTIBCO(mavenRemoteTIBCO);
+		}
+
+		cachedPackage = superPackage;
+
+		return superPackage;
+	}
+
 	@Override
 	public void init(int productIndex) throws MojoExecutionException {
 		CommonInstaller.firstGoal = false; // to ignore rules enforcement
@@ -167,7 +241,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 		installer.setInstallationRoot(new File(environment.getTibcoRoot()));
 		if (this.getPackage() != null) {
 			if (this.getPackage().getMavenRemoteTIBCO() != null) { // use remote package
-				MavenRemoteTIBCOPackage mavenRemotePackage = this.getPackage().getMavenRemoteTIBCO();
+				MavenTIBCOArtifactPackage mavenRemotePackage = this.getPackage().getMavenRemoteTIBCO();
 
 				// version and classifier are mandatory
 				addProperty(configuration, ignoredParameters, "remoteInstallationPackageVersion", mavenRemotePackage.getVersion(), installer.getClass());

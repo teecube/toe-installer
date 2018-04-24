@@ -42,6 +42,8 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.io.DefaultSettingsWriter;
 import org.codehaus.mojo.versions.api.ArtifactVersions;
 import org.codehaus.mojo.versions.api.DefaultVersionsHelper;
+import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenResolvedArtifact;
 import org.jboss.shrinkwrap.resolver.api.maven.embedded.BuiltProject;
 import org.jboss.shrinkwrap.resolver.impl.maven.bootstrap.MavenSettingsBuilder;
@@ -427,6 +429,15 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
 		System.setProperty(MavenSettingsBuilder.ALT_LOCAL_REPOSITORY_LOCATION, session.getLocalRepository().getBasedir().replace("\\", "/"));
 
+        ConfigurableMavenResolverSystem mavenResolver = Maven.configureResolver();
+
+        for (Plugin plugin : project.getBuild().getPlugins()) {
+            MavenResolvedArtifact mra = mavenResolver.resolve(plugin.getKey() + ":jar:" + plugin.getVersion()).withoutTransitivity().asSingle(MavenResolvedArtifact.class);
+			org.eclipse.aether.artifact.Artifact artifact = getArtifactFromPlugin(plugin);
+			artifact = artifact.setFile(mra.asFile());
+			installArtifact(project, localRepositoryPath, artifact);
+		}
+
 		// create one POM per plugin with an execution in project/model/build
 		List<Map.Entry<File, List<String>>> pomsWithGoal = getPOMsFromProject(project, tmpDirectory);
 
@@ -586,6 +597,13 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
 		pluginArtifact.setVersion(version);
 		return pluginArtifact;
+	}
+
+	private org.eclipse.aether.artifact.Artifact getArtifactFromPlugin(Plugin plugin) {
+		String coords = plugin.getGroupId() + ":" + plugin.getArtifactId() + ":maven-plugin:" + plugin.getVersion();
+		org.eclipse.aether.artifact.Artifact artifact = new org.eclipse.aether.artifact.DefaultArtifact(coords);
+
+		return artifact;
 	}
 
 	private Plugin getPluginFromArtifact(Artifact artifact) {

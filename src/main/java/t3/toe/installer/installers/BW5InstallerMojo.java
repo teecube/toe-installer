@@ -190,6 +190,11 @@ public class BW5InstallerMojo extends CommonInstaller {
 	}
 
 	@Override
+	public void setInstallationPackageVersion(String installationPackageVersion) {
+		this.installationPackageVersion = installationPackageVersion;
+	}
+
+	@Override
 	public String getRemoteInstallationPackageVersion() {
 		return remoteInstallationPackageVersion;
 	}

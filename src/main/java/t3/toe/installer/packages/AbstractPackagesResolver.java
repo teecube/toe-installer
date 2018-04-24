@@ -18,6 +18,9 @@ package t3.toe.installer.packages;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.kohsuke.randname.RandomNameGenerator;
@@ -35,9 +38,7 @@ import t3.toe.installer.environments.Environment.Products;
 import t3.toe.installer.environments.products.TIBCOProductToInstall;
 
 import javax.xml.bind.JAXBException;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -93,11 +94,13 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 				installer.setSession(session);
 				installer.setInstallationPackageDirectory(this.installationPackageDirectory);
 				installer.initStandalonePOMNoDefaultParameters();
+
 				installer.setInstallationPackage(null);
 				installer.setIgnoredInstallationPackages(ignoredInstallationPackages);
 
 				installationPackage = installer.getInstallationPackage();
 				if (installationPackage != null && installationPackage.exists()) {
+					installer.initVersionArchOs();
 					ignoredInstallationPackages.add(installationPackage);
 					installers.add(installer);
 				}
@@ -122,13 +125,17 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 		}
 	}
 
-	private void generateTopology() throws MojoExecutionException {
+	private boolean useTopologyTemplate() {
+		return topologyGenerateWithTemplate && topologyTemplateFile != null && topologyTemplateFile.exists();
+	}
+
+	protected void generateTopology() throws MojoExecutionException {
 		getLog().info("");
 
 		File topologyGeneratedFile = getTopologyGeneratedFile();
 
 		try {
-			if (topologyGenerateWithTemplate) {
+			if (useTopologyTemplate()) {
 				FileUtils.copyFile(topologyTemplateFile, topologyGeneratedFile);
 				getLog().info("Generating topology file using topology template '" + topologyTemplateFile + "'");
 			} else {
@@ -138,117 +145,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 				FileUtils.copyInputStreamToFile(emptyEnvironments, topologyGeneratedFile);
 			}
 
-			// parse the topology
-			EnvironmentsMarshaller environmentMarshaller = new EnvironmentsMarshaller(topologyGeneratedFile);
-			RandomNameGenerator randomNameGenerator = new RandomNameGenerator(new Random().nextInt());
-
-			Environments environments = environmentMarshaller.getObject();
-			
-			// determine how many environments must be created according to installers OS or use the ones provided by the template
-			Map<String, Environment> environmentsToCreate = new HashMap<String, Environment>();
-
-			if (!environments.getEnvironment().isEmpty()) { // a template was provided
-				Integer i = 1;
-				List<EnvironmentToInstall> environmentsToInstall = EnvironmentToInstall.getEnvironmentsToInstall(environments.getEnvironment(), topologyGeneratedFile);
-
-				for (EnvironmentToInstall environment : environmentsToInstall) {
-					if (environment.getTIBCOProducts().isEmpty()) { // no product is provided, try to use resolved packages
-						environmentsToCreate.put(i.toString(), environment);
-						i++;
-					} else { // replace installers with actual needed TIBCO installation packages
-						List<CommonInstaller> resolvedInstallers = new ArrayList<CommonInstaller>();
-						for (TIBCOProduct tibcoProduct : environment.getTIBCOProducts()) {
-							String goal = new TIBCOProductToInstall(tibcoProduct, environment, this).getTibcoProductGoalAndPriority().goal();
-							CommonInstaller installer = InstallerMojosFactory.getInstallerMojo("toe:" + goal);
-
-                            TIBCOProductToInstall tibcoProductToInstall = new TIBCOProductToInstall(tibcoProduct, environment, this);
-                            tibcoProductToInstall.setLog(new NoOpLogger());
-                            tibcoProductToInstall.init(i);
-
-							File installationPackage = installer.getInstallationPackage();
-							if (installationPackage == null || !installationPackage.exists()) {
-								getLog().info("Try to find in local ones");
-								for (CommonInstaller locallyResolvedInstaller : installers) {
-									getLog().info(locallyResolvedInstaller.getProductName());
-								}
-							}
-							resolvedInstallers.add(installer);
-						}
-						installers.clear();
-						installers.addAll(resolvedInstallers);
-
-						if (!installers.isEmpty()) {
-							getLog().info("");
-							getLog().info("Found " + installers.size() + " TIBCO installation packages for the topology:");
-							for (CommonInstaller installer : installers) {
-								getLog().info("-> " + installer.getProductName() + " version " + installer.getInstallationPackageVersion() + " @ " + installer.getInstallationPackage());
-							}
-							getLog().info("");
-						}
-					}
-				}
-			} else { // the topology is empty, use resolved packages to guess environments to create
-				for (CommonInstaller installer : installers) {
-					String os = installer.getInstallationPackageOs(true);
-					if (!environmentsToCreate.containsKey(os)) {
-						String environmentName = randomNameGenerator.next();
-						Environment environment = new Environment();
-						environment.setEnvironmentName(environmentName);
-						environment.setIfExists(environment.getIfExists()); // explicitly set default value
-						if ("windows".equals(os)) {
-							environment.setTibcoRoot("C:/tibco/" + environmentName);
-						} else {
-							environment.setTibcoRoot("/opt/tibco/" + environmentName);						
-						}
-	
-						environmentsToCreate.put(os, environment);
-					}
-				}
-			}
-
-			for (String osEnvironment : environmentsToCreate.keySet()) {
-				Environment environment = environmentsToCreate.get(osEnvironment);
-
-				Products products = new Products();
-				for (CommonInstaller installer : installers) {
-					if (!osEnvironment.equals(installer.getInstallationPackageOs(true))) continue;
-
-					TIBCOProduct tibcoProduct = new TIBCOProduct();
-					tibcoProduct.setType(installer.getProductType());
-					Product.Package productPackage = new Product.Package();
-					switch (topologyType) {
-					case LOCAL:
-						LocalPackage localPackage = new LocalPackage();
-						LocalFileWithVersion fileWithVersion = new LocalFileWithVersion();
-						fileWithVersion.setFile(installer.getInstallationPackage().getAbsolutePath());
-						fileWithVersion.setVersion(installer.getInstallationPackageVersion());
-						localPackage.setFileWithVersion(fileWithVersion);
-						productPackage.setLocal(localPackage);
-
-						break;
-					case REMOTE:
-						MavenArtifactPackage mavenRemotePackage = new MavenArtifactPackage();
-						mavenRemotePackage.setGroupId(installer.getRemoteInstallationPackageGroupId());
-						mavenRemotePackage.setArtifactId(installer.getRemoteInstallationPackageArtifactId());
-						mavenRemotePackage.setVersion(installer.getInstallationPackageVersion());
-						String classifier = getInstallerClassifier(installer);
-						if (classifier != null) {
-							mavenRemotePackage.setClassifier(classifier);
-						}
-
-						productPackage.setMavenRemote(mavenRemotePackage);
-
-						break;
-					}
-					tibcoProduct.setPackage(productPackage);
-					
-					products.getTibcoProductOrCustomProduct().add(tibcoProduct);
-				}
-				environment.setProducts(products);
-				environments.getEnvironment().add(environment);
-			}
-
-			environmentMarshaller.save();
+			doGenerateStandaloneTopology(topologyGeneratedFile, topologyType, false);
 		} catch (JAXBException | SAXException | IOException e) {
 			throw new MojoExecutionException(e.getLocalizedMessage(), e);
 		}
@@ -256,9 +153,148 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 		getLog().info("Topology generated in: " + topologyGeneratedFile.getAbsolutePath());
 	}
 
-	protected void installPackagesToLocalRepository(File localRepositoryPath) throws MojoExecutionException {
+	protected void doGenerateStandaloneTopology(File topologyGeneratedFile, TopologyType topologyType, boolean mixLocalAndTopologyPackages) throws JAXBException, SAXException, MojoExecutionException, UnsupportedEncodingException, FileNotFoundException {
+		// parse the topology
+		EnvironmentsMarshaller environmentMarshaller = new EnvironmentsMarshaller(topologyGeneratedFile);
+		RandomNameGenerator randomNameGenerator = new RandomNameGenerator(new Random().nextInt());
+
+		EnvironmentsToInstall environments = new EnvironmentsToInstall(environmentMarshaller.getObject().getEnvironment(), topologyGeneratedFile);
+
+		// determine how many environments must be created according to installers OS or use the ones provided by the template
+		Map<String, Pair<EnvironmentToInstall, List<TIBCOProductToInstall>>> environmentsToCreate = new HashMap<String, Pair<EnvironmentToInstall, List<TIBCOProductToInstall>>>();
+
+		if (!environments.isEmpty()) { // a template was provided
+			for (EnvironmentToInstall environment : environments) {
+				List<TIBCOProductToInstall> resolvedProducts = new ArrayList<TIBCOProductToInstall>();
+
+				environmentsToCreate.put(platformOs + "-" + environment.getName(), new MutablePair<EnvironmentToInstall, List<TIBCOProductToInstall>>(environment, resolvedProducts));
+				if (!environment.getTIBCOProducts().isEmpty()) { // replace installers with actual needed TIBCO installation packages
+					List<CommonInstaller> resolvedInstallers = new ArrayList<CommonInstaller>();
+					for (TIBCOProduct tibcoProduct : environment.getTIBCOProducts()) {
+						String goal = new TIBCOProductToInstall(tibcoProduct, environment, this).getTibcoProductGoalAndPriority().goal();
+						CommonInstaller installer = InstallerMojosFactory.getInstallerMojo("toe:" + goal);
+
+						TIBCOProductToInstall tibcoProductToInstall = new TIBCOProductToInstall(tibcoProduct, environment, this);
+						tibcoProductToInstall.setLog(new NoOpLogger());
+						tibcoProductToInstall.init(-1);
+
+						resolvedInstallers.add(tibcoProductToInstall.getInstaller());
+						resolvedProducts.add(tibcoProductToInstall);
+					}
+				}
+
+				if (mixLocalAndTopologyPackages) { // no product is provided or mix is allowed, add locally resolved packages
+					if (!installers.isEmpty()) {
+						getLog().info("");
+						getLog().info("Found " + installers.size() + " TIBCO installation packages in the topology:");
+						for (CommonInstaller installer : installers) {
+							getLog().info("-> " + installer.getProductName() + " version " + installer.getInstallationPackageVersion() + " @ " + installer.getInstallationPackage());
+							TIBCOProduct tibcoProduct = new TIBCOProduct();
+							tibcoProduct.setType(installer.getProductType());
+							Product.Package tibcoProductPackage = new Product.Package();
+							LocalPackage localPackage = new LocalPackage();
+							LocalFileWithVersion localFileWithVersion = new LocalFileWithVersion();
+							localFileWithVersion.setFile(installer.getInstallationPackage().getAbsolutePath());
+							localFileWithVersion.setVersion(installer.getInstallationPackageVersion());
+							localPackage.setFileWithVersion(localFileWithVersion);
+							tibcoProductPackage.setLocal(localPackage);
+							tibcoProduct.setPackage(tibcoProductPackage);
+							TIBCOProductToInstall tibcoProductToInstall = new TIBCOProductToInstall(tibcoProduct, environment, this);
+
+							tibcoProductToInstall.setLog(new NoOpLogger());
+							tibcoProductToInstall.init(-1);
+
+							resolvedProducts.add(tibcoProductToInstall);
+						}
+						getLog().info("");
+					}
+				}
+			}
+		} else { // the topology is empty, use resolved packages to guess environments to create
+			for (CommonInstaller installer : installers) {
+				String os = installer.getInstallationPackageOs(true);
+				if (!environmentsToCreate.containsKey(os)) {
+					String environmentName = randomNameGenerator.next();
+					Environment environment = new Environment();
+					environment.setName(environmentName);
+					environment.setIfExists(environment.getIfExists()); // explicitly set default value
+					if ("windows".equals(os)) {
+						environment.setTibcoRoot("C:/tibco/" + environmentName);
+					} else {
+						environment.setTibcoRoot("/opt/tibco/" + environmentName);
+					}
+
+					environmentsToCreate.put(os, new MutablePair<EnvironmentToInstall, List<TIBCOProductToInstall>>(new EnvironmentToInstall(environment, topologyGeneratedFile), new ArrayList<TIBCOProductToInstall>()));
+				}
+			}
+		}
+
+		for (String osEnvironment : environmentsToCreate.keySet()) {
+			EnvironmentToInstall environment = environmentsToCreate.get(osEnvironment).getLeft();
+			List<TIBCOProductToInstall> resolvedProducts = environmentsToCreate.get(osEnvironment).getRight();
+			environment.clearTIBCOProducts();
+            Products products = environment.getProducts();
+
+			if (environments.environmentExists(environment.getName())) {
+				environment = environments.getEnvironmentByName(environment.getName());
+			}
+
+			for (TIBCOProductToInstall tibcoProduct : resolvedProducts) {
+				CommonInstaller installer = tibcoProduct.getInstaller();
+				if (!osEnvironment.startsWith(installer.getInstallationPackageOs(true))) continue;
+
+				if (topologyType.equals(TopologyType.REMOTE) && tibcoProduct.getPackage().getLocal() != null) {
+					getLog().info(installer.getInstallationPackage().getAbsolutePath());
+
+				}
+				/*
+				Product.Package productPackage = new Product.Package();
+				switch (topologyType) {
+				case LOCAL:
+					LocalPackage localPackage = new LocalPackage();
+					LocalFileWithVersion fileWithVersion = new LocalFileWithVersion();
+					fileWithVersion.setFile(installer.getInstallationPackage().getAbsolutePath());
+					fileWithVersion.setVersion(installer.getInstallationPackageVersion());
+					localPackage.setFileWithVersion(fileWithVersion);
+					productPackage.setLocal(localPackage);
+
+					break;
+				case REMOTE:
+					MavenArtifactPackage mavenRemotePackage = new MavenArtifactPackage();
+					mavenRemotePackage.setGroupId(installer.getRemoteInstallationPackageGroupId());
+					mavenRemotePackage.setArtifactId(installer.getRemoteInstallationPackageArtifactId());
+					mavenRemotePackage.setVersion(installer.getInstallationPackageVersion());
+					mavenRemotePackage.setPackaging(installer.getRemoteInstallationPackagePackaging());
+					String classifier = getInstallerClassifier(installer);
+					if (classifier != null) {
+						mavenRemotePackage.setClassifier(classifier);
+					}
+
+					productPackage.setMavenRemote(mavenRemotePackage);
+
+					break;
+				}
+				tibcoProduct.setPackage(productPackage);
+				*/
+				products.getTibcoProductOrCustomProduct().add(tibcoProduct.getProduct());
+			}
+
+            environment.setProducts(products);
+
+			if (!environments.environmentExists(environment.getName())) {
+				environments.add(environment);
+			}
+		}
+
+		environmentMarshaller.getObject().getEnvironment().clear();
+		environmentMarshaller.getObject().getEnvironment().addAll(environments);
+
+		environmentMarshaller.save();
+	}
+
+	protected boolean installPackagesToLocalRepository(File localRepositoryPath) throws MojoExecutionException {
 		if (installers.isEmpty()) {
-			return;
+			return false;
 		}
 
 		getLog().info("Installing " + installers.size() + " TIBCO installation packages...");
@@ -274,8 +310,11 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 			String packaging = installer.getRemoteInstallationPackagePackaging();
 			String classifier = getInstallerClassifier(installer);
 			getLog().info("Installing '" + installer.getInstallationPackage().getAbsolutePath() + "' to '" + localRepositoryPath.getAbsolutePath().replace("\\", "/") + "/" + groupId.replace(".", "/") + "/" + artifactId + "/" + version + "'");
-			this.installDependency(groupId, artifactId, version, packaging, classifier, installer.getInstallationPackage(), localRepositoryPath, true);
+			File installedFile = this.installDependency(groupId, artifactId, version, packaging, classifier, installer.getInstallationPackage(), localRepositoryPath, true);
+			installer.setInstallationPackage(installedFile);
 		}
+
+		return true;
 	}
 
 	protected String getInstallerClassifier(CommonInstaller installer) throws MojoExecutionException {

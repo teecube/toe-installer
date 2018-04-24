@@ -37,6 +37,8 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 	public static boolean firstDependency = true;
 
+	private CommonInstaller installer;
+
 	public enum TIBCOProductGoalAndPriority {
 		ADMIN ("install-admin", "Administrator", 30),
 		BW5 ("install-bw5", "BusinessWorks 5", 30),
@@ -235,13 +237,30 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 		addProperty(configuration, ignoredParameters, "ignoreDependencies", "true", CommonInstaller.class); // disable resolution of dependencies in the product goal since dependency are managed here
 		installer.setIgnoreDependencies(true);
-		addProperty(configuration, ignoredParameters, "environmentName", environment.getEnvironmentName(), CommonInstaller.class);
-		installer.setEnvironmentName(environment.getEnvironmentName());
+		addProperty(configuration, ignoredParameters, "environmentName", environment.getName(), CommonInstaller.class);
+		installer.setEnvironmentName(environment.getName());
 		addProperty(configuration, ignoredParameters, "installationRoot", environment.getTibcoRoot(), CommonInstaller.class);
 		installer.setInstallationRoot(new File(environment.getTibcoRoot()));
 		if (this.getPackage() != null) {
 			if (this.getPackage().getMavenRemoteTIBCO() != null) { // use remote package
 				MavenTIBCOArtifactPackage mavenRemotePackage = this.getPackage().getMavenRemoteTIBCO();
+
+				// version and classifier are mandatory
+				addProperty(configuration, ignoredParameters, "remoteInstallationPackageVersion", mavenRemotePackage.getVersion(), installer.getClass());
+				installer.setRemoteInstallationPackageVersion(mavenRemotePackage.getVersion());
+				installer.setInstallationPackageVersion(mavenRemotePackage.getVersion());
+				addProperty(configuration, ignoredParameters, "remoteInstallationPackageClassifier", mavenRemotePackage.getClassifier(), installer.getClass());
+				installer.setRemoteInstallationPackageClassifier(mavenRemotePackage.getClassifier());
+				if (org.apache.commons.lang3.StringUtils.isNotBlank(mavenRemotePackage.getGroupId())) {
+					addProperty(configuration, ignoredParameters, "remoteInstallationPackageGroupId", mavenRemotePackage.getGroupId(), installer.getClass());
+					installer.setRemoteInstallationPackageGroupId(mavenRemotePackage.getGroupId());
+				}
+				if (org.apache.commons.lang3.StringUtils.isNotBlank(mavenRemotePackage.getArtifactId())) {
+					addProperty(configuration, ignoredParameters, "remoteInstallationPackageArtifactId", mavenRemotePackage.getArtifactId(), installer.getClass());
+					installer.setRemoteInstallationPackageArtifactId(mavenRemotePackage.getArtifactId());
+				}
+			} else if (this.getPackage().getMavenRemote() != null) { // use remote package
+				MavenArtifactPackage mavenRemotePackage = this.getPackage().getMavenRemote();
 
 				// version and classifier are mandatory
 				addProperty(configuration, ignoredParameters, "remoteInstallationPackageVersion", mavenRemotePackage.getVersion(), installer.getClass());
@@ -318,6 +337,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 		File resolvedInstallationPackage = installer.getInstallationPackage();
 		if (resolvedInstallationPackage != null && resolvedInstallationPackage.exists()) {
             this.setResolvedInstallationPackage(installer.getInstallationPackage());
+            this.setInstaller(installer);
         } else {
 		    logger.error("Unresolved TIBCO installation package!");
         }
@@ -352,6 +372,14 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 					break;
 			}
 		}
+	}
+
+	public CommonInstaller getInstaller() {
+		return installer;
+	}
+
+	private void setInstaller(CommonInstaller installer) {
+		this.installer = installer;
 	}
 
 	@Override

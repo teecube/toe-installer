@@ -57,9 +57,6 @@ public class BW6InstallerMojo extends CommonInstaller {
 
 	@Parameter(property = InstallerMojosInformation.BW6.installationPackageRegexVersionGroupIndex, defaultValue = InstallerMojosInformation.BW6.installationPackageRegexVersionGroupIndex_default)
 	private Integer installationPackageRegexVersionGroupIndex;
-	
-	@Parameter(property = InstallerMojosInformation.BW6.installationPackageVersion, defaultValue = "")
-	private String installationPackageVersion;
 
 	@Parameter(property = InstallerMojosInformation.BW6.installationPackageVersionMajorMinor, defaultValue = "")
 	private String installationPackageVersionMajorMinor;

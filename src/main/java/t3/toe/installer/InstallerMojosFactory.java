@@ -35,6 +35,7 @@ import t3.toe.installer.installers.TEAInstallerMojo;
 import t3.toe.installer.installers.TRAInstallerMojo;
 import t3.toe.installer.packages.DisplayPackages;
 import t3.toe.installer.packages.InstallPackages;
+import t3.toe.installer.packages.StandalonePackageGenerator;
 
 /**
  *
@@ -74,6 +75,9 @@ public class InstallerMojosFactory extends MojosFactory {
 
 		case "DisplayPackages":
 			return (T) new DisplayPackages();
+
+		case "StandalonePackageGenerator":
+			return (T) new StandalonePackageGenerator();
 		default:
 			return super.getMojo(type);
 		}

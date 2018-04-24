@@ -49,6 +49,7 @@ import org.jboss.shrinkwrap.resolver.api.maven.MavenResolvedArtifact;
 import org.jboss.shrinkwrap.resolver.api.maven.embedded.BuiltProject;
 import org.jboss.shrinkwrap.resolver.impl.maven.bootstrap.MavenSettingsBuilder;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
+import org.xml.sax.SAXException;
 import t3.Messages;
 import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
@@ -60,8 +61,10 @@ import t3.toe.installer.environments.products.ProductsToInstall;
 import t3.utils.POMManager;
 import t3.utils.Utils;
 
+import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -119,6 +122,9 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 	@Parameter (property = InstallerMojosInformation.Packages.Standalone.localRepository, defaultValue = InstallerMojosInformation.Packages.Standalone.localRepository_default)
 	protected File standaloneLocalRepository;
 
+	@Parameter (property = InstallerMojosInformation.Packages.Standalone.localPackages, defaultValue = InstallerMojosInformation.Packages.Standalone.localPackages_default)
+	protected File standaloneLocalPackages;
+
 	@Parameter (property = InstallerMojosInformation.Packages.Standalone.topologyGeneratedFile, defaultValue = InstallerMojosInformation.Packages.Standalone.topologyGeneratedFile_default)
 	protected File standaloneTopologyGeneratedFile;
 
@@ -154,10 +160,11 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 	@Parameter(property = InstallerMojosInformation.Packages.Standalone.Plugins.tacArchetypesArtifactsId, defaultValue = InstallerMojosInformation.Packages.Standalone.Plugins.tacArchetypesArtifactsId_default)
 	protected String tacArchetypesArtifactsId;
 
+	private boolean localTIBCOInstallationPackagesResolved = false;
 
 	@Override
-	protected Boolean getGenerateTopology() {
-		return generateStandaloneTopology;
+	protected Boolean getGenerateTopology() throws MojoExecutionException {
+		return false;
 	}
 
 	@Override
@@ -169,6 +176,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 	private static final String messageIncludeLocalTIBCOInstallationPackages  = "TIBCO installation packages resolved locally";
 	private static final String messageIncludePlugins  = "Maven plugins";
 	private static final String messageGenerateSettings  = "Maven settings.xml to use included Maven plugins";
+	private static final String messageGenerateTopology  = "environments topology file";
 	private static final String messageGenerateStandaloneArchive  = "a standalone archive wrapping all elements above";
 
 	@Override
@@ -217,7 +225,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			getLog().info("");
 
 			EnvironmentsMarshaller environmentsMarshaller = EnvironmentsMarshaller.getEnvironmentMarshaller(topologyTemplateFile);
-			List<EnvironmentToInstall> environmentsToInstall = EnvironmentToInstall.getEnvironmentsToInstall(environmentsMarshaller.getObject().getEnvironment(), topologyTemplateFile);
+			EnvironmentsToInstall environmentsToInstall = new EnvironmentsToInstall(environmentsMarshaller.getObject().getEnvironment(), topologyTemplateFile);
 
 			List<ProductToInstall<?>> uniqueProductsList = new ArrayList<ProductToInstall<?>>();
 
@@ -267,15 +275,25 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 							classifier = mavenRemoteTIBCO.getClassifier();
 						}
 					}
-					String coords = groupId + ":" + artifactId + ":" + version;
+					String coords = groupId + ":" + artifactId + (StringUtils.isNotEmpty(packaging) ? ":" + packaging : "") + (StringUtils.isNotEmpty(classifier) ? ":" + classifier : "") + ":" + version;
 					org.eclipse.aether.artifact.Artifact artifact = new org.eclipse.aether.artifact.DefaultArtifact(coords);
-					artifact.setFile(productToInstall.getResolvedInstallationPackage());
-					//artifact.
-				} else {
-					// copy product package in separate directory
-				}
+					artifact = artifact.setFile(productToInstall.getResolvedInstallationPackage());
 
-				getLog().info(productToInstall.getResolvedInstallationPackage().getAbsolutePath());
+					getLog().info("Adding '" + coords + "' to standalone local repository directory");
+					installArtifact(project, standaloneLocalRepository, artifact);
+				} else {
+					// copy product package in separate packages directory
+					if (!standaloneLocalPackages.exists()) {
+						standaloneLocalPackages.mkdirs();
+					}
+					try {
+						getLog().info("Adding '" + productToInstall.getResolvedInstallationPackage() + "' to standalone local packages directory");
+
+						FileUtils.copyFileToDirectory(productToInstall.getResolvedInstallationPackage(), standaloneLocalPackages);
+					} catch (IOException e) {
+						throw new MojoExecutionException(e.getLocalizedMessage(), e);
+					}
+				}
 			}
 		}
 
@@ -284,7 +302,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			getLog().info(++elementIncludedIndex + ". Include " + messageIncludeLocalTIBCOInstallationPackages);
 
 			super.execute();
-			installPackagesToLocalRepository(standaloneLocalRepository);
+			localTIBCOInstallationPackagesResolved = installPackagesToLocalRepository(standaloneLocalRepository);
 		}
 
 		if (includePlugins()) {
@@ -311,6 +329,17 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			getLog().info(++elementIncludedIndex + ". Include " + messageGenerateSettings);
 
 			generateOfflineSettings();
+		}
+
+		if (generateStandaloneTopology) {
+			getLog().info("");
+			getLog().info(++elementIncludedIndex + ". Include " + messageGenerateTopology);
+
+			try {
+				doGenerateStandaloneTopology();
+			} catch (IOException e) {
+				throw new MojoExecutionException(e.getLocalizedMessage(), e);
+			}
 		}
 
 		if (generateStandaloneArchive) {
@@ -364,7 +393,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
         return result;
     }
 
-    private boolean includeTIBCOInstallationPackagesFromTopology() {
+	private boolean includeTIBCOInstallationPackagesFromTopology() {
 		return (includeTopologyTIBCOInstallationPackages && topologyTemplateFile != null && topologyTemplateFile.exists());
 	}
 
@@ -479,97 +508,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
 		// install artifacts
 		for (org.eclipse.aether.artifact.Artifact artifact : artifacts) {
-			boolean installPomSeparately = false;
-			List<MojoExecutor.Element> configuration = new ArrayList<MojoExecutor.Element>();
-
-			if (artifact.getArtifactId().equals("velocity") && artifact.getVersion().equals("1.5")) {
-				configuration.add(new MojoExecutor.Element("generatePom", "true"));
-				configuration.add(new MojoExecutor.Element("packaging", "jar"));
-				installPomSeparately = true;
-			}
-
-			configuration.add(new MojoExecutor.Element("localRepositoryPath", localRepositoryPath.getAbsolutePath()));
-			configuration.add(new MojoExecutor.Element("createChecksum", "true"));
-			configuration.add(new MojoExecutor.Element("updateReleaseInfo", "true"));
-			configuration.add(new MojoExecutor.Element("groupId", artifact.getGroupId()));
-			configuration.add(new MojoExecutor.Element("artifactId", artifact.getArtifactId()));
-			configuration.add(new MojoExecutor.Element("version", artifact.getVersion()));
-			configuration.add(new MojoExecutor.Element("file", artifact.getFile().getAbsolutePath()));
-			File pomFile = new File(artifact.getFile().getParentFile(), artifact.getArtifactId() + "-" + artifact.getVersion() + ".pom");
-			if (StringUtils.isNotEmpty(artifact.getClassifier())) {
-				configuration.add(new MojoExecutor.Element("classifier", artifact.getClassifier()));
-				configuration.add(new MojoExecutor.Element("generatePom", "true"));
-				configuration.add(new MojoExecutor.Element("packaging", "jar"));
-				installPomSeparately = true;
-			} else if (!installPomSeparately) {
-				if (!pomFile.exists()) continue;
-				configuration.add(new MojoExecutor.Element("pomFile", pomFile.getAbsolutePath()));
-			}
-
-			executeMojo(
-					plugin(
-							groupId("org.apache.maven.plugins"),
-							artifactId(mavenPluginInstallArtifactId),
-							version(mavenPluginInstallVersion) // version defined in pom.xml of this plugin
-					),
-					goal("install-file"),
-					configuration(
-							configuration.toArray(new Element[0])
-					),
-					getEnvironment(project, session, pluginManager),
-					true
-			);
-
-			File artifactDirectory = new File(localRepositoryPath, artifact.getGroupId().replace(".", "/") + "/" + artifact.getArtifactId() + "/" + artifact.getVersion());
-			Collection<File> bundleFiles = FileUtils.listFiles(artifactDirectory, new String[]{"bundle"}, false);
-			if (!bundleFiles.isEmpty()) {
-				for (File bundleFile : bundleFiles) {
-					String filenameNoExt = FilenameUtils.removeExtension(bundleFile.getAbsolutePath());
-					bundleFile.renameTo(new File(filenameNoExt + ".jar"));
-					File md5File = new File(filenameNoExt + ".bundle.md5");
-					File sha1File = new File(filenameNoExt + ".bundle.sha1");
-					md5File.renameTo(new File(filenameNoExt + ".jar.md5"));
-					sha1File.renameTo(new File(filenameNoExt + ".jar.sha1"));
-				}
-			}
-			Collection<File> archetypeFiles = FileUtils.listFiles(artifactDirectory, new String[]{"maven-archetype"}, false);
-			if (!archetypeFiles.isEmpty()) {
-				for (File archetypeFile : archetypeFiles) {
-					String filenameNoExt = FilenameUtils.removeExtension(archetypeFile.getAbsolutePath());
-					archetypeFile.renameTo(new File(filenameNoExt + ".jar"));
-					File md5File = new File(filenameNoExt + ".maven-archetype.md5");
-					File sha1File = new File(filenameNoExt + ".maven-archetype.sha1");
-					md5File.renameTo(new File(filenameNoExt + ".jar.md5"));
-					sha1File.renameTo(new File(filenameNoExt + ".jar.sha1"));
-				}
-			}
-
-			if (installPomSeparately) {
-				configuration.clear();
-
-				configuration.add(new Element("localRepositoryPath", localRepositoryPath.getAbsolutePath()));
-				configuration.add(new Element("createChecksum", "true"));
-				configuration.add(new Element("updateReleaseInfo", "true"));
-				configuration.add(new Element("groupId", artifact.getGroupId()));
-				configuration.add(new Element("artifactId", artifact.getArtifactId()));
-				configuration.add(new Element("version", artifact.getVersion()));
-				configuration.add(new Element("file", pomFile.getAbsolutePath()));
-				configuration.add(new Element("packaging", "pom"));
-
-				executeMojo(
-						plugin(
-								groupId("org.apache.maven.plugins"),
-								artifactId(mavenPluginInstallArtifactId),
-								version(mavenPluginInstallVersion) // version defined in pom.xml of this plugin
-						),
-						goal("install-file"),
-						configuration(
-								configuration.toArray(new Element[0])
-						),
-						executionEnvironment(project, session, pluginManager),
-						true
-				);
-			}
+			installArtifact(project, localRepositoryPath, artifact);
 		}
 
 		List<String> goals = new ArrayList<String>();
@@ -622,6 +561,100 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		} finally {
 			System.setErr(oldSystemErr);
 			System.setOut(oldSystemOut);
+		}
+	}
+
+	private void installArtifact(MavenProject project, File localRepositoryPath, org.eclipse.aether.artifact.Artifact artifact) throws MojoExecutionException {
+		boolean installPomSeparately = false;
+		List<Element> configuration = new ArrayList<Element>();
+
+		if (artifact.getArtifactId().equals("velocity") && artifact.getVersion().equals("1.5")) {
+			configuration.add(new Element("generatePom", "true"));
+			configuration.add(new Element("packaging", "jar"));
+			installPomSeparately = true;
+		}
+
+		configuration.add(new Element("localRepositoryPath", localRepositoryPath.getAbsolutePath()));
+		configuration.add(new Element("createChecksum", "true"));
+		configuration.add(new Element("updateReleaseInfo", "true"));
+		configuration.add(new Element("groupId", artifact.getGroupId()));
+		configuration.add(new Element("artifactId", artifact.getArtifactId()));
+		configuration.add(new Element("version", artifact.getVersion()));
+		configuration.add(new Element("file", artifact.getFile().getAbsolutePath()));
+		File pomFile = new File(artifact.getFile().getParentFile(), artifact.getArtifactId() + "-" + artifact.getVersion() + ".pom");
+		if (StringUtils.isNotEmpty(artifact.getClassifier())) {
+			configuration.add(new Element("classifier", artifact.getClassifier()));
+			configuration.add(new Element("generatePom", "true"));
+			configuration.add(new Element("packaging", "jar"));
+			installPomSeparately = true;
+		} else if (!installPomSeparately) {
+			if (!pomFile.exists()) return;
+			configuration.add(new Element("pomFile", pomFile.getAbsolutePath()));
+		}
+
+		executeMojo(
+				plugin(
+						groupId("org.apache.maven.plugins"),
+						artifactId(mavenPluginInstallArtifactId),
+						version(mavenPluginInstallVersion) // version defined in pom.xml of this plugin
+				),
+				goal("install-file"),
+				configuration(
+						configuration.toArray(new Element[0])
+				),
+				getEnvironment(project, session, pluginManager),
+				true
+		);
+
+		File artifactDirectory = new File(localRepositoryPath, artifact.getGroupId().replace(".", "/") + "/" + artifact.getArtifactId() + "/" + artifact.getVersion());
+		Collection<File> bundleFiles = FileUtils.listFiles(artifactDirectory, new String[]{"bundle"}, false);
+		if (!bundleFiles.isEmpty()) {
+			for (File bundleFile : bundleFiles) {
+				String filenameNoExt = FilenameUtils.removeExtension(bundleFile.getAbsolutePath());
+				bundleFile.renameTo(new File(filenameNoExt + ".jar"));
+				File md5File = new File(filenameNoExt + ".bundle.md5");
+				File sha1File = new File(filenameNoExt + ".bundle.sha1");
+				md5File.renameTo(new File(filenameNoExt + ".jar.md5"));
+				sha1File.renameTo(new File(filenameNoExt + ".jar.sha1"));
+			}
+		}
+		Collection<File> archetypeFiles = FileUtils.listFiles(artifactDirectory, new String[]{"maven-archetype"}, false);
+		if (!archetypeFiles.isEmpty()) {
+			for (File archetypeFile : archetypeFiles) {
+				String filenameNoExt = FilenameUtils.removeExtension(archetypeFile.getAbsolutePath());
+				archetypeFile.renameTo(new File(filenameNoExt + ".jar"));
+				File md5File = new File(filenameNoExt + ".maven-archetype.md5");
+				File sha1File = new File(filenameNoExt + ".maven-archetype.sha1");
+				md5File.renameTo(new File(filenameNoExt + ".jar.md5"));
+				sha1File.renameTo(new File(filenameNoExt + ".jar.sha1"));
+			}
+		}
+
+		if (installPomSeparately) {
+			configuration.clear();
+
+			configuration.add(new Element("localRepositoryPath", localRepositoryPath.getAbsolutePath()));
+			configuration.add(new Element("createChecksum", "true"));
+			configuration.add(new Element("updateReleaseInfo", "true"));
+			configuration.add(new Element("groupId", artifact.getGroupId()));
+			configuration.add(new Element("artifactId", artifact.getArtifactId()));
+			configuration.add(new Element("version", artifact.getVersion()));
+			configuration.add(new Element("file", pomFile.getAbsolutePath()));
+			configuration.add(new Element("packaging", "pom"));
+
+			executeMojo(
+					plugin(
+							groupId("org.apache.maven.plugins"),
+							artifactId(mavenPluginInstallArtifactId),
+							version(mavenPluginInstallVersion) // version defined in pom.xml of this plugin
+					),
+					goal("install-file"),
+					configuration(
+							configuration.toArray(new Element[0])
+					),
+					executionEnvironment(project, session, pluginManager),
+					true
+			);
 		}
 	}
 
@@ -859,9 +892,35 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		}
 	}
 
-	@Override
-	protected void doExecute() throws MojoExecutionException {
-		
+	private void doGenerateStandaloneTopology() throws IOException, MojoExecutionException {
+		getLog().info("");
+		if (topologyTemplateFile != null && topologyTemplateFile.exists()) {
+			FileUtils.copyFile(topologyTemplateFile, standaloneTopologyGeneratedFile);
+			getLog().info("Generating topology file using topology template '" + topologyTemplateFile + "'");
+		} else if (localTIBCOInstallationPackagesResolved) {
+			getLog().info("Generating topology file for the locally resolved TIBCO installation packages...");
+			// copy an empty topology to target file
+			InputStream emptyEnvironments = EnvironmentInstallerMojo.class.getResourceAsStream("/xml/environments.xml");
+			FileUtils.copyInputStreamToFile(emptyEnvironments, standaloneTopologyGeneratedFile);
+		} else {
+			getLog().warn("No locally resolved TIBCO installation packages nor topology template file found. Topology file will be empty.");
+		}
+
+		try {
+			super.doGenerateStandaloneTopology(standaloneTopologyGeneratedFile, TopologyType.REMOTE, true);
+		} catch (JAXBException | SAXException | MojoExecutionException e) {
+			throw new MojoExecutionException(e.getLocalizedMessage(), e);
+		}
 	}
 
+	@Override
+	protected void doExecute() throws MojoExecutionException {
+
+	}
+
+
+	@Override
+	protected void generateTopology() throws MojoExecutionException {
+		super.generateTopology();
+	}
 }

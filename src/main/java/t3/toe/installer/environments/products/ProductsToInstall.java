@@ -108,6 +108,8 @@ public class ProductsToInstall extends ArrayList<ProductToInstall<?>> {
             if (priority2 == null) {
                 if (p2 instanceof TIBCOProductToInstall) {
                     priority2 = ((TIBCOProductToInstall) p2).getTibcoProductGoalAndPriority().priority();
+                } else {
+                    return 0;
                 }
             }
 

@@ -287,7 +287,6 @@
 	<!-- Environments -->
 	<xs:complexType name="Environment">
 		<xs:sequence>
-			<xs:element name="environmentName" type="xs:string"/>
 			<xs:element name="tibcoRoot" type="xs:string"/>
 			<xs:element name="packagesDirectory" type="xs:string" minOccurs="0"/>
 			<xs:element name="preInstallCommands" minOccurs="0" type="Commands"/>
@@ -303,6 +302,7 @@
 			</xs:element>
 			<xs:element name="postInstallCommands" minOccurs="0" type="Commands"/>
 		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required" />
 		<xs:attribute name="ifExists" type="IfEnvironmentExistsBehaviour" default="fail" />
 	</xs:complexType>
 

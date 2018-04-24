@@ -684,29 +684,7 @@ public abstract class CommonInstaller extends CommonMojo {
 	}
 
 	public void initDefaultParameters() throws MojoExecutionException {
-		String packageVersion = getInstallationPackageVersion();
-		if (packageVersion != null) {
-			session.getCurrentProject().getProperties().put(getInstallationPackageVersionPropertyName(), packageVersion);
-			Pattern p = Pattern.compile("(\\d+.\\d+).*", Pattern.CASE_INSENSITIVE);
-			Matcher m = p.matcher(packageVersion);
-
-			String packageVersionMajorMinor = "";
-			if (m.matches()) {
-				packageVersionMajorMinor = m.group(1);
-			}
-
-			this.setInstallationPackageVersionMajorMinor(packageVersionMajorMinor);
-			session.getCurrentProject().getProperties().put(getInstallationPackageVersionMajorMinorPropertyName(), packageVersionMajorMinor);
-		}
-
-		String packageArch = getInstallationPackageArch(true);
-		if (packageArch != null) {
-			session.getCurrentProject().getProperties().put(getInstallationPackageArchPropertyName(), packageArch);
-		}
-		String packageOs = getInstallationPackageOs(true);
-		if (packageOs != null) {
-			session.getCurrentProject().getProperties().put(getInstallationPackageOsPropertyName(), packageOs);
-		}
+        initVersionArchOs();
 
 		if (getInstallationRoot() == null) {
 			// set "c:/tibco" if windows, "/opt/tibco" if *nix
@@ -732,14 +710,41 @@ public abstract class CommonInstaller extends CommonMojo {
 
 			session.getCurrentProject().getProperties().put(InstallerMojosInformation.installationRoot, getInstallationRoot().getAbsolutePath().replace("\\", "/"));
 		}
-		
+
 		File installationPackage = getInstallationPackage();
 		if (installationPackage != null && installationPackage.exists()) {
 			session.getCurrentProject().getProperties().put(getInstallationPackagePropertyName(), installationPackage.getAbsolutePath().replace("\\", "/"));
 		}
 	}
 
-	public <T> void initStandalonePOMNoDefaultParameters() throws MojoExecutionException {
+    public void initVersionArchOs() throws MojoExecutionException {
+        String packageVersion = getInstallationPackageVersion();
+        if (packageVersion != null) {
+			this.setInstallationPackageVersion(packageVersion);
+			session.getCurrentProject().getProperties().put(getInstallationPackageVersionPropertyName(), packageVersion);
+            Pattern p = Pattern.compile("(\\d+.\\d+).*", Pattern.CASE_INSENSITIVE);
+            Matcher m = p.matcher(packageVersion);
+
+            String packageVersionMajorMinor = "";
+            if (m.matches()) {
+                packageVersionMajorMinor = m.group(1);
+            }
+
+            this.setInstallationPackageVersionMajorMinor(packageVersionMajorMinor);
+            session.getCurrentProject().getProperties().put(getInstallationPackageVersionMajorMinorPropertyName(), packageVersionMajorMinor);
+        }
+
+        String packageArch = getInstallationPackageArch(true);
+        if (packageArch != null) {
+			session.getCurrentProject().getProperties().put(getInstallationPackageArchPropertyName(), packageArch);
+        }
+        String packageOs = getInstallationPackageOs(true);
+        if (packageOs != null) {
+            session.getCurrentProject().getProperties().put(getInstallationPackageOsPropertyName(), packageOs);
+        }
+    }
+
+    public <T> void initStandalonePOMNoDefaultParameters() throws MojoExecutionException {
 		super.initStandalonePOM();
 	}
 

@@ -419,6 +419,9 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 			public static final String localRepository = "tibco.packages.standalone.localRepository";
 			public static final String localRepository_default = "${tibco.packages.standalone.directory}/repository";
 
+			public static final String localPackages = "tibco.packages.standalone.localPackages";
+			public static final String localPackages_default = "${tibco.packages.standalone.directory}/packages";
+
 			public static final String generateSettings = "tibco.packages.standalone.generateSettings";
 			public static final String generateSettings_default = "true";
 

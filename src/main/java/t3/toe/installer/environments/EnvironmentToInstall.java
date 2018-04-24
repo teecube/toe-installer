@@ -20,6 +20,7 @@ import com.google.common.collect.FluentIterable;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class EnvironmentToInstall extends Environment {
@@ -28,7 +29,7 @@ public class EnvironmentToInstall extends Environment {
 	private boolean toBeDeleted;
 
 	public EnvironmentToInstall(Environment environment, File environmentsTopology) {
-		this.setEnvironmentName(environment.getEnvironmentName());
+		this.setName(environment.getName());
 		this.setIfExists(environment.getIfExists());
 		this.setPackagesDirectory(environment.getPackagesDirectory());
 		this.setProducts(environment.getProducts());
@@ -36,14 +37,6 @@ public class EnvironmentToInstall extends Environment {
 
 		this.environmentsTopology = environmentsTopology;
 		this.toBeDeleted = false;
-	}
-
-	public static List<EnvironmentToInstall> getEnvironmentsToInstall(List<Environment> environments, File environmentsTopology) {
-		List<EnvironmentToInstall> environmentsToInstall = new ArrayList<EnvironmentToInstall>();
-		for (Environment environment : environments) {
-			environmentsToInstall.add(new EnvironmentToInstall(environment, environmentsTopology));
-		}
-		return environmentsToInstall;
 	}
 
 	public boolean isToBeDeleted() {
@@ -63,5 +56,13 @@ public class EnvironmentToInstall extends Environment {
 		return FluentIterable.from(this.getProducts().getTibcoProductOrCustomProduct())
 							 .filter(TIBCOProduct.class)
 							 .toList();
+	}
+
+	public void clearTIBCOProducts() {
+		for (Iterator<Product> iterator = this.getProducts().getTibcoProductOrCustomProduct().iterator(); iterator.hasNext();) {
+			if (iterator.next() instanceof  TIBCOProduct) {
+				iterator.remove();
+			}
+		}
 	}
  }

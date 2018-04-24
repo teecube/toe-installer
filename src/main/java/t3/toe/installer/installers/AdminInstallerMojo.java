@@ -214,6 +214,11 @@ public class AdminInstallerMojo extends CommonInstaller {
 	}
 
 	@Override
+	public void setInstallationPackageVersion(String installationPackageVersion) {
+		this.installationPackageVersion = installationPackageVersion;
+	}
+
+	@Override
 	public void setRemoteInstallationPackageVersion(String remoteInstallationPackageVersion) {
 		this.remoteInstallationPackageVersion = remoteInstallationPackageVersion;
 	}

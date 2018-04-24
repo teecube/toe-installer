@@ -68,27 +68,27 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 		loadTopology();
 
-		List<EnvironmentToInstall> environmentsToInstall = EnvironmentToInstall.getEnvironmentsToInstall(environmentsMarshaller.getObject().getEnvironment(), environmentsTopology);
+		EnvironmentsToInstall environmentsToInstall = new EnvironmentsToInstall(environmentsMarshaller.getObject().getEnvironment(), environmentsTopology);
 
 		int environmentsCount = environmentsToInstall.size();
 		int environmentsIndex = 1;
 		for (EnvironmentToInstall environment : environmentsToInstall) {
 			if (environmentsCount > 1) { // multiple environments to install
-				getLog().info("=== " + StringUtils.leftPad(Utils.toRoman(environmentsIndex), 3, " ") + ". Environment: " + environment.getEnvironmentName() + " ===");
+				getLog().info("=== " + StringUtils.leftPad(Utils.toRoman(environmentsIndex), 3, " ") + ". Environment: " + environment.getName() + " ===");
 				getLog().info(Messages.MESSAGE_SPACE);
 
                 TIBCOProductToInstall.firstDependency = true;
 			}
 
 			// first check if environment exists and if we can continue according to current strategy (keep, fail, delete)
-			com.tibco.envinfo.TIBCOEnvironment.Environment localEnvironment = CommonInstaller.getCurrentEnvironment(environment.getEnvironmentName());
+			com.tibco.envinfo.TIBCOEnvironment.Environment localEnvironment = CommonInstaller.getCurrentEnvironment(environment.getName());
 			if (CommonInstaller.environmentExists(localEnvironment)) {
 				getLog().info("The environment already exists.");
 
 				environment.setToBeDeleted(deleteEnvironment(environment)); // check whether environment can be deleted
 			}
 
-			getLog().info("Environment name to install is : " + environment.getEnvironmentName());
+			getLog().info("Environment name to install is : " + environment.getName());
 			getLog().info("TIBCO root is                  : " + environment.getTibcoRoot());
 			getLog().info("");
 
@@ -157,16 +157,16 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 	private boolean deleteEnvironment(EnvironmentToInstall environment) throws MojoExecutionException {
 		switch (environment.getIfExists()) {
 		case DELETE:
-			getLog().info("Environment '" + environment.environmentName + "' will be deleted and reinstalled (as specified in topology).");
+			getLog().info("Environment '" + environment.name + "' will be deleted and reinstalled (as specified in topology).");
 			getLog().info(Messages.MESSAGE_SPACE);
 			return true;
 		case FAIL:
 			getLog().info(Messages.MESSAGE_SPACE);
-			getLog().error("Environment '" + environment.environmentName + "' already exists and cannot be updated nor deleted (as specified in topology).");
+			getLog().error("Environment '" + environment.name + "' already exists and cannot be updated nor deleted (as specified in topology).");
 			getLog().info(Messages.MESSAGE_SPACE);
-			throw new MojoExecutionException("Environment '" + environment.environmentName + "' already exists and cannot be updated nor deleted.");
+			throw new MojoExecutionException("Environment '" + environment.name + "' already exists and cannot be updated nor deleted.");
 		case UPDATE:
-			getLog().info("Updating environment '" + environment.environmentName + "' (as specified in topology).");
+			getLog().info("Updating environment '" + environment.name + "' (as specified in topology).");
 			getLog().info(Messages.MESSAGE_SPACE);
 			return false;
 		}

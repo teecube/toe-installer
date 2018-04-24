@@ -45,6 +45,8 @@ public abstract class ProductToInstall<P extends Product> {
 
     protected Log logger;
 
+    private P product;
+
     private String id;
     private IfProductExistsBehaviour ifExists;
     private String name;
@@ -68,7 +70,13 @@ public abstract class ProductToInstall<P extends Product> {
     private boolean toBeDeleted;
     private String version;
 
+    public P getProduct() {
+        return product;
+    }
+
     public ProductToInstall(P product, EnvironmentToInstall environment, CommonMojo commonMojo) {
+        this.product = product;
+
         this.setId(product.getId());
         this.setIfExists(product.getIfExists());
         this.setPackage(product.getPackage());

@@ -202,7 +202,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 							TIBCOProductToInstall tibcoProductToInstall = new TIBCOProductToInstall(tibcoProduct, environment, this);
 
 							tibcoProductToInstall.setLog(new NoOpLogger());
-							tibcoProductToInstall.init(-1);
+							tibcoProductToInstall.setInstaller(installer);
 
 							resolvedProducts.add(tibcoProductToInstall);
 						}
@@ -245,7 +245,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 
 				if (topologyType.equals(TopologyType.REMOTE) && tibcoProduct.getPackage().getLocal() != null) {
 					getLog().info(installer.getInstallationPackage().getAbsolutePath());
-
+					// TODO : translate to MavenArtifactPackage
 				}
 				/*
 				Product.Package productPackage = new Product.Package();

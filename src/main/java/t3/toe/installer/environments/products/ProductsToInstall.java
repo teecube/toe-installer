@@ -83,7 +83,7 @@ public class ProductsToInstall extends ArrayList<ProductToInstall<?>> {
             product.init(i);
 
             if (!atLeastOneMavenArtifactResolved && product.getPackage() != null &&
-                (product.getPackage().getMavenRemoteTIBCO() != null || product.getPackage().getMavenRemote() != null)) {
+                (product.getPackage().getMavenTIBCOArtifact() != null || product.getPackage().getMavenArtifact() != null)) {
                 atLeastOneMavenArtifactResolved = true;
             }
             i++;

@@ -136,7 +136,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 	}
 
 	private boolean productIsRemote(TIBCOProductToInstall product) {
-		return product != null && product.getPackage() != null && (product.getPackage().getHttpRemote() != null || product.getPackage().getMavenRemote() != null);
+		return product != null && product.getPackage() != null && (product.getPackage().getHttpRemote() != null || product.getPackage().getMavenArtifact() != null);
 	}
 
 	private Product.Package cachedPackage = null;
@@ -149,62 +149,62 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 		Product.Package superPackage = super.getPackage();
 
-		MavenTIBCOArtifactPackage mavenRemoteTIBCO = superPackage.getMavenRemoteTIBCO();
-		if (mavenRemoteTIBCO != null) {
-			if (StringUtils.isEmpty(mavenRemoteTIBCO.getGroupId())) {
+		MavenTIBCOArtifactPackage mavenTIBCOArtifact = superPackage.getMavenTIBCOArtifact();
+		if (mavenTIBCOArtifact != null) {
+			if (StringUtils.isEmpty(mavenTIBCOArtifact.getGroupId())) {
 				switch (type) {
 					case ADMIN:
-						mavenRemoteTIBCO.setGroupId(InstallerMojosInformation.Administrator.remoteInstallationPackageGroupId_default);
+						mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.Administrator.remoteInstallationPackageGroupId_default);
 						break;
 					case BW_5:
-						mavenRemoteTIBCO.setGroupId(InstallerMojosInformation.BW5.remoteInstallationPackageGroupId_default);
+						mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.BW5.remoteInstallationPackageGroupId_default);
 						break;
 					case BW_6:
-						mavenRemoteTIBCO.setGroupId(InstallerMojosInformation.BW6.remoteInstallationPackageGroupId_default);
+						mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.BW6.remoteInstallationPackageGroupId_default);
 						break;
 					case EMS:
-						mavenRemoteTIBCO.setGroupId(InstallerMojosInformation.EMS.remoteInstallationPackageGroupId_default);
+						mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.EMS.remoteInstallationPackageGroupId_default);
 						break;
 					case TEA:
-						mavenRemoteTIBCO.setGroupId(InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageGroupId_default);
+						mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageGroupId_default);
 						break;
 					case TRA:
-						mavenRemoteTIBCO.setGroupId(InstallerMojosInformation.TRA.remoteInstallationPackageGroupId_default);
+						mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.TRA.remoteInstallationPackageGroupId_default);
 						break;
 					case RV:
-						mavenRemoteTIBCO.setGroupId(InstallerMojosInformation.RV.remoteInstallationPackageGroupId_default);
+						mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.RV.remoteInstallationPackageGroupId_default);
 						break;
 				}
 			}
-			if (StringUtils.isEmpty(mavenRemoteTIBCO.getArtifactId())) {
+			if (StringUtils.isEmpty(mavenTIBCOArtifact.getArtifactId())) {
 				switch (type) {
 					case ADMIN:
-						mavenRemoteTIBCO.setArtifactId(InstallerMojosInformation.Administrator.remoteInstallationPackageArtifactId_default);
+						mavenTIBCOArtifact.setArtifactId(InstallerMojosInformation.Administrator.remoteInstallationPackageArtifactId_default);
 						break;
 					case BW_5:
-						mavenRemoteTIBCO.setArtifactId(InstallerMojosInformation.BW5.remoteInstallationPackageArtifactId_default);
+						mavenTIBCOArtifact.setArtifactId(InstallerMojosInformation.BW5.remoteInstallationPackageArtifactId_default);
 						break;
 					case BW_6:
-						mavenRemoteTIBCO.setArtifactId(InstallerMojosInformation.BW6.remoteInstallationPackageArtifactId_default);
+						mavenTIBCOArtifact.setArtifactId(InstallerMojosInformation.BW6.remoteInstallationPackageArtifactId_default);
 						break;
 					case EMS:
-						mavenRemoteTIBCO.setArtifactId(InstallerMojosInformation.EMS.remoteInstallationPackageArtifactId_default);
+						mavenTIBCOArtifact.setArtifactId(InstallerMojosInformation.EMS.remoteInstallationPackageArtifactId_default);
 						break;
 					case TEA:
-						mavenRemoteTIBCO.setArtifactId(InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageArtifactId_default);
+						mavenTIBCOArtifact.setArtifactId(InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageArtifactId_default);
 						break;
 					case TRA:
-						mavenRemoteTIBCO.setArtifactId(InstallerMojosInformation.TRA.remoteInstallationPackageArtifactId_default);
+						mavenTIBCOArtifact.setArtifactId(InstallerMojosInformation.TRA.remoteInstallationPackageArtifactId_default);
 						break;
 					case RV:
-						mavenRemoteTIBCO.setArtifactId(InstallerMojosInformation.RV.remoteInstallationPackageArtifactId_default);
+						mavenTIBCOArtifact.setArtifactId(InstallerMojosInformation.RV.remoteInstallationPackageArtifactId_default);
 						break;
 				}
 			}
-			if (StringUtils.isEmpty(mavenRemoteTIBCO.getPackaging())) {
-				mavenRemoteTIBCO.setPackaging("zip");
+			if (StringUtils.isEmpty(mavenTIBCOArtifact.getPackaging())) {
+				mavenTIBCOArtifact.setPackaging("zip");
 			}
-			superPackage.setMavenRemoteTIBCO(mavenRemoteTIBCO);
+			superPackage.setMavenTIBCOArtifact(mavenTIBCOArtifact);
 		}
 
 		cachedPackage = superPackage;
@@ -242,8 +242,8 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 		addProperty(configuration, ignoredParameters, "installationRoot", environment.getTibcoRoot(), CommonInstaller.class);
 		installer.setInstallationRoot(new File(environment.getTibcoRoot()));
 		if (this.getPackage() != null) {
-			if (this.getPackage().getMavenRemoteTIBCO() != null) { // use remote package
-				MavenTIBCOArtifactPackage mavenRemotePackage = this.getPackage().getMavenRemoteTIBCO();
+			if (this.getPackage().getMavenTIBCOArtifact() != null) { // use remote package
+				MavenTIBCOArtifactPackage mavenRemotePackage = this.getPackage().getMavenTIBCOArtifact();
 
 				// version and classifier are mandatory
 				addProperty(configuration, ignoredParameters, "remoteInstallationPackageVersion", mavenRemotePackage.getVersion(), installer.getClass());
@@ -259,8 +259,8 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 					addProperty(configuration, ignoredParameters, "remoteInstallationPackageArtifactId", mavenRemotePackage.getArtifactId(), installer.getClass());
 					installer.setRemoteInstallationPackageArtifactId(mavenRemotePackage.getArtifactId());
 				}
-			} else if (this.getPackage().getMavenRemote() != null) { // use remote package
-				MavenArtifactPackage mavenRemotePackage = this.getPackage().getMavenRemote();
+			} else if (this.getPackage().getMavenArtifact() != null) { // use remote package
+				MavenArtifactPackage mavenRemotePackage = this.getPackage().getMavenArtifact();
 
 				// version and classifier are mandatory
 				addProperty(configuration, ignoredParameters, "remoteInstallationPackageVersion", mavenRemotePackage.getVersion(), installer.getClass());
@@ -378,7 +378,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 		return installer;
 	}
 
-	private void setInstaller(CommonInstaller installer) {
+	public void setInstaller(CommonInstaller installer) {
 		this.installer = installer;
 	}
 

@@ -136,8 +136,8 @@
 				<xs:complexType>
 					<xs:choice>
 						<xs:element name="httpRemote" type="HttpRemotePackage"/>
-						<xs:element name="mavenRemote" type="MavenArtifactPackage"/>
-						<xs:element name="mavenRemoteTIBCO" type="MavenTIBCOArtifactPackage"/>
+						<xs:element name="mavenArtifact" type="MavenArtifactPackage"/>
+						<xs:element name="mavenTIBCOArtifact" type="MavenTIBCOArtifactPackage"/>
 						<xs:element name="local" type="LocalPackage"/>
 					</xs:choice>
 				</xs:complexType>

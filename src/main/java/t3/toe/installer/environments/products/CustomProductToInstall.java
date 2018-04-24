@@ -58,12 +58,12 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
             String url = customProduct.getPackage().getHttpRemote().getUrl();
             // TODO : fetch URL
             logger.warn("Fetch URL not supported");
-        } else if (customProduct.getPackage().getMavenRemote() != null) {
-            String groupId = customProduct.getPackage().getMavenRemote().getGroupId();
-            String artifactId = customProduct.getPackage().getMavenRemote().getArtifactId();
-            String version = customProduct.getPackage().getMavenRemote().getVersion();
-            String packaging = customProduct.getPackage().getMavenRemote().getPackaging();
-            String classifier = customProduct.getPackage().getMavenRemote().getClassifier();
+        } else if (customProduct.getPackage().getMavenArtifact() != null) {
+            String groupId = customProduct.getPackage().getMavenArtifact().getGroupId();
+            String artifactId = customProduct.getPackage().getMavenArtifact().getArtifactId();
+            String version = customProduct.getPackage().getMavenArtifact().getVersion();
+            String packaging = customProduct.getPackage().getMavenArtifact().getPackaging();
+            String classifier = customProduct.getPackage().getMavenArtifact().getClassifier();
             try {
                 File resolvedDependency = commonMojo.getDependency(groupId, artifactId, version, packaging, classifier, true);
                 if (resolvedDependency != null && resolvedDependency.exists()) {

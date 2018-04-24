@@ -35,6 +35,7 @@ import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.version.PluginVersionNotFoundException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
@@ -250,15 +251,15 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			}
 
 			for (ProductToInstall<?> productToInstall : uniqueProductsList) {
-				if (productToInstall.getPackage().getMavenRemote() != null || productToInstall.getPackage().getMavenRemoteTIBCO() != null) {
+				if (productToInstall.getPackage().getMavenArtifact() != null || productToInstall.getPackage().getMavenTIBCOArtifact() != null) {
 					// product package was defined as a Maven artifact in topology template, hence deploy this artifact in standalone Maven repository
 					String groupId = "";
 					String artifactId = "";
 					String version = "";
 					String packaging = "";
 					String classifier = "";
-					if (productToInstall.getPackage().getMavenRemote() != null) {
-						MavenArtifactPackage mavenRemote = productToInstall.getPackage().getMavenRemote();
+					if (productToInstall.getPackage().getMavenArtifact() != null) {
+						MavenArtifactPackage mavenRemote = productToInstall.getPackage().getMavenArtifact();
 						groupId = mavenRemote.getGroupId();
 						artifactId = mavenRemote.getArtifactId();
 						version = mavenRemote.getVersion();
@@ -266,8 +267,8 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 						if (StringUtils.isNotEmpty(mavenRemote.getClassifier())) {
 							classifier = mavenRemote.getClassifier();
 						}
-					} else if (productToInstall.getPackage().getMavenRemoteTIBCO() != null) {
-						MavenTIBCOArtifactPackage mavenRemoteTIBCO = productToInstall.getPackage().getMavenRemoteTIBCO();
+					} else if (productToInstall.getPackage().getMavenTIBCOArtifact() != null) {
+						MavenTIBCOArtifactPackage mavenRemoteTIBCO = productToInstall.getPackage().getMavenTIBCOArtifact();
 						groupId = mavenRemoteTIBCO.getGroupId();
 						artifactId = mavenRemoteTIBCO.getArtifactId();
 						version = mavenRemoteTIBCO.getVersion();
@@ -494,10 +495,14 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		configuration.add(new Element("version", artifact.getVersion()));
 		configuration.add(new Element("file", artifact.getFile().getAbsolutePath()));
 		File pomFile = new File(artifact.getFile().getParentFile(), artifact.getArtifactId() + "-" + artifact.getVersion() + ".pom");
+		if (StringUtils.isNotEmpty(artifact.getExtension())) {
+			configuration.add(new Element("packaging", artifact.getExtension()));
+		} else {
+			configuration.add(new Element("packaging", "jar"));
+		}
 		if (StringUtils.isNotEmpty(artifact.getClassifier())) {
 			configuration.add(new Element("classifier", artifact.getClassifier()));
 			configuration.add(new Element("generatePom", "true"));
-			configuration.add(new Element("packaging", "jar"));
 			installPomSeparately = true;
 		} else if (!installPomSeparately) {
 			if (!pomFile.exists()) return;
@@ -584,14 +589,14 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			} catch (org.apache.maven.artifact.metadata.ArtifactMetadataRetrievalException e) {
 				throw new MojoExecutionException(e.getLocalizedMessage(), e);
 			}
-			ArtifactVersion lowerBound = new DefaultArtifactVersion("0.0.0");
+			ArtifactVersion lowerBound = new DefaultArtifactVersion("0.1.0"); // versions < 0.1.0 do not have a help goal and are not supported
 			ArtifactVersion upperBound = new DefaultArtifactVersion("1000.0.0"); // upper bound : we have time
 			ArtifactVersion newest = artifactVersions.getNewestVersion(lowerBound, upperBound);
 			if (newest != null) {
 				getLog().debug("Newest version for " + pluginArtifact.getGroupId() + ":" + pluginArtifact.getArtifactId() + " is " + newest.toString());
 				version = newest.toString();			
 			} else {
-				version = "0.0.1";
+				throw new MojoExecutionException("Unable to find a suitable version", new PluginVersionNotFoundException(groupId, artifactId));
 			}
 		}
 
@@ -627,6 +632,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 	private Plugin getToeInstallerPlugin(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
 		List<String> goals = new ArrayList<String>();
 		goals.add("envinfo-list");
+		goals.add("configure-bw6");
 		return getPlugin(helper, InstallerLifecycleParticipant.pluginGroupId, InstallerLifecycleParticipant.pluginArtifactId, version, "toe", goals);
 	}
 
@@ -824,6 +830,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		result.add(getMavenSuperPOMPlugin("maven-site-plugin", "3.3"));
 		result.add(getMavenSuperPOMPlugin("maven-antrun-plugin", "1.3"));
 		result.add(getMavenSuperPOMPlugin("maven-dependency-plugin", "2.8"));
+		result.add(getMavenSuperPOMPlugin("maven-release-plugin", "2.3.2"));
 
 		return result;
 	}

@@ -42,13 +42,9 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.io.DefaultSettingsWriter;
 import org.codehaus.mojo.versions.api.ArtifactVersions;
 import org.codehaus.mojo.versions.api.DefaultVersionsHelper;
-import org.eclipse.aether.resolution.ArtifactResult;
-import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
-import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenResolvedArtifact;
 import org.jboss.shrinkwrap.resolver.api.maven.embedded.BuiltProject;
 import org.jboss.shrinkwrap.resolver.impl.maven.bootstrap.MavenSettingsBuilder;
-import org.twdata.maven.mojoexecutor.MojoExecutor;
 import org.xml.sax.SAXException;
 import t3.Messages;
 import t3.plugin.annotations.Mojo;
@@ -200,6 +196,9 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		}
 		if (generateSettings) {
 			getLog().info(++elementIncludedIndex + ". " + messageGenerateSettings);
+		}
+		if (generateStandaloneTopology) {
+			getLog().info(++elementIncludedIndex + ". " + messageGenerateTopology);
 		}
 		if (generateStandaloneArchive) {
 			getLog().info(++elementIncludedIndex + ". " + messageGenerateStandaloneArchive);
@@ -405,9 +404,17 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		localRepositoryPath.mkdirs();
 		File tmpDirectory = Files.createTempDir();
 
+		File userSettingsFile = this.session.getRequest().getUserSettingsFile();
+		if (userSettingsFile == null || !userSettingsFile.exists()) {
+			userSettingsFile = this.session.getRequest().getGlobalSettingsFile();
+		}
 		// create a settings.xml with <pluginGroups>
 		File globalSettingsFile = new File(tmpDirectory, "settings.xml");
 		copyResourceToFile("/maven/default-t3-settings.xml", globalSettingsFile);
+
+		if (userSettingsFile == null || !userSettingsFile.exists()) {
+			userSettingsFile = globalSettingsFile;
+		}
 
 		// create a maven-metadata-local.xml for Maven plugin group
 		writeLocalMavenMetadata(localRepositoryPath, "org/apache/maven/plugins", "/maven/maven-plugins-maven-metadata.xml");
@@ -418,116 +425,9 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		// create a maven-metadata-local.xml for toe plugin group
 		writeLocalMavenMetadata(localRepositoryPath, "io/teecube/toe", "/maven/toe-maven-metadata-local.xml");
 
-		List<MavenResolvedArtifact> mavenResolvedArtifacts = new ArrayList<MavenResolvedArtifact>();
-
 		System.setProperty(MavenSettingsBuilder.ALT_LOCAL_REPOSITORY_LOCATION, session.getLocalRepository().getBasedir().replace("\\", "/"));
 
-		ConfigurableMavenResolverSystem mavenResolver = Maven.configureResolver();
-
-		List<ArtifactResult> poms = new ArrayList<ArtifactResult>();
-		poms.addAll(getPomArtifact("org.apache:apache:pom:4"));
-		poms.addAll(getPomArtifact("org.apache:apache:pom:6"));
-		poms.addAll(getPomArtifact("org.apache:apache:pom:9"));
-		poms.addAll(getPomArtifact("org.apache:apache:pom:10"));
-		poms.addAll(getPomArtifact("org.apache:apache:pom:11"));
-		poms.addAll(getPomArtifact("org.apache:apache:pom:13"));
-		poms.addAll(getPomArtifact("org.apache:apache:pom:17"));
-		poms.addAll(getPomArtifact("org.apache:apache:pom:18"));
-		poms.addAll(getPomArtifact("org.apache.ant:ant-parent:pom:1.8.1"));
-		poms.addAll(getPomArtifact("org.apache.commons:commons-parent:pom:24"));
-		poms.addAll(getPomArtifact("org.apache.maven:maven-parent:pom:9"));
-		poms.addAll(getPomArtifact("org.apache.maven:maven-parent:pom:15"));
-		poms.addAll(getPomArtifact("org.apache.maven:maven-parent:pom:21"));
-		poms.addAll(getPomArtifact("org.apache.maven:maven-parent:pom:22"));
-		poms.addAll(getPomArtifact("org.apache.maven:maven-parent:pom:23"));
-		poms.addAll(getPomArtifact("org.apache.maven:maven-parent:pom:27"));
-		poms.addAll(getPomArtifact("org.apache.maven:maven-parent:pom:30"));
-		poms.addAll(getPomArtifact("org.apache.maven.plugins:maven-plugins:pom:12"));
-		poms.addAll(getPomArtifact("org.apache.maven.plugins:maven-plugins:pom:16"));
-		poms.addAll(getPomArtifact("org.apache.maven.plugins:maven-plugins:pom:22"));
-		poms.addAll(getPomArtifact("org.apache.maven.plugins:maven-plugins:pom:23"));
-		poms.addAll(getPomArtifact("org.apache.maven.plugins:maven-plugins:pom:24"));
-		poms.addAll(getPomArtifact("org.apache.maven.archetype:maven-archetype:pom:3.0.1"));
-		poms.addAll(getPomArtifact("org.apache.maven.archetype:archetype-models:pom:3.0.1"));
-		poms.addAll(getPomArtifact("org.codehaus.plexus:plexus-components:pom:1.1.15"));
-		poms.addAll(getPomArtifact("org.codehaus.plexus:plexus-components:pom:1.1.18"));
-		poms.addAll(getPomArtifact("org.sonatype.aether:aether-parent:pom:1.7"));
-		poms.addAll(getPomArtifact("asm:asm-parent:pom:3.2"));
-		poms.addAll(getPomArtifact("org.slf4j:slf4j-parent:pom:1.7.5"));
-		poms.addAll(getPomArtifact("org.slf4j:slf4j-parent:pom:1.7.24"));
-		poms.addAll(getPomArtifact("org.eclipse.tycho:tycho:pom:0.22.0"));
-		poms.addAll(getPomArtifact("org.eclipse.tycho:sisu-equinox:pom:0.22.0"));
-		poms.addAll(getPomArtifact("org.eclipse.tycho:tycho-bundles:pom:0.22.0"));
-		poms.addAll(getPomArtifact("org.eclipse.tycho:tycho-p2:pom:0.22.0"));
-		poms.addAll(getPomArtifact("org.apache.maven.shared:maven-shared-components:pom:22"));
-		poms.addAll(getPomArtifact("org.apache.maven.release:maven-release:pom:2.3.2"));
-
-		// plugins from super POM
-		mavenResolvedArtifacts.addAll(mavenResolver.resolve("org.apache.maven.plugins:maven-antrun-plugin:jar:1.3").withoutTransitivity().asList(MavenResolvedArtifact.class));
-		mavenResolvedArtifacts.addAll(mavenResolver.resolve("org.apache.maven.plugins:maven-assembly-plugin:jar:2.2-beta-5").withoutTransitivity().asList(MavenResolvedArtifact.class));
-		mavenResolvedArtifacts.addAll(mavenResolver.resolve("org.apache.maven.plugins:maven-clean-plugin:jar:2.5").withoutTransitivity().asList(MavenResolvedArtifact.class));
-		mavenResolvedArtifacts.addAll(mavenResolver.resolve("org.apache.maven.plugins:maven-dependency-plugin:jar:2.8").withoutTransitivity().asList(MavenResolvedArtifact.class));
-		mavenResolvedArtifacts.addAll(mavenResolver.resolve("org.apache.maven.plugins:maven-deploy-plugin:jar:2.7").withoutTransitivity().asList(MavenResolvedArtifact.class));
-		mavenResolvedArtifacts.addAll(mavenResolver.resolve("org.apache.maven.plugins:maven-install-plugin:jar:2.4").withoutTransitivity().asList(MavenResolvedArtifact.class));
-		mavenResolvedArtifacts.addAll(mavenResolver.resolve("org.apache.maven.plugins:maven-release-plugin:jar:2.3.2").withoutTransitivity().asList(MavenResolvedArtifact.class));
-		mavenResolvedArtifacts.addAll(mavenResolver.resolve("org.apache.maven.plugins:maven-site-plugin:jar:3.3").withoutTransitivity().asList(MavenResolvedArtifact.class));
-
-		mavenResolvedArtifacts.addAll(mavenResolver.resolve("org.apache.maven.plugins:maven-archetype-plugin:jar:3.0.1").withTransitivity().asList(MavenResolvedArtifact.class));
-		mavenResolvedArtifacts.addAll(mavenResolver.resolve("org.apache.maven.plugins:maven-enforcer-plugin:jar:1.3.1").withTransitivity().asList(MavenResolvedArtifact.class));
-		mavenResolvedArtifacts.addAll(mavenResolver.resolve("org.codehaus.plexus:plexus-component-annotations:jar:1.6").withTransitivity().asList(MavenResolvedArtifact.class));
-
-//        org.jboss.shrinkwrap.resolver.impl.maven.logging.LogTransferListener
-		// add plugins from project
-		for (Plugin plugin : project.getBuild().getPlugins()) {
-			mavenResolvedArtifacts.addAll(mavenResolver.resolve(plugin.getKey() + ":jar:" + plugin.getVersion()).withTransitivity().asList(MavenResolvedArtifact.class));
-		}
-
-		// add all as artifacts
-		List<org.eclipse.aether.artifact.Artifact> artifacts = new ArrayList<org.eclipse.aether.artifact.Artifact>();
-		for (MavenResolvedArtifact mavenResolvedArtifact : mavenResolvedArtifacts) {
-			org.eclipse.aether.artifact.Artifact artifact = new org.eclipse.aether.artifact.DefaultArtifact(mavenResolvedArtifact.getCoordinate().getGroupId() + ":" + mavenResolvedArtifact.getCoordinate().getArtifactId() + ":" + mavenResolvedArtifact.getCoordinate().getType() + ":" + mavenResolvedArtifact.getCoordinate().getVersion());
-			File resolvedFile = mavenResolvedArtifact.asFile();
-			if (resolvedFile.getAbsolutePath().contains("..")) continue;
-			String name = resolvedFile.getName();
-			String shortName = artifact.getArtifactId() + "-" + artifact.getVersion();
-			int lengthWithoutExtension = name.length() - artifact.getExtension().length() - 1;
-			if (lengthWithoutExtension > 0) {
-				name = name.substring(0, lengthWithoutExtension);
-				if (!name.equals(shortName)) {
-					String classifier = name.substring(shortName.length() + 1);
-					artifact = new org.eclipse.aether.artifact.DefaultArtifact(mavenResolvedArtifact.getCoordinate().getGroupId() + ":" + mavenResolvedArtifact.getCoordinate().getArtifactId() + ":" + mavenResolvedArtifact.getCoordinate().getType() + ":" + classifier + ":" + mavenResolvedArtifact.getCoordinate().getVersion());
-				}
-			}
-			artifact = artifact.setFile(resolvedFile);
-
-			artifacts.add(artifact);
-		}
-		for (ArtifactResult pom : poms) {
-			artifacts.add(pom.getArtifact());
-		}
-
-		// install artifacts
-		for (org.eclipse.aether.artifact.Artifact artifact : artifacts) {
-			installArtifact(project, localRepositoryPath, artifact);
-		}
-
-		List<String> goals = new ArrayList<String>();
-		for (Plugin plugin : project.getBuild().getPlugins()) {
-			for (PluginExecution execution : plugin.getExecutions()) {
-				String prefix = execution.getId();
-				for (String goal : execution.getGoals()) {
-					goals.add(prefix + ":" + goal);
-				}
-			}
-		}
-
-		// create a default empty POM (because it's needed...)
-		File tmpPom = new File(tmpDirectory, "pom.xml");
-		try {
-			POMManager.writeModelToPOM(project.getModel(), tmpPom);
-		} catch (IOException e) {
-			throw new MojoExecutionException(e.getLocalizedMessage(), e);
-		}
+		// create one POM per plugin with an execution in project/model/build
 		List<Map.Entry<File, List<String>>> pomsWithGoal = getPOMsFromProject(project, tmpDirectory);
 
 		PrintStream oldSystemErr = System.err;
@@ -536,7 +436,8 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			silentSystemStreams();
 
 			for (Map.Entry<File, List<String>> pomWithGoals : pomsWithGoal) {
-				BuiltProject result = executeGoal(pomWithGoals.getKey(), globalSettingsFile, localRepositoryPath, mavenVersion, pomWithGoals.getValue());
+
+				BuiltProject result = executeGoal(pomWithGoals.getKey(), globalSettingsFile, userSettingsFile, localRepositoryPath, mavenVersion, pomWithGoals.getValue());
 				if (result == null || result.getMavenBuildExitCode() != 0) {
 					File goOfflineDirectory = new File(directory, "go-offline");
 					goOfflineDirectory.mkdirs();
@@ -730,6 +631,8 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		plugin.setArtifactId("maven-deploy-plugin");
 		plugin.setVersion("2.8.2"); // must be in sync with POM !
 
+		plugin = addHelpGoal(plugin, "deploy");
+
 		return plugin;
 	}
 
@@ -738,7 +641,9 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		plugin.setGroupId("org.apache.maven.plugins");
 		plugin.setArtifactId("maven-install-plugin");
 		plugin.setVersion("2.5.2"); // must be in sync with POM !
-		
+
+		plugin = addHelpGoal(plugin, "install");
+
 		return plugin;
 	}
 
@@ -747,7 +652,31 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		plugin.setGroupId("org.apache.maven.plugins");
 		plugin.setArtifactId("maven-dependency-plugin");
 		plugin.setVersion("3.0.2"); // must be in sync with POM !
-		
+
+		plugin = addHelpGoal(plugin, "dependency");
+
+		return plugin;
+	}
+
+	private Plugin getMavenReleasePlugin() {
+		Plugin plugin = new Plugin();
+		plugin.setGroupId("org.apache.maven.plugins");
+		plugin.setArtifactId("maven-release-plugin");
+		plugin.setVersion("2.5.3"); // must be in sync with POM !
+
+		plugin = addHelpGoal(plugin, "release");
+
+		return plugin;
+	}
+
+	private Plugin getMavenSuperPOMPlugin(String name, String version) {
+		Plugin plugin = new Plugin();
+		plugin.setGroupId("org.apache.maven.plugins");
+		plugin.setArtifactId(name);
+		plugin.setVersion(version);
+
+		plugin = addHelpGoal(plugin, name);
+
 		return plugin;
 	}
 
@@ -766,6 +695,11 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
 	private Plugin getPlugin(DefaultVersionsHelper helper, String groupId, String artifactId, String version, String prefix, List<String> goals) throws MojoExecutionException {
 		Artifact artifact = getArtifact(helper, groupId, artifactId, version, "maven-plugin");
+
+		return getPlugin(artifact, groupId, artifactId, version, prefix, goals);
+	}
+
+	private Plugin getPlugin(Artifact artifact, String groupId, String artifactId, String version, String prefix, List<String> goals) throws MojoExecutionException {
 		Plugin result = getPluginFromArtifact(artifact);
 
 		PluginExecution pluginExecution = new PluginExecution();
@@ -778,7 +712,22 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		return result;
 	}
 
-	/* @Component and @Parameter for DefaultVersionsHelper */
+	private Plugin addHelpGoal(Plugin plugin, String id) {
+		PluginExecution pluginExecution = new PluginExecution();
+		pluginExecution.setId(id);
+		pluginExecution.setPhase("validate");
+
+		List<String> goals = new ArrayList<String>();
+		goals.add("help");
+		pluginExecution.setGoals(goals);
+
+		plugin.addExecution(pluginExecution);
+
+		return plugin;
+	}
+
+
+	//<editor-fold desc="Components and parameters for DefaultVersionsHelper">
     @SuppressWarnings("deprecation")
 	@Component
     protected org.apache.maven.artifact.factory.ArtifactFactory artifactFactory;
@@ -823,11 +772,10 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
     @Component
     protected ArtifactResolver artifactResolver;
+	//</editor-fold>
 
-    /* end of @Component & @Parameter for DefaultVersionsHelper */
-
-	private Set<Plugin> getPluginArtifacts() throws MojoExecutionException {
-		HashSet<Plugin> result = new HashSet<Plugin>();
+	private List<Plugin> getPluginArtifacts() throws MojoExecutionException {
+		List<Plugin> result = new ArrayList<Plugin>();
 
 		DefaultVersionsHelper helper = new DefaultVersionsHelper(artifactFactory, artifactResolver, artifactMetadataSource, remoteArtifactRepositories, remotePluginRepositories, localRepository, wagonManager, settings, serverId, rulesUri, getLog(), session, pathTranslator);
 
@@ -849,6 +797,15 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		result.add(getMavenDeployPlugin());
 		result.add(getMavenInstallPlugin());
 		result.add(getMavenDependencyPlugin());
+		result.add(getMavenReleasePlugin());
+
+		result.add(getMavenSuperPOMPlugin("maven-assembly-plugin", "2.2-beta-5"));
+		result.add(getMavenSuperPOMPlugin("maven-clean-plugin", "2.5"));
+		result.add(getMavenSuperPOMPlugin("maven-install-plugin", "2.4"));
+		result.add(getMavenSuperPOMPlugin("maven-deploy-plugin", "2.7"));
+		result.add(getMavenSuperPOMPlugin("maven-site-plugin", "3.3"));
+		result.add(getMavenSuperPOMPlugin("maven-antrun-plugin", "1.3"));
+		result.add(getMavenSuperPOMPlugin("maven-dependency-plugin", "2.8"));
 
 		return result;
 	}

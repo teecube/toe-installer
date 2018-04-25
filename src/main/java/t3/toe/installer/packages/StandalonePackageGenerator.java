@@ -521,11 +521,11 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 						}
 					}
 				}
-				org.eclipse.aether.artifact.Artifact artifact = getArtifactFromPlugin(plugin);
-				artifact = artifact.setFile(mra.asFile());
-				installArtifact(project, localRepositoryPath, artifact);
 			}
-		}
+            org.eclipse.aether.artifact.Artifact artifact = getArtifactFromPlugin(plugin);
+            artifact = artifact.setFile(mra.asFile());
+            installArtifact(project, localRepositoryPath, artifact);
+        }
 		project.getBuild().getPlugins().addAll(plugins);
 
 		// create one POM per plugin with an execution in project/model/build

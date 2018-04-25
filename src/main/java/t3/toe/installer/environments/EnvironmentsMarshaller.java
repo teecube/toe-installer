@@ -16,17 +16,13 @@
  */
 package t3.toe.installer.environments;
 
-import java.io.File;
-import java.io.InputStream;
-
-import javax.xml.bind.JAXBException;
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.xml.sax.SAXException;
-
-import t3.toe.installer.environments.Environments;
-import t3.toe.installer.environments.ObjectFactory;
 import t3.xml.XMLMarshall;
+
+import javax.xml.bind.JAXBException;
+import java.io.File;
+import java.io.InputStream;
 
 public class EnvironmentsMarshaller extends XMLMarshall<Environments, ObjectFactory> {
 

@@ -16,8 +16,7 @@
  */
 package t3.toe.installer;
 
-import java.lang.reflect.Field;
-
+import com.google.inject.spi.TypeListener;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecution;
@@ -25,11 +24,10 @@ import org.apache.maven.plugin.PluginConfigurationException;
 import org.apache.maven.plugin.PluginContainerException;
 import org.apache.maven.plugin.internal.DefaultMavenPluginManager;
 import org.apache.maven.project.MavenProject;
-
-import com.google.inject.spi.TypeListener;
-
 import t3.MojosFactory;
 import t3.plugin.PluginManager;
+
+import java.lang.reflect.Field;
 
 /**
 *

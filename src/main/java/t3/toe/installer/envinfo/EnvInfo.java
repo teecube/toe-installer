@@ -16,6 +16,18 @@
  */
 package t3.toe.installer.envinfo;
 
+import com.tibco.envinfo.TIBCOEnvironment.Environment;
+import org.apache.commons.lang3.SystemUtils;
+import org.apache.maven.MavenExecutionException;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.xml.sax.SAXException;
+import t3.AdvancedMavenLifecycleParticipant;
+import t3.CommonMojo;
+import t3.plugin.PropertiesEnforcer;
+import t3.toe.installer.InstallerLifecycleParticipant;
+
+import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
@@ -23,21 +35,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.xml.bind.JAXBException;
-
-import org.apache.commons.lang3.SystemUtils;
-import org.apache.maven.MavenExecutionException;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.xml.sax.SAXException;
-
-import com.tibco.envinfo.TIBCOEnvironment.Environment;
-
-import t3.AdvancedMavenLifecycleParticipant;
-import t3.CommonMojo;
-import t3.plugin.PropertiesEnforcer;
-import t3.toe.installer.InstallerLifecycleParticipant;
 
 /**
 *

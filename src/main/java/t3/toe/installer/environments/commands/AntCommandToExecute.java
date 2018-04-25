@@ -20,7 +20,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import t3.CommonMojo;
 import t3.toe.installer.environments.AntCommand;
 import t3.toe.installer.environments.CustomProduct;
-import t3.toe.installer.environments.MavenCommand;
 import t3.toe.installer.environments.products.ProductToInstall;
 
 public class AntCommandToExecute extends CommandToExecute<AntCommand> {

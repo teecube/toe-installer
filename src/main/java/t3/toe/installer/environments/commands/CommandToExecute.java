@@ -20,14 +20,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
 import t3.CommonMojo;
-import t3.utils.Utils;
 import t3.log.PrefixedLogger;
 import t3.toe.installer.environments.AbstractCommand;
 import t3.toe.installer.environments.CustomProduct;
 import t3.toe.installer.environments.UncompressCommand;
 import t3.toe.installer.environments.products.CustomProductToInstall;
 import t3.toe.installer.environments.products.ProductToInstall;
+import t3.utils.Utils;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -176,7 +179,11 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
                 }
             }
             if (lastSelector.equals("uncompressCommand") && selector.equals("destinationDirectory")) {
-                o = ((UncompressCommand) o).getDestinationDirectory();
+                try {
+                    o = getDestinationDirectory((UncompressCommand) o);
+                } catch (MojoExecutionException e) {
+                    o = "";
+                }
             }
             lastSelector = selector;
         }
@@ -184,4 +191,26 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
         return o.toString();
     }
 
+    public static File getDestinationDirectory(UncompressCommand uncompressCommand) throws MojoExecutionException {
+        File result = null;
+
+        if (uncompressCommand == null) {
+            return result;
+        }
+
+        if (uncompressCommand.getDestination().getTempDirectory() != null) {
+            try {
+                result = Files.createTempDirectory("uncompress").toFile();
+            } catch (IOException e) {
+                throw new MojoExecutionException(e.getLocalizedMessage(), e);
+            }
+        } else {
+            if (StringUtils.isEmpty(uncompressCommand.getDestination().getDirectory())) {
+                throw new MojoExecutionException("No destination directory was specified.");
+            }
+            result = new File(uncompressCommand.getDestination().getDirectory());
+        }
+
+        return result;
+    }
 }

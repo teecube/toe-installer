@@ -16,20 +16,19 @@
  */
 package t3.toe.installer.installers;
 
-import java.io.File;
-import java.nio.file.FileAlreadyExistsException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-
 import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.ProductType;
+
+import java.io.File;
+import java.nio.file.FileAlreadyExistsException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
 * <p>

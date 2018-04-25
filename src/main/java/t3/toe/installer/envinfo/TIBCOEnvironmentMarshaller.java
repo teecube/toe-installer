@@ -16,16 +16,13 @@
  */
 package t3.toe.installer.envinfo;
 
-import java.io.File;
-
-import javax.xml.bind.JAXBException;
-
-import org.xml.sax.SAXException;
-
 import com.tibco.envinfo.ObjectFactory;
 import com.tibco.envinfo.TIBCOEnvironment;
-
+import org.xml.sax.SAXException;
 import t3.xml.XMLMarshall;
+
+import javax.xml.bind.JAXBException;
+import java.io.File;
 
 public class TIBCOEnvironmentMarshaller extends XMLMarshall<TIBCOEnvironment, ObjectFactory> {
 

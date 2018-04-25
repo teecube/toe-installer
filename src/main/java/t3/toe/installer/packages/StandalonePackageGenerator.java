@@ -43,6 +43,7 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.io.DefaultSettingsWriter;
 import org.codehaus.mojo.versions.api.ArtifactVersions;
 import org.codehaus.mojo.versions.api.DefaultVersionsHelper;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenResolvedArtifact;
@@ -161,6 +162,23 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
 	private boolean localTIBCOInstallationPackagesResolved = false;
 
+	private static final String messageIncludeTIBCOInstallationPackagesFromTopology  = "TIBCO and custom installation packages from topology file";
+	private static final String messageIncludeLocalTIBCOInstallationPackages  = "TIBCO installation packages resolved locally";
+	private static final String messageIncludePlugins  = "Maven plugins";
+	private static final String messageGenerateSettings  = "Maven settings.xml to use included Maven plugins";
+	private static final String messageGenerateTopology  = "environments topology file";
+	private static final String messageGenerateStandaloneArchive  = "a standalone archive wrapping all elements above";
+
+	@Override
+	protected void doExecute() throws MojoExecutionException {
+		// nothing to do
+	}
+
+	@Override
+	protected void generateTopology() throws MojoExecutionException {
+		super.generateTopology();
+	}
+
 	@Override
 	protected Boolean getGenerateTopology() throws MojoExecutionException {
 		return false;
@@ -170,13 +188,6 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 	protected File getTopologyGeneratedFile() {
 		return standaloneTopologyGeneratedFile;
 	}
-
-	private static final String messageIncludeTIBCOInstallationPackagesFromTopology  = "TIBCO and custom installation packages from topology file";
-	private static final String messageIncludeLocalTIBCOInstallationPackages  = "TIBCO installation packages resolved locally";
-	private static final String messageIncludePlugins  = "Maven plugins";
-	private static final String messageGenerateSettings  = "Maven settings.xml to use included Maven plugins";
-	private static final String messageGenerateTopology  = "environments topology file";
-	private static final String messageGenerateStandaloneArchive  = "a standalone archive wrapping all elements above";
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
@@ -371,7 +382,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
             Model model = project.getModel().clone();
             for (Iterator<Plugin> iterator = model.getBuild().getPlugins().iterator(); iterator.hasNext(); ) {
                 Plugin p = iterator.next();
-                if (!p.getKey().equals(plugin.getKey()) || (p.getExecutions().isEmpty())) {
+                if (!(p.getKey().equals(plugin.getKey()) && p.getVersion().equals(plugin.getVersion())) || (p.getExecutions().isEmpty())) {
                     iterator.remove();
                 }
             }
@@ -379,28 +390,91 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
             if (model.getBuild().getPlugins().isEmpty()) {
                 continue;
             }
-            try {
-                File tmpPom = File.createTempFile("pom", ".xml", tmpDirectory);
-                POMManager.writeModelToPOM(model, tmpPom);
-                List<String> goals = new ArrayList<String>();
-                for (String goal : model.getBuild().getPlugins().get(0).getExecutions().get(0).getGoals()) {
-                    goals.add(model.getBuild().getPlugins().get(0).getExecutions().get(0).getId() + ":" + goal);
-                }
-                Map.Entry<File, List<String>> entry = new AbstractMap.SimpleEntry<File, List<String>>(tmpPom, goals);
-                result.add(entry);
-            } catch (IOException e) {
-                throw new MojoExecutionException(e.getLocalizedMessage(), e);
-            }
+
+			for (PluginExecution pluginExecution : model.getBuild().getPlugins().get(0).getExecutions()) {
+				try {
+					Model m = model.clone();
+					for (Iterator<PluginExecution> iterator = m.getBuild().getPlugins().get(0).getExecutions().iterator(); iterator.hasNext(); ) {
+						PluginExecution pe = iterator.next();
+						if (!pe.getId().equals(pluginExecution.getId())) {
+							iterator.remove();
+						}
+					}
+
+					File tmpPom = File.createTempFile("pom", ".xml", tmpDirectory);
+					POMManager.writeModelToPOM(m, tmpPom);
+					List<String> goals = new ArrayList<String>();
+					for (String goal : pluginExecution.getGoals()) {
+						goals.add(pluginExecution.getId() + ":" + goal);
+					}
+					Map.Entry<File, List<String>> entry = new AbstractMap.SimpleEntry<File, List<String>>(tmpPom, goals);
+					result.add(entry);
+				} catch (IOException e) {
+					throw new MojoExecutionException(e.getLocalizedMessage(), e);
+				}
+			}
         }
         return result;
     }
 
-	private boolean includeTIBCOInstallationPackagesFromTopology() {
-		return (includeTopologyTIBCOInstallationPackages && topologyTemplateFile != null && topologyTemplateFile.exists());
+	private void doGenerateStandaloneTopology() throws IOException, MojoExecutionException {
+		getLog().info("");
+		if (topologyTemplateFile != null && topologyTemplateFile.exists()) {
+			FileUtils.copyFile(topologyTemplateFile, standaloneTopologyGeneratedFile);
+			getLog().info("Generating topology file using topology template '" + topologyTemplateFile + "'");
+		} else if (localTIBCOInstallationPackagesResolved) {
+			getLog().info("Generating topology file for the locally resolved TIBCO installation packages...");
+			// copy an empty topology to target file
+			InputStream emptyEnvironments = EnvironmentInstallerMojo.class.getResourceAsStream("/xml/environments.xml");
+			FileUtils.copyInputStreamToFile(emptyEnvironments, standaloneTopologyGeneratedFile);
+		} else {
+			getLog().warn("No locally resolved TIBCO installation packages nor topology template file found. Topology file will be empty.");
+		}
+
+		try {
+			super.doGenerateStandaloneTopology(standaloneTopologyGeneratedFile, TopologyType.REMOTE, true);
+		} catch (JAXBException | SAXException | MojoExecutionException e) {
+			throw new MojoExecutionException(e.getLocalizedMessage(), e);
+		}
 	}
 
-	private boolean includePlugins() {
-		return includePluginsInStandalone && !plugins.isEmpty();
+	protected MavenProject generateGoOfflineProject() throws MojoExecutionException {
+		MavenProject result = new MavenProject();
+
+		result.setModelVersion("4.0.0");
+		result.setGroupId("go-offline");
+		result.setArtifactId("go-offline");
+		result.setVersion("1");
+		result.setPackaging("pom");
+
+		Build build = new Build();
+		for (Plugin plugin : getPluginArtifacts()) {
+			build.addPlugin(plugin);
+		}
+
+		result.setBuild(build);
+
+		return result;
+	}
+
+	private void generateOfflineSettings() throws MojoExecutionException {
+		Settings defaultSettings = new Settings();
+
+		defaultSettings.setLocalRepository("./repository"); // use only offline repository
+		defaultSettings.setOffline(true); // offline to use only offline repository
+		// <pluginGroups> to define T3 plugins' groupIds
+		List<String> pluginGroups = new ArrayList<String>();
+		pluginGroups.add("io.teecube.tic");
+		pluginGroups.add("io.teecube.toe");
+		defaultSettings.setPluginGroups(pluginGroups );
+
+		// write the settings.xml in target/offline
+		DefaultSettingsWriter settingsWriter = new DefaultSettingsWriter();
+		try {
+			settingsWriter.write(new File(standaloneDirectory, "settings.xml"), null, defaultSettings);
+		} catch (IOException e) {
+			throw new MojoExecutionException(e.getLocalizedMessage(), e);
+		}
 	}
 
 	protected void goOffline(MavenProject project, File localRepositoryPath, String mavenVersion) throws MojoExecutionException {
@@ -430,14 +504,29 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
 		System.setProperty(MavenSettingsBuilder.ALT_LOCAL_REPOSITORY_LOCATION, session.getLocalRepository().getBasedir().replace("\\", "/"));
 
-        ConfigurableMavenResolverSystem mavenResolver = Maven.configureResolver();
+		ConfigurableMavenResolverSystem mavenResolver = Maven.configureResolver();
 
-        for (Plugin plugin : project.getBuild().getPlugins()) {
-            MavenResolvedArtifact mra = mavenResolver.resolve(plugin.getKey() + ":jar:" + plugin.getVersion()).withoutTransitivity().asSingle(MavenResolvedArtifact.class);
-			org.eclipse.aether.artifact.Artifact artifact = getArtifactFromPlugin(plugin);
-			artifact = artifact.setFile(mra.asFile());
-			installArtifact(project, localRepositoryPath, artifact);
+		// actually install plugins (to generate their metadata in order to use them on the command line)
+		List<Plugin> plugins = new ArrayList<Plugin>();
+
+		for (Plugin plugin : project.getBuild().getPlugins()) {
+			MavenResolvedArtifact mra = mavenResolver.resolve(plugin.getKey() + ":jar:" + plugin.getVersion()).withoutTransitivity().asSingle(MavenResolvedArtifact.class);
+			if (plugin.getGroupId().startsWith("io.teecube")) {
+				MavenResolvedArtifact[] alls = mavenResolver.resolve(plugin.getKey() + ":jar:" + plugin.getVersion()).withTransitivity().as(MavenResolvedArtifact.class);
+				for (MavenResolvedArtifact all : alls) {
+					if (all.getCoordinate().getGroupId().equals("org.apache.maven.plugins")) {
+						if (all.getCoordinate().getArtifactId().equals("maven-dependency-plugin") ||
+							all.getCoordinate().getArtifactId().equals("maven-enforcer-plugin")) {
+							plugins.add(getMavenPlugin(all.getCoordinate().getArtifactId(), all.getCoordinate().getVersion()));
+						}
+					}
+				}
+				org.eclipse.aether.artifact.Artifact artifact = getArtifactFromPlugin(plugin);
+				artifact = artifact.setFile(mra.asFile());
+				installArtifact(project, localRepositoryPath, artifact);
+			}
 		}
+		project.getBuild().getPlugins().addAll(plugins);
 
 		// create one POM per plugin with an execution in project/model/build
 		List<Map.Entry<File, List<String>>> pomsWithGoal = getPOMsFromProject(project, tmpDirectory);
@@ -462,6 +551,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 					}
 
 					if (result.getMavenLog().contains("[ERROR] " + Messages.ENFORCER_RULES_FAILURE) ||
+							result.getMavenLog().contains("Property groupId is missing.") || // this one for archetypes
 							result.getMavenLog().contains("Nothing to merge.") ||
 							result.getMavenLog().contains("Unable to load topology from file")) {
 						continue;
@@ -475,6 +565,14 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			System.setErr(oldSystemErr);
 			System.setOut(oldSystemOut);
 		}
+	}
+
+	private boolean includeTIBCOInstallationPackagesFromTopology() {
+		return (includeTopologyTIBCOInstallationPackages && topologyTemplateFile != null && topologyTemplateFile.exists());
+	}
+
+	private boolean includePlugins() {
+		return includePluginsInStandalone && !plugins.isEmpty();
 	}
 
 	private void installArtifact(MavenProject project, File localRepositoryPath, org.eclipse.aether.artifact.Artifact artifact) throws MojoExecutionException {
@@ -510,17 +608,17 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		}
 
 		executeMojo(
-				plugin(
-						groupId("org.apache.maven.plugins"),
-						artifactId(mavenPluginInstallArtifactId),
-						version(mavenPluginInstallVersion) // version defined in pom.xml of this plugin
-				),
-				goal("install-file"),
-				configuration(
-						configuration.toArray(new Element[0])
-				),
-				getEnvironment(project, session, pluginManager),
-				true
+			plugin(
+				groupId("org.apache.maven.plugins"),
+				artifactId(mavenPluginInstallArtifactId),
+				version(mavenPluginInstallVersion) // version defined in pom.xml of this plugin
+			),
+			goal("install-file"),
+			configuration(
+				configuration.toArray(new Element[0])
+			),
+			getEnvironment(project, session, pluginManager),
+			true
 		);
 
 		File artifactDirectory = new File(localRepositoryPath, artifact.getGroupId().replace(".", "/") + "/" + artifact.getArtifactId() + "/" + artifact.getVersion());
@@ -560,17 +658,17 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			configuration.add(new Element("packaging", "pom"));
 
 			executeMojo(
-					plugin(
-							groupId("org.apache.maven.plugins"),
-							artifactId(mavenPluginInstallArtifactId),
-							version(mavenPluginInstallVersion) // version defined in pom.xml of this plugin
-					),
-					goal("install-file"),
-					configuration(
-							configuration.toArray(new Element[0])
-					),
-					executionEnvironment(project, session, pluginManager),
-					true
+				plugin(
+					groupId("org.apache.maven.plugins"),
+					artifactId(mavenPluginInstallArtifactId),
+					version(mavenPluginInstallVersion) // version defined in pom.xml of this plugin
+				),
+				goal("install-file"),
+				configuration(
+					configuration.toArray(new Element[0])
+				),
+				executionEnvironment(project, session, pluginManager),
+				true
 			);
 		}
 	}
@@ -624,116 +722,89 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 	}
 
 	private Plugin getToeDomainsPlugin(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
-		List<String> goals = new ArrayList<String>();
-		goals.add("bw6-domain-create");
-		return getPlugin(helper, "io.teecube.toe", "toe-domains-plugin", version, "toe-domains", goals);
+		return getTeecubePlugin(helper, "io.teecube.toe", "toe-domains-plugin", version);
 	}
 
 	private Plugin getToeInstallerPlugin(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
-		List<String> goals = new ArrayList<String>();
-		goals.add("envinfo-list");
-		goals.add("configure-bw6");
-		return getPlugin(helper, InstallerLifecycleParticipant.pluginGroupId, InstallerLifecycleParticipant.pluginArtifactId, version, "toe", goals);
+		return getTeecubePlugin(helper, InstallerLifecycleParticipant.pluginGroupId, InstallerLifecycleParticipant.pluginArtifactId, version);
 	}
 
 	private Plugin getTicBW5Plugin(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
-		List<String> goals = new ArrayList<String>();
-		goals.add("properties-merge");
-		return getPlugin(helper, "io.teecube.tic", "tic-bw5", version, "bw5", goals);
+		return getTeecubePlugin(helper, "io.teecube.tic", "tic-bw5", version);
 	}
 	
 	private Plugin getTicBW6Plugin(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
-		List<String> goals = new ArrayList<String>();
-		goals.add("studio-proxy-uninstall");
-		goals.add("p2maven-install");
-		return getPlugin(helper, "io.teecube.tic", "tic-bw6", version, "bw6", goals);
+		return getTeecubePlugin(helper, "io.teecube.tic", "tic-bw6", version);
 	}
 
-	private Plugin getMavenDeployPlugin() {
+	private Plugin getMavenPlugin(String groupId, String artifactId, String version) {
 		Plugin plugin = new Plugin();
-		plugin.setGroupId("org.apache.maven.plugins");
-		plugin.setArtifactId("maven-deploy-plugin");
-		plugin.setVersion("2.8.2"); // must be in sync with POM !
-
-		plugin = addHelpGoal(plugin, "deploy");
-
-		return plugin;
-	}
-
-	private Plugin getMavenInstallPlugin() {
-		Plugin plugin = new Plugin();
-		plugin.setGroupId("org.apache.maven.plugins");
-		plugin.setArtifactId("maven-install-plugin");
-		plugin.setVersion("2.5.2"); // must be in sync with POM !
-
-		plugin = addHelpGoal(plugin, "install");
-
-		return plugin;
-	}
-
-	private Plugin getMavenDependencyPlugin() {
-		Plugin plugin = new Plugin();
-		plugin.setGroupId("org.apache.maven.plugins");
-		plugin.setArtifactId("maven-dependency-plugin");
-		plugin.setVersion("3.0.2"); // must be in sync with POM !
-
-		plugin = addHelpGoal(plugin, "dependency");
-
-		return plugin;
-	}
-
-	private Plugin getMavenReleasePlugin() {
-		Plugin plugin = new Plugin();
-		plugin.setGroupId("org.apache.maven.plugins");
-		plugin.setArtifactId("maven-release-plugin");
-		plugin.setVersion("2.5.3"); // must be in sync with POM !
-
-		plugin = addHelpGoal(plugin, "release");
-
-		return plugin;
-	}
-
-	private Plugin getMavenSuperPOMPlugin(String name, String version) {
-		Plugin plugin = new Plugin();
-		plugin.setGroupId("org.apache.maven.plugins");
-		plugin.setArtifactId(name);
+		plugin.setGroupId(groupId);
+		plugin.setArtifactId(artifactId);
 		plugin.setVersion(version);
 
-		plugin = addHelpGoal(plugin, name);
+		plugin = addHelpGoal(plugin, artifactId);
 
 		return plugin;
 	}
 
-	private List<Plugin> getTacArchetypes(DefaultVersionsHelper helper, String tacArchetypesVersion) throws MojoExecutionException {
-		List<Plugin> result = new ArrayList<Plugin>();
+	private Plugin getMavenPlugin(String artifactId, String version) {
+		return getMavenPlugin("org.apache.maven.plugins", artifactId, version);
+	}
+
+	private Plugin getTacArchetypes(DefaultVersionsHelper helper, String tacArchetypesVersion) throws MojoExecutionException {
+		// generate one execution of maven-archetype-plugin per achetype
+		Plugin plugin = new Plugin();
+		plugin.setGroupId("org.apache.maven.plugins");
+		plugin.setArtifactId("maven-archetype-plugin");
+		plugin.setVersion("3.0.1");
+
+		List<PluginExecution> executions = new ArrayList<PluginExecution>();
+		List<String> generateGoal = new ArrayList<String>();
+		generateGoal.add("generate");
+
 		String[] artifactsId = tacArchetypesArtifactsId.split(",");
 		for (int i = 0; i < artifactsId.length; i++) {
-			String artifactId = artifactsId[i];
+			String currentArtifactId = artifactsId[i];
 
-			Artifact artifact = getArtifact(helper, "io.teecube.tac.archetypes", artifactId, tacArchetypesVersion, "maven-archetype");
-			Plugin plugin = getPluginFromArtifact(artifact);
-			result.add(plugin);
+			PluginExecution execution = new PluginExecution();
+			execution.setId(currentArtifactId);
+			execution.setPhase("validate");
+			execution.setGoals(generateGoal);
+
+			Xpp3Dom configuration = new Xpp3Dom("configuration");
+			Xpp3Dom archetypeGroupId = new Xpp3Dom("archetypeGroupId");
+			archetypeGroupId.setValue("io.teecube.tac.archetypes");
+			Xpp3Dom archetypeArtifactId = new Xpp3Dom("archetypeArtifactId");
+			archetypeArtifactId.setValue(currentArtifactId);
+			Xpp3Dom interactiveMode = new Xpp3Dom("interactiveMode");
+			interactiveMode.setValue("false");
+
+			configuration.addChild(archetypeGroupId);
+			configuration.addChild(archetypeArtifactId);
+			configuration.addChild(interactiveMode);
+
+			execution.setConfiguration(configuration);
+
+			executions.add(execution);
 		}
-		return result;
+
+		plugin.setExecutions(executions);
+
+		return plugin;
 	}
 
-	private Plugin getPlugin(DefaultVersionsHelper helper, String groupId, String artifactId, String version, String prefix, List<String> goals) throws MojoExecutionException {
+	private Plugin getTeecubePlugin(DefaultVersionsHelper helper, String groupId, String artifactId, String version) throws MojoExecutionException {
 		Artifact artifact = getArtifact(helper, groupId, artifactId, version, "maven-plugin");
 
-		return getPlugin(artifact, groupId, artifactId, version, prefix, goals);
+		Plugin plugin = getTeecubePlugin(artifact);
+		plugin = addHelpGoal(plugin, artifactId);
+
+		return plugin;
 	}
 
-	private Plugin getPlugin(Artifact artifact, String groupId, String artifactId, String version, String prefix, List<String> goals) throws MojoExecutionException {
-		Plugin result = getPluginFromArtifact(artifact);
-
-		PluginExecution pluginExecution = new PluginExecution();
-		pluginExecution.setId(prefix);
-		pluginExecution.setPhase("validate");
-		pluginExecution.setGoals(goals);
-
-		result.addExecution(pluginExecution);
-
-		return result;
+	private Plugin getTeecubePlugin(Artifact artifact) {
+		return getPluginFromArtifact(artifact);
 	}
 
 	private Plugin addHelpGoal(Plugin plugin, String id) {
@@ -750,6 +821,43 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		return plugin;
 	}
 
+	private List<Plugin> getPluginArtifacts() throws MojoExecutionException {
+		List<Plugin> result = new ArrayList<Plugin>();
+
+		DefaultVersionsHelper helper = new DefaultVersionsHelper(artifactFactory, artifactResolver, artifactMetadataSource, remoteArtifactRepositories, remotePluginRepositories, localRepository, wagonManager, settings, serverId, rulesUri, getLog(), session, pathTranslator);
+
+		if (plugins.contains(T3Plugins.TOE_DOMAINS)) {
+			result.add(getToeDomainsPlugin(helper, toeDomainsVersion));
+		}
+		if (plugins.contains(T3Plugins.TOE_INSTALLER)) {
+			result.add(getToeInstallerPlugin(helper, toeInstallerVersion));
+		}
+		if (plugins.contains(T3Plugins.TIC_BW5)) {
+			result.add(getTicBW5Plugin(helper, ticBW5Version));
+		}
+		if (plugins.contains(T3Plugins.TIC_BW6)) {
+			result.add(getTicBW6Plugin(helper, ticBW6Version));
+		}
+		if (plugins.contains(T3Plugins.TAC_ARCHETYPES)) {
+			result.add(getTacArchetypes(helper, tacArchetypesVersion)); // this include maven-archetype-plugin
+		} else {
+			// required to create project from Maven archetypes
+			result.add(getMavenPlugin("maven-archetype-plugin", "3.0.1"));
+		}
+
+		// Maven plugins from Super POM (from Maven 3.3.3 to Maven 3.5.3)
+		result.add(getMavenPlugin("maven-antrun-plugin", "1.3"));
+		result.add(getMavenPlugin("maven-assembly-plugin", "2.2-beta-5"));
+		result.add(getMavenPlugin("maven-clean-plugin", "2.5"));
+		result.add(getMavenPlugin("maven-dependency-plugin", "2.8"));
+		result.add(getMavenPlugin("maven-deploy-plugin", "2.7"));
+		result.add(getMavenPlugin("maven-install-plugin", "2.4"));
+		result.add(getMavenPlugin("maven-release-plugin", "2.3.2"));
+		result.add(getMavenPlugin("maven-release-plugin", "2.5.3"));
+		result.add(getMavenPlugin("maven-site-plugin", "3.3"));
+
+		return result;
+	}
 
 	//<editor-fold desc="Components and parameters for DefaultVersionsHelper">
     @SuppressWarnings("deprecation")
@@ -798,111 +906,4 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
     protected ArtifactResolver artifactResolver;
 	//</editor-fold>
 
-	private List<Plugin> getPluginArtifacts() throws MojoExecutionException {
-		List<Plugin> result = new ArrayList<Plugin>();
-
-		DefaultVersionsHelper helper = new DefaultVersionsHelper(artifactFactory, artifactResolver, artifactMetadataSource, remoteArtifactRepositories, remotePluginRepositories, localRepository, wagonManager, settings, serverId, rulesUri, getLog(), session, pathTranslator);
-
-		if (plugins.contains(T3Plugins.TOE_DOMAINS)) {
-			result.add(getToeDomainsPlugin(helper, toeDomainsVersion));
-		}
-		if (plugins.contains(T3Plugins.TOE_INSTALLER)) {
-			result.add(getToeInstallerPlugin(helper, toeInstallerVersion));
-		}
-		if (plugins.contains(T3Plugins.TIC_BW5)) {
-			result.add(getTicBW5Plugin(helper, ticBW5Version));
-		}
-		if (plugins.contains(T3Plugins.TIC_BW6)) {
-			result.add(getTicBW6Plugin(helper, ticBW6Version));
-		}
-		if (plugins.contains(T3Plugins.TAC_ARCHETYPES)) {
-			result.addAll(getTacArchetypes(helper, tacArchetypesVersion));
-		}
-		result.add(getMavenDeployPlugin());
-		result.add(getMavenInstallPlugin());
-		result.add(getMavenDependencyPlugin());
-		result.add(getMavenReleasePlugin());
-
-		result.add(getMavenSuperPOMPlugin("maven-assembly-plugin", "2.2-beta-5"));
-		result.add(getMavenSuperPOMPlugin("maven-clean-plugin", "2.5"));
-		result.add(getMavenSuperPOMPlugin("maven-install-plugin", "2.4"));
-		result.add(getMavenSuperPOMPlugin("maven-deploy-plugin", "2.7"));
-		result.add(getMavenSuperPOMPlugin("maven-site-plugin", "3.3"));
-		result.add(getMavenSuperPOMPlugin("maven-antrun-plugin", "1.3"));
-		result.add(getMavenSuperPOMPlugin("maven-dependency-plugin", "2.8"));
-		result.add(getMavenSuperPOMPlugin("maven-release-plugin", "2.3.2"));
-
-		return result;
-	}
-
-	protected MavenProject generateGoOfflineProject() throws MojoExecutionException {
-		MavenProject result = new MavenProject();
-
-		result.setModelVersion("4.0.0");
-		result.setGroupId("go-offline");
-		result.setArtifactId("go-offline");
-		result.setVersion("1");
-		result.setPackaging("pom");
-
-		Build build = new Build();
-		for (Plugin plugin : getPluginArtifacts()) {
-			build.addPlugin(plugin);
-		}
-
-		result.setBuild(build);
-
-		return result;
-	}
-
-	private void generateOfflineSettings() throws MojoExecutionException {
-		Settings defaultSettings = new Settings();
-
-		defaultSettings.setLocalRepository("./repository"); // use only offline repository
-		defaultSettings.setOffline(true); // offline to use only offline repository
-		// <pluginGroups> to define T3 plugins' groupIds
-		List<String> pluginGroups = new ArrayList<String>();
-		pluginGroups.add("io.teecube.tic");
-		pluginGroups.add("io.teecube.toe");
-		defaultSettings.setPluginGroups(pluginGroups );
-
-		// write the settings.xml in target/offline
-		DefaultSettingsWriter settingsWriter = new DefaultSettingsWriter();
-		try {
-			settingsWriter.write(new File(standaloneDirectory, "settings.xml"), null, defaultSettings);
-		} catch (IOException e) {
-			throw new MojoExecutionException(e.getLocalizedMessage(), e);
-		}
-	}
-
-	private void doGenerateStandaloneTopology() throws IOException, MojoExecutionException {
-		getLog().info("");
-		if (topologyTemplateFile != null && topologyTemplateFile.exists()) {
-			FileUtils.copyFile(topologyTemplateFile, standaloneTopologyGeneratedFile);
-			getLog().info("Generating topology file using topology template '" + topologyTemplateFile + "'");
-		} else if (localTIBCOInstallationPackagesResolved) {
-			getLog().info("Generating topology file for the locally resolved TIBCO installation packages...");
-			// copy an empty topology to target file
-			InputStream emptyEnvironments = EnvironmentInstallerMojo.class.getResourceAsStream("/xml/environments.xml");
-			FileUtils.copyInputStreamToFile(emptyEnvironments, standaloneTopologyGeneratedFile);
-		} else {
-			getLog().warn("No locally resolved TIBCO installation packages nor topology template file found. Topology file will be empty.");
-		}
-
-		try {
-			super.doGenerateStandaloneTopology(standaloneTopologyGeneratedFile, TopologyType.REMOTE, true);
-		} catch (JAXBException | SAXException | MojoExecutionException e) {
-			throw new MojoExecutionException(e.getLocalizedMessage(), e);
-		}
-	}
-
-	@Override
-	protected void doExecute() throws MojoExecutionException {
-
-	}
-
-
-	@Override
-	protected void generateTopology() throws MojoExecutionException {
-		super.generateTopology();
-	}
 }

@@ -16,10 +16,6 @@
  */
 package t3.toe.installer;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.artifact.repository.ArtifactRepositoryFactory;
@@ -32,12 +28,14 @@ import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.Logger;
-
 import t3.AdvancedMavenLifecycleParticipant;
 import t3.CommonMavenLifecycleParticipant;
-import t3.CommonMojo;
 import t3.plugin.PluginConfigurator;
 import t3.plugin.PluginManager;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *

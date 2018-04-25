@@ -16,39 +16,9 @@
  */
 package t3.toe.installer;
 
-import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.groupId;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.validation.constraints.NotNull;
-
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.ExecuteWatchdog;
-import org.apache.commons.exec.PumpStreamHandler;
-import org.apache.commons.exec.ShutdownHookProcessDestroyer;
+import com.google.common.io.Files;
+import com.tibco.envinfo.TIBCOEnvironment.Environment;
+import org.apache.commons.exec.*;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
@@ -63,11 +33,7 @@ import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.archiver.manager.ArchiverManager;
 import org.codehaus.plexus.archiver.manager.NoSuchArchiverException;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
-import org.twdata.maven.mojoexecutor.MojoExecutor.Element;
-
-import com.google.common.io.Files;
-import com.tibco.envinfo.TIBCOEnvironment.Environment;
-
+import org.twdata.maven.mojoexecutor.MojoExecutor.*;
 import t3.AdvancedMavenLifecycleParticipant;
 import t3.CommonMojo;
 import t3.log.NoOpLogger;
@@ -77,6 +43,14 @@ import t3.plugin.annotations.Parameter;
 import t3.toe.installer.envinfo.EnvInfo;
 import t3.toe.installer.envinfo.RemoveEnvInfoMojo;
 import t3.toe.installer.environments.ProductType;
+
+import javax.validation.constraints.NotNull;
+import java.io.*;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
 /**
 *

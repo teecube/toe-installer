@@ -16,19 +16,11 @@
  */
 package t3.toe.installer.environments;
 
-import com.google.common.collect.FluentIterable;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
-import org.twdata.maven.mojoexecutor.MojoExecutor;
 import t3.CommonMojo;
-import t3.toe.installer.environments.products.CustomProductToInstall;
-import t3.toe.installer.environments.products.ProductToInstall;
-import t3.toe.installer.environments.products.TIBCOProductToInstall;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class EnvironmentsToInstall extends ArrayList<EnvironmentToInstall> {

@@ -19,16 +19,13 @@ package t3.toe.installer.environments.commands;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import t3.CommonMojo;
-import t3.toe.installer.environments.CustomProduct;
 import t3.toe.installer.environments.SystemCommand;
 import t3.toe.installer.environments.products.CustomProductToInstall;
 import t3.toe.installer.environments.products.ProductToInstall;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Files;
 import java.util.regex.Matcher;
 
 public class SystemCommandToExecute extends CommandToExecute<SystemCommand> {

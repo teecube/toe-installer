@@ -254,7 +254,14 @@
 		<xs:complexContent>
 			<xs:extension base="AbstractCommand">
 				<xs:sequence>
-					<xs:element name="destinationDirectory" type="xs:string" minOccurs="0" maxOccurs="1"/>
+					<xs:element name="destination">
+						<xs:complexType>
+							<xs:choice>
+								<xs:element name="directory" type="xs:string" />
+								<xs:element name="tempDirectory" />
+							</xs:choice>
+						</xs:complexType>
+					</xs:element>
 				</xs:sequence>
 				<xs:attribute name="format" type="UncompressFormat" default="auto"/>
 				<xs:attribute name="toTempDirectory" type="xs:boolean" default="false" />

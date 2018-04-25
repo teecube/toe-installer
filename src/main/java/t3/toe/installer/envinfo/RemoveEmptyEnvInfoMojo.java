@@ -16,15 +16,13 @@
  */
 package t3.toe.installer.envinfo;
 
-import java.io.File;
-import java.util.Iterator;
-
+import com.tibco.envinfo.TIBCOEnvironment.Environment;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-
-import com.tibco.envinfo.TIBCOEnvironment.Environment;
-
 import t3.plugin.annotations.Mojo;
+
+import java.io.File;
+import java.util.Iterator;
 
 /**
 * <p>

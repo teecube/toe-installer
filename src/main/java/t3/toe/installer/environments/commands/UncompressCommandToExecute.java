@@ -17,7 +17,6 @@
 package t3.toe.installer.environments.commands;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.archiver.AbstractUnArchiver;
 import org.codehaus.plexus.archiver.tar.TarUnArchiver;
@@ -28,8 +27,6 @@ import t3.toe.installer.environments.products.CustomProductToInstall;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Files;
 
 public class UncompressCommandToExecute extends CommandToExecute<UncompressCommand> {
 
@@ -63,35 +60,22 @@ public class UncompressCommandToExecute extends CommandToExecute<UncompressComma
 
     @Override
     public void doExecuteCommand(String commandPrefix, String commandCaption) throws MojoExecutionException {
-        if (productToInstall != null && productToInstall.getResolvedInstallationPackage() != null && productToInstall.getResolvedInstallationPackage().exists()) {
-            getLog().info("Uncompressing file '" + productToInstall.getResolvedInstallationPackage().getAbsolutePath() + "'");
-        } else {
+        if (productToInstall == null || productToInstall.getResolvedInstallationPackage() == null || !productToInstall.getResolvedInstallationPackage().exists()) {
             getLog().error("The package file for this custom product was not resolved.");
             throw new MojoExecutionException("The package file for this custom product was not resolved.", new FileNotFoundException());
         }
 
         File resolvedInstallationPackage = productToInstall.getResolvedInstallationPackage();
-        File destinationDirectory;
+        File destinationDirectory = CommandToExecute.getDestinationDirectory(command);
 
-        if (this.command.isToTempDirectory()) {
-            try {
-                destinationDirectory = Files.createTempDirectory("uncompress").toFile();
-            } catch (IOException e) {
-                throw new MojoExecutionException(e.getLocalizedMessage(), e);
-            }
-        } else {
-            if (StringUtils.isEmpty(command.getDestinationDirectory())) {
-                getLog().error("No destination directory was specified.");
-                throw new MojoExecutionException("No destination directory was specified.");
-            }
-            destinationDirectory = new File(command.getDestinationDirectory());
-        }
         if (!destinationDirectory.exists()) {
             destinationDirectory.mkdirs();
             if (!destinationDirectory.exists()) {
                 throw new MojoExecutionException("Unable to create destination directory '" + destinationDirectory.getAbsolutePath() + "'");
             }
         }
+
+        getLog().info("Uncompressing file '" + productToInstall.getResolvedInstallationPackage().getAbsolutePath() + "' to '" + destinationDirectory.getAbsolutePath() + "'");
 
         switch (this.uncompressCommand.getFormat()) {
             case TAR:

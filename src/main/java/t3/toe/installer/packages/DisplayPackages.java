@@ -16,14 +16,13 @@
  */
 package t3.toe.installer.packages;
 
-import java.io.File;
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-
 import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.InstallerMojosInformation;
+
+import java.io.File;
 
 /**
 * <p>

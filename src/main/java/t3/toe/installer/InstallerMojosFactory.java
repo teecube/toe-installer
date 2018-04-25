@@ -16,26 +16,19 @@
  */
 package t3.toe.installer;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.maven.plugin.AbstractMojo;
-
 import t3.CommonMojo;
 import t3.MojosFactory;
 import t3.toe.installer.envinfo.ListEnvInfoMojo;
 import t3.toe.installer.envinfo.RemoveEnvInfoMojo;
 import t3.toe.installer.environments.EnvironmentInstallerMojo;
-import t3.toe.installer.installers.AdminInstallerMojo;
-import t3.toe.installer.installers.BW5InstallerMojo;
-import t3.toe.installer.installers.BW6InstallerMojo;
-import t3.toe.installer.installers.EMSInstallerMojo;
-import t3.toe.installer.installers.RVInstallerMojo;
-import t3.toe.installer.installers.TEAInstallerMojo;
-import t3.toe.installer.installers.TRAInstallerMojo;
+import t3.toe.installer.installers.*;
 import t3.toe.installer.packages.DisplayPackages;
 import t3.toe.installer.packages.InstallPackages;
 import t3.toe.installer.packages.StandalonePackageGenerator;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *

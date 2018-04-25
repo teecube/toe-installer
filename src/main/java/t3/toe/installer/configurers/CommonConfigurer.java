@@ -16,15 +16,11 @@
  */
 package t3.toe.installer.configurers;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
+import com.tibco.envinfo.TIBCOEnvironment;
+import com.tibco.envinfo.TIBCOEnvironment.Environment;
+import lombok.ast.libs.com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Plugin;
@@ -41,20 +37,9 @@ import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.graph.DependencyFilter;
 import org.eclipse.aether.repository.RemoteRepository;
-import org.eclipse.aether.resolution.ArtifactRequest;
-import org.eclipse.aether.resolution.ArtifactResolutionException;
-import org.eclipse.aether.resolution.ArtifactResult;
-import org.eclipse.aether.resolution.DependencyRequest;
-import org.eclipse.aether.resolution.DependencyResolutionException;
+import org.eclipse.aether.resolution.*;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.filter.DependencyFilterUtils;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
-import com.tibco.envinfo.TIBCOEnvironment;
-import com.tibco.envinfo.TIBCOEnvironment.Environment;
-
-import lombok.ast.libs.com.google.common.collect.Lists;
 import t3.AdvancedMavenLifecycleParticipant;
 import t3.CommonMojo;
 import t3.plugin.annotations.Parameter;
@@ -62,6 +47,15 @@ import t3.site.GenerateGlobalParametersDocMojo;
 import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerLifecycleParticipant;
 import t3.toe.installer.InstallerMojosInformation;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
 
 /**
 *

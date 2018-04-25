@@ -16,18 +16,16 @@
  */
 package t3.toe.installer.configurers;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.util.Properties;
-
+import com.tibco.envinfo.TIBCOEnvironment.Environment;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-
-import com.tibco.envinfo.TIBCOEnvironment.Environment;
-
 import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.InstallerMojosInformation;
+
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.Properties;
 
 /**
 * <p>

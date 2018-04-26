@@ -388,6 +388,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 		logger.info("");
 		logger.info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
+		logger.info("");
 
 		executeMojo(
 			plugin(

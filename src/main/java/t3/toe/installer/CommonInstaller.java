@@ -616,6 +616,7 @@ public abstract class CommonInstaller extends CommonMojo {
 		getLog().info("Detected a dependency. Installing...");
 		getLog().info("");
 		getLog().info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
+		getLog().info("");
 
 		ArrayList<Element> configuration = new ArrayList<Element>();
 		if (!firstDependency) {

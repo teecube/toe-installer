@@ -55,19 +55,6 @@ public class EnvInfo extends CommonMojo {
 		return new InstallerLifecycleParticipant();
 	}
 
-	@Override
-	protected <T> void initStandalonePOM() throws MojoExecutionException {
-		super.initStandalonePOM();
-
-		try {
-			if (pluginManager != null) {
-				PropertiesEnforcer.enforceProperties(session, pluginManager, logger, new ArrayList<String>(), InstallerLifecycleParticipant.class, InstallerLifecycleParticipant.pluginKey); // check that all mandatory properties are correct
-			}
-		} catch (MavenExecutionException e) {
-			throw new MojoExecutionException(e.getLocalizedMessage(), e);
-		}
-	}
-
 	private List<File> getEnvInfos() {
 		List<File> result = new ArrayList<File>();
 

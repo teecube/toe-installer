@@ -509,6 +509,10 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		// actually install plugins (to generate their metadata in order to use them on the command line)
 		List<Plugin> plugins = new ArrayList<Plugin>();
 
+		// magic Plexus Utils v1.1 as defined in https://github.com/apache/maven/blob/master/maven-core/src/main/java/org/apache/maven/plugin/internal/PlexusUtilsInjector.java
+//		MavenResolvedArtifact plexusUtils11 = mavenResolver.resolve("org.codehaus.plexus:plexus-utils:jar:1.1").withoutTransitivity().asSingle(MavenResolvedArtifact.class);
+//		installArtifact(project, localRepositoryPath, getArtifactFromMavenResolvedArtifact(plexusUtils11));
+
 		for (Plugin plugin : project.getBuild().getPlugins()) {
 			MavenResolvedArtifact mra = mavenResolver.resolve(plugin.getKey() + ":jar:" + plugin.getVersion()).withoutTransitivity().asSingle(MavenResolvedArtifact.class);
 			if (plugin.getGroupId().startsWith("io.teecube")) {
@@ -516,6 +520,8 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 				for (MavenResolvedArtifact all : alls) {
 					if (all.getCoordinate().getGroupId().equals("org.apache.maven.plugins")) {
 						if (all.getCoordinate().getArtifactId().equals("maven-dependency-plugin") ||
+							all.getCoordinate().getArtifactId().equals("maven-deploy-plugin") ||
+							all.getCoordinate().getArtifactId().equals("maven-install-plugin") ||
 							all.getCoordinate().getArtifactId().equals("maven-enforcer-plugin")) {
 							plugins.add(getMavenPlugin(all.getCoordinate().getArtifactId(), all.getCoordinate().getVersion()));
 						}
@@ -700,6 +706,20 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
 		pluginArtifact.setVersion(version);
 		return pluginArtifact;
+	}
+
+	private org.eclipse.aether.artifact.Artifact getArtifactFromMavenResolvedArtifact(MavenResolvedArtifact mavenResolvedArtifact) {
+		String coords = mavenResolvedArtifact.getCoordinate().getGroupId() + ":" +
+						mavenResolvedArtifact.getCoordinate().getArtifactId() + ":" +
+						mavenResolvedArtifact.getExtension() + ":" +
+						mavenResolvedArtifact.getResolvedVersion();
+		org.eclipse.aether.artifact.Artifact artifact = new org.eclipse.aether.artifact.DefaultArtifact(coords);
+		File resolvedFile = mavenResolvedArtifact.asFile();
+		if (resolvedFile != null) {
+			artifact = artifact.setFile(resolvedFile);
+		}
+
+		return artifact;
 	}
 
 	private org.eclipse.aether.artifact.Artifact getArtifactFromPlugin(Plugin plugin) {

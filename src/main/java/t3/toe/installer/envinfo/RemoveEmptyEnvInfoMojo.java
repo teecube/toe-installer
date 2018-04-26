@@ -47,18 +47,25 @@ public class RemoveEmptyEnvInfoMojo extends EnvInfo {
 		super.execute();
 
 		getLog().info("");
+
+		boolean atLeastOneEnvironmentRemoved = false;
 		for (Iterator<Environment> it = getEnvironments().values().iterator(); it.hasNext();) {
 			Environment env = (Environment) it.next();
 
 			if (!new File(env.getLocation()).exists()) {
 				getLog().info("Removing non existing environment : " + env.getName() + "=" + env.getLocation());
 				it.remove();
+				if (!atLeastOneEnvironmentRemoved) {
+					atLeastOneEnvironmentRemoved = true;
+				}
 			}
 		}
 
 		saveEnvironments(getEnvironments(), envInfosFiles);
 
-		getLog().info("");
+		if (atLeastOneEnvironmentRemoved) {
+			getLog().info("");
+		}
 		getLog().info("Remaining environments:");
 		displayEnvironments();
 	}

@@ -1,0 +1,6 @@
+# default t3-common plugins
+
+org.apache.maven.plugins:maven-dependency-plugin
+org.apache.maven.plugins:maven-deploy-plugin
+org.apache.maven.plugins:maven-install-plugin
+org.apache.maven.plugins:maven-enforcer-plugin

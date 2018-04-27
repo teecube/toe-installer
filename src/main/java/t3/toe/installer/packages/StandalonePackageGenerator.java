@@ -62,13 +62,12 @@ import t3.utils.POMManager;
 import t3.utils.Utils;
 
 import javax.xml.bind.JAXBException;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Level;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
@@ -516,6 +515,12 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		for (Plugin plugin : project.getBuild().getPlugins()) {
 			MavenResolvedArtifact mra = mavenResolver.resolve(plugin.getKey() + ":jar:" + plugin.getVersion()).withoutTransitivity().asSingle(MavenResolvedArtifact.class);
 			if (plugin.getGroupId().startsWith("io.teecube")) {
+				File pluginJarFile = mra.asFile();
+				if (!pluginJarFile.exists()) {
+					getLog().warn("The plugin file does not exist.");
+				} else {
+					addIndirectPlugins(pluginJarFile);
+				}
 				MavenResolvedArtifact[] alls = mavenResolver.resolve(plugin.getKey() + ":jar:" + plugin.getVersion()).withTransitivity().as(MavenResolvedArtifact.class);
 				for (MavenResolvedArtifact all : alls) {
 					if (all.getCoordinate().getGroupId().equals("org.apache.maven.plugins")) {
@@ -571,6 +576,40 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			System.setErr(oldSystemErr);
 			System.setOut(oldSystemOut);
 		}
+	}
+
+	private void addIndirectPlugins(File pluginJarFile) throws MojoExecutionException {
+		ZipInputStream zipStream = null;
+		try {
+			zipStream = new ZipInputStream(new FileInputStream(pluginJarFile));
+			ZipEntry entry = null;
+			byte[] buffer = new byte[2048];
+
+			while ((entry = zipStream.getNextEntry()) != null ) {
+				if ("plugins-configuration/plugins.list".equals(entry.getName())) {
+					ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+					int len;
+					while ((len = zipStream.read(buffer)) > 0) {
+						byteArrayOutputStream.write(buffer, 0, len);
+					}
+
+					String pluginsList = byteArrayOutputStream.toString("UTF8");
+					BufferedReader bufferedReader = new BufferedReader(new StringReader(pluginsList));
+					String line = null;
+					while ((line = bufferedReader.readLine()) != null) {
+						line = line.trim();
+						if (line.isEmpty() || line.startsWith("#")) continue;
+
+						addIndirectPlugin(line);
+					}
+				}
+			}
+		} catch (IOException e) {
+			throw new MojoExecutionException(e.getLocalizedMessage(), e);
+		}
+	}
+
+	private void addIndirectPlugin(String pluginCoordinate) {
 	}
 
 	private boolean includeTIBCOInstallationPackagesFromTopology() {

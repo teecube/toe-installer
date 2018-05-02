@@ -66,6 +66,8 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -374,8 +376,8 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		}
 	}
 
-	protected List<Map.Entry<File, List<String>>> getPOMsFromProject(MavenProject project, File tmpDirectory) throws MojoExecutionException {
-        List<Map.Entry<File, List<String>>> result = new ArrayList<Map.Entry<File, List<String>>>();
+	protected List<File> getPOMsFromProject(MavenProject project, File tmpDirectory) throws MojoExecutionException {
+        List<File> result = new ArrayList<File>();
 
         for (Plugin plugin : project.getModel().getBuild().getPlugins()) {
             Model model = project.getModel().clone();
@@ -402,12 +404,17 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
 					File tmpPom = File.createTempFile("pom", ".xml", tmpDirectory);
 					POMManager.writeModelToPOM(m, tmpPom);
-					List<String> goals = new ArrayList<String>();
-					for (String goal : pluginExecution.getGoals()) {
-						goals.add(pluginExecution.getId() + ":" + goal);
+
+					File baseDir = new File(tmpDirectory, plugin.getGroupId() + "/" + plugin.getArtifactId());
+					if (!baseDir.exists()) {
+						baseDir = tmpDirectory;
+					} else {
+						File overridePom = new File(baseDir, tmpPom.getName());
+						FileUtils.copyFile(tmpPom, overridePom);
+						tmpPom = overridePom;
 					}
-					Map.Entry<File, List<String>> entry = new AbstractMap.SimpleEntry<File, List<String>>(tmpPom, goals);
-					result.add(entry);
+
+					result.add(tmpPom);
 				} catch (IOException e) {
 					throw new MojoExecutionException(e.getLocalizedMessage(), e);
 				}
@@ -519,17 +526,11 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 				if (!pluginJarFile.exists()) {
 					getLog().warn("The plugin file does not exist.");
 				} else {
-					addIndirectPlugins(pluginJarFile);
-				}
-				MavenResolvedArtifact[] alls = mavenResolver.resolve(plugin.getKey() + ":jar:" + plugin.getVersion()).withTransitivity().as(MavenResolvedArtifact.class);
-				for (MavenResolvedArtifact all : alls) {
-					if (all.getCoordinate().getGroupId().equals("org.apache.maven.plugins")) {
-						if (all.getCoordinate().getArtifactId().equals("maven-dependency-plugin") ||
-							all.getCoordinate().getArtifactId().equals("maven-deploy-plugin") ||
-							all.getCoordinate().getArtifactId().equals("maven-install-plugin") ||
-							all.getCoordinate().getArtifactId().equals("maven-enforcer-plugin")) {
-							plugins.add(getMavenPlugin(all.getCoordinate().getArtifactId(), all.getCoordinate().getVersion()));
-						}
+					MavenResolvedArtifact[] pluginDependencies = mavenResolver.resolve(plugin.getKey() + ":jar:" + plugin.getVersion()).withTransitivity().as(MavenResolvedArtifact.class);
+					try {
+						addIndirectPlugins(pluginJarFile, mra, pluginDependencies, plugins, tmpDirectory);
+					} catch (IOException e) {
+						throw new MojoExecutionException(e.getLocalizedMessage(), e);
 					}
 				}
 			}
@@ -540,16 +541,16 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		project.getBuild().getPlugins().addAll(plugins);
 
 		// create one POM per plugin with an execution in project/model/build
-		List<Map.Entry<File, List<String>>> pomsWithGoal = getPOMsFromProject(project, tmpDirectory);
+		List<File> poms = getPOMsFromProject(project, tmpDirectory);
 
 		PrintStream oldSystemErr = System.err;
 		PrintStream oldSystemOut = System.out;
 		try {
 			silentSystemStreams();
 
-			for (Map.Entry<File, List<String>> pomWithGoals : pomsWithGoal) {
+			for (File pom : poms) {
 
-				BuiltProject result = executeGoal(pomWithGoals.getKey(), globalSettingsFile, userSettingsFile, localRepositoryPath, mavenVersion, pomWithGoals.getValue());
+				BuiltProject result = executeGoal(pom, globalSettingsFile, userSettingsFile, localRepositoryPath, mavenVersion);
 				if (result == null || result.getMavenBuildExitCode() != 0) {
 					File goOfflineDirectory = new File(directory, "go-offline");
 					goOfflineDirectory.mkdirs();
@@ -561,10 +562,17 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
 					}
 
-					if (result.getMavenLog().contains("[ERROR] " + Messages.ENFORCER_RULES_FAILURE) ||
-							result.getMavenLog().contains("Property groupId is missing.") || // this one for archetypes
-							result.getMavenLog().contains("Nothing to merge.") ||
-							result.getMavenLog().contains("Unable to load topology from file")) {
+					String ignoreMessage = "";
+					File ignoreMessageFile = new File(pom.getParentFile(), "ignore.message");
+					if (ignoreMessageFile.exists()) {
+						try {
+							ignoreMessage = FileUtils.readFileToString(ignoreMessageFile);
+						} catch (IOException e) {
+							throw new MojoExecutionException(e.getLocalizedMessage(), e);
+						}
+					}
+					if (result.getMavenLog().contains("Property groupId is missing.") || // this one for archetypes
+						result.getMavenLog().contains(ignoreMessage)) {
 						continue;
 					}
 					getLog().error("Something went wrong in Maven build to go offline. Log file is: '" + logOutput.getAbsolutePath() + "'");
@@ -578,7 +586,21 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		}
 	}
 
-	private void addIndirectPlugins(File pluginJarFile) throws MojoExecutionException {
+	private void addIndirectPlugins(File pluginJarFile, MavenResolvedArtifact initialPlugin, MavenResolvedArtifact[] pluginDependencies, List<Plugin> plugins, File tmpDirectory) throws IOException, MojoExecutionException {
+		BufferedReader bufferedReader = getReaderOfPluginsConfiguration(pluginJarFile, "plugins.list");
+
+		if (bufferedReader != null) {
+			String line = null;
+			while ((line = bufferedReader.readLine()) != null) {
+				line = line.trim();
+				if (line.isEmpty() || line.startsWith("#")) continue;
+
+				addIndirectPlugin(line, initialPlugin, pluginDependencies, plugins, tmpDirectory);
+			}
+		}
+	}
+
+	private BufferedReader getReaderOfPluginsConfiguration(File pluginJarFile, String fileName) throws MojoExecutionException {
 		ZipInputStream zipStream = null;
 		try {
 			zipStream = new ZipInputStream(new FileInputStream(pluginJarFile));
@@ -586,7 +608,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			byte[] buffer = new byte[2048];
 
 			while ((entry = zipStream.getNextEntry()) != null ) {
-				if ("plugins-configuration/plugins.list".equals(entry.getName())) {
+				if (("plugins-configuration/" + fileName).equals(entry.getName())) {
 					ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 					int len;
 					while ((len = zipStream.read(buffer)) > 0) {
@@ -594,22 +616,50 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 					}
 
 					String pluginsList = byteArrayOutputStream.toString("UTF8");
-					BufferedReader bufferedReader = new BufferedReader(new StringReader(pluginsList));
-					String line = null;
-					while ((line = bufferedReader.readLine()) != null) {
-						line = line.trim();
-						if (line.isEmpty() || line.startsWith("#")) continue;
-
-						addIndirectPlugin(line);
-					}
+					return new BufferedReader(new StringReader(pluginsList));
 				}
 			}
 		} catch (IOException e) {
 			throw new MojoExecutionException(e.getLocalizedMessage(), e);
 		}
+
+		return null;
 	}
 
-	private void addIndirectPlugin(String pluginCoordinate) {
+	private final static String indirectPluginRegex = "([^|]*):([^|]*)\\|?([^|]*)\\|?([^|]*)";
+	private final static Pattern indirectPluginPattern = Pattern.compile(indirectPluginRegex);
+
+	private void addIndirectPlugin(String pluginCoordinate, MavenResolvedArtifact initialPlugin, MavenResolvedArtifact[] pluginDependencies, List<Plugin> plugins, File tmpDirectory) throws IOException, MojoExecutionException {
+		Matcher matcher = indirectPluginPattern.matcher(pluginCoordinate);
+		if (!matcher.matches()) {
+			return;
+		}
+
+		String groupId = matcher.group(1);
+		String artifactId = matcher.group(2);
+		String goal = StringUtils.isNotEmpty(matcher.group(3)) ? matcher.group(3) : "help";
+		String ignoreMessage = StringUtils.isNotEmpty(matcher.group(4)) ? matcher.group(4) : null;
+
+		boolean found = false;
+		for (MavenResolvedArtifact pluginDependency : pluginDependencies) {
+			if (pluginDependency.getCoordinate().getArtifactId().equals(artifactId) && pluginDependency.getCoordinate().getGroupId().equals(groupId)) {
+				Plugin plugin = null;
+				if (StringUtils.isNotEmpty(ignoreMessage)) {
+					String baseDirectory = tmpDirectory.getAbsolutePath() + "/" + pluginDependency.getCoordinate().getGroupId() + "/" + pluginDependency.getCoordinate().getArtifactId();
+					File ignoreMessageFile = new File(baseDirectory, "ignore.message");
+					FileUtils.write(ignoreMessageFile, ignoreMessage);
+				}
+				plugin = getMavenPlugin(groupId, artifactId, pluginDependency.getCoordinate().getVersion(), goal);
+
+				if (plugin != null) {
+					found = true;
+					plugins.add(plugin);
+				}
+			}
+		}
+		if (!found) {
+			getLog().warn("Plugin '" + pluginCoordinate + "' was not found.");
+		}
 	}
 
 	private boolean includeTIBCOInstallationPackagesFromTopology() {
@@ -780,6 +830,33 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		return plugin;
 	}
 
+	private Plugin getTeecubePlugin(DefaultVersionsHelper helper, String groupId, String artifactId, String version) throws MojoExecutionException {
+		Artifact artifact = getArtifact(helper, groupId, artifactId, version, "maven-plugin");
+
+		Plugin plugin = getTeecubePlugin(artifact);
+		plugin = addGoal(plugin, artifactId, "help");
+
+		return plugin;
+	}
+
+	private Plugin getTeecubePlugin(Artifact artifact) {
+		return getPluginFromArtifact(artifact);
+	}
+
+	private Plugin addGoal(Plugin plugin, String id, String goal) {
+		PluginExecution pluginExecution = new PluginExecution();
+		pluginExecution.setId(id);
+		pluginExecution.setPhase("validate");
+
+		List<String> goals = new ArrayList<String>();
+		goals.add(goal);
+		pluginExecution.setGoals(goals);
+
+		plugin.addExecution(pluginExecution);
+
+		return plugin;
+	}
+
 	private Plugin getToeDomainsPlugin(DefaultVersionsHelper helper, String version) throws MojoExecutionException {
 		return getTeecubePlugin(helper, "io.teecube.toe", "toe-domains-plugin", version);
 	}
@@ -796,19 +873,19 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		return getTeecubePlugin(helper, "io.teecube.tic", "tic-bw6", version);
 	}
 
-	private Plugin getMavenPlugin(String groupId, String artifactId, String version) {
+	private Plugin getMavenPlugin(String groupId, String artifactId, String version, String goal) {
 		Plugin plugin = new Plugin();
 		plugin.setGroupId(groupId);
 		plugin.setArtifactId(artifactId);
 		plugin.setVersion(version);
 
-		plugin = addHelpGoal(plugin, artifactId);
+		plugin = addGoal(plugin, artifactId, goal);
 
 		return plugin;
 	}
 
 	private Plugin getMavenPlugin(String artifactId, String version) {
-		return getMavenPlugin("org.apache.maven.plugins", artifactId, version);
+		return getMavenPlugin("org.apache.maven.plugins", artifactId, version, "help");
 	}
 
 	private Plugin getTacArchetypes(DefaultVersionsHelper helper, String tacArchetypesVersion) throws MojoExecutionException {
@@ -849,33 +926,6 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		}
 
 		plugin.setExecutions(executions);
-
-		return plugin;
-	}
-
-	private Plugin getTeecubePlugin(DefaultVersionsHelper helper, String groupId, String artifactId, String version) throws MojoExecutionException {
-		Artifact artifact = getArtifact(helper, groupId, artifactId, version, "maven-plugin");
-
-		Plugin plugin = getTeecubePlugin(artifact);
-		plugin = addHelpGoal(plugin, artifactId);
-
-		return plugin;
-	}
-
-	private Plugin getTeecubePlugin(Artifact artifact) {
-		return getPluginFromArtifact(artifact);
-	}
-
-	private Plugin addHelpGoal(Plugin plugin, String id) {
-		PluginExecution pluginExecution = new PluginExecution();
-		pluginExecution.setId(id);
-		pluginExecution.setPhase("validate");
-
-		List<String> goals = new ArrayList<String>();
-		goals.add("help");
-		pluginExecution.setGoals(goals);
-
-		plugin.addExecution(pluginExecution);
 
 		return plugin;
 	}

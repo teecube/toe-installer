@@ -427,7 +427,7 @@ public abstract class CommonInstaller extends CommonMojo {
 		File[] result = installationPackageDirectory.listFiles(new FileFilter(){
 	        @Override
 	        public boolean accept(File file) {
-	            return p.matcher(file.getName()).matches();
+	        return p.matcher(file.getName()).matches();
 	        }
 	    });
 
@@ -467,6 +467,8 @@ public abstract class CommonInstaller extends CommonMojo {
 		Matcher m = p.matcher(name);
 		if (m.matches()) {
 			installationPackageVersion = m.group(getInstallationPackageVersionGroupIndex());
+		} else if (StringUtils.isNotEmpty(getRemoteInstallationPackageVersion())) {
+			installationPackageVersion = getRemoteInstallationPackageVersion();
 		} else {
 			installationPackageVersion = "Version Not Found";
 		}

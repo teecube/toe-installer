@@ -24,11 +24,14 @@ import t3.toe.installer.environments.*;
 import t3.toe.installer.environments.commands.*;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
 
     private final CustomProduct customProduct;
+    private CommandToExecute commandToExecute;
+    private List<CommandToExecute> commandsToExecute;
 
     public CustomProductToInstall(CustomProduct customProduct, EnvironmentToInstall environment, CommonMojo commonMojo) {
         super(customProduct, environment, commonMojo);
@@ -42,8 +45,12 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
         return this.getName();
     }
 
-    public List<AbstractCommand> getSystemCommandOrUncompressCommand() {
+    public List<AbstractCommand> getCommands() {
         return customProduct.getAntCommandOrMavenCommandOrSystemCommand();
+    }
+
+    public List<CommandToExecute> getCommandsToExecute() {
+        return commandsToExecute;
     }
 
     @Override
@@ -51,6 +58,7 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
         if (customProduct.getPackage().getLocal() != null) {
             if (customProduct.getPackage().getLocal().getFileWithVersion() != null) {
                 setResolvedInstallationPackage(new File(customProduct.getPackage().getLocal().getFileWithVersion().getFile()));
+                setVersion(customProduct.getPackage().getLocal().getFileWithVersion().getVersion());
             } else if (customProduct.getPackage().getLocal().getDirectoryWithPattern() != null) {
                 logger.warn("directory with pattern is not supported for custom products");
             }
@@ -78,16 +86,23 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
     @Override
     public void doInstall(EnvironmentToInstall environment, int productIndex) throws MojoExecutionException {
         int i = 1;
+        commandsToExecute = new ArrayList<CommandToExecute>();
+
         for (AbstractCommand command : customProduct.getAntCommandOrMavenCommandOrSystemCommand()) {
             if (command instanceof AntCommand) {
-                new AntCommandToExecute((AntCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this).executeCommand();
+                commandToExecute = new AntCommandToExecute((AntCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this);
             } else if (command instanceof MavenCommand) {
-                new MavenCommandToExecute((MavenCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this).executeCommand();
+                commandToExecute = new MavenCommandToExecute((MavenCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this);
             } else if (command instanceof SystemCommand) {
-                new SystemCommandToExecute((SystemCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this).executeCommand();
+                commandToExecute = new SystemCommandToExecute((SystemCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this);
             } else if (command instanceof UncompressCommand) {
-                new UncompressCommandToExecute((UncompressCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this).executeCommand();
+                commandToExecute = new UncompressCommandToExecute((UncompressCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this);
             }
+
+            commandsToExecute.add(commandToExecute);
+
+            commandToExecute.executeCommand();
+
             i++;
         }
     }

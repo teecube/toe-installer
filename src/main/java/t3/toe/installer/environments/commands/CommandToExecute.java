@@ -28,9 +28,6 @@ import t3.toe.installer.environments.products.CustomProductToInstall;
 import t3.toe.installer.environments.products.ProductToInstall;
 import t3.utils.Utils;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -168,10 +165,10 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
             }
             int i = 1; // XPath-like so starts from 1
             if (selector.equals("uncompressCommand")) {
-                for (AbstractCommand abstractCommand : customProductToInstall.getSystemCommandOrUncompressCommand()) {
-                    if (abstractCommand instanceof UncompressCommand) {
+                for (CommandToExecute commandToExecute : customProductToInstall.getCommandsToExecute()) {
+                    if (commandToExecute instanceof UncompressCommandToExecute) {
                         if (index == i) {
-                            o = (UncompressCommand) customProductToInstall.getSystemCommandOrUncompressCommand().get(i-1);
+                            o = (UncompressCommandToExecute) customProductToInstall.getCommandsToExecute().get(i-1);
                             break;
                         }
                         i++;
@@ -180,7 +177,7 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
             }
             if (lastSelector.equals("uncompressCommand") && selector.equals("destinationDirectory")) {
                 try {
-                    o = getDestinationDirectory((UncompressCommand) o);
+                    o = ((UncompressCommandToExecute) o).getDestinationDirectory();
                 } catch (MojoExecutionException e) {
                     o = "";
                 }
@@ -191,26 +188,4 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
         return o.toString();
     }
 
-    public static File getDestinationDirectory(UncompressCommand uncompressCommand) throws MojoExecutionException {
-        File result = null;
-
-        if (uncompressCommand == null) {
-            return result;
-        }
-
-        if (uncompressCommand.getDestination().getTempDirectory() != null) {
-            try {
-                result = Files.createTempDirectory("uncompress").toFile();
-            } catch (IOException e) {
-                throw new MojoExecutionException(e.getLocalizedMessage(), e);
-            }
-        } else {
-            if (StringUtils.isEmpty(uncompressCommand.getDestination().getDirectory())) {
-                throw new MojoExecutionException("No destination directory was specified.");
-            }
-            result = new File(uncompressCommand.getDestination().getDirectory());
-        }
-
-        return result;
-    }
 }

@@ -264,7 +264,6 @@
 					</xs:element>
 				</xs:sequence>
 				<xs:attribute name="format" type="UncompressFormat" default="auto"/>
-				<xs:attribute name="toTempDirectory" type="xs:boolean" default="false" />
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>

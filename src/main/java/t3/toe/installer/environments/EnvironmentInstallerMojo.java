@@ -93,6 +93,9 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 			// populate list of products to install in environment
 			ProductsToInstall productsToInstall = new ProductsToInstall(environment, this);
+			if (productsToInstall.isAtLeastOneMavenArtifactResolved()) {
+				getLog().info("");
+			}
 
 			// display the list of products to be installed
 			int i = 1;
@@ -103,7 +106,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 																							  + (!environment.isToBeDeleted() && IfProductExistsBehaviour.DELETE.equals(product.getIfExists()) ? ", will be deleted then reinstalled in current environment" : "")
 																							  + (!environment.isToBeDeleted() && IfProductExistsBehaviour.KEEP.equals(product.getIfExists()) ? ", will not be reinstalled" : "")
 																							  + ")" : "");
-				String version = (StringUtils.isNotBlank(product.getVersion()) ? " v" + product.getVersion() : "");
+				String version = (StringUtils.isNotBlank(product.getVersion()) ? " " + product.getVersion() : "");
 
 				String prefix;
 				if (i == 1) {

@@ -575,7 +575,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 						}
 					}
 					if (result.getMavenLog().contains("Property groupId is missing.") || // this one for archetypes
-						result.getMavenLog().contains(ignoreMessage)) {
+						(StringUtils.isNotEmpty(ignoreMessage) && result.getMavenLog().contains(ignoreMessage))) {
 						continue;
 					}
 					getLog().error("Something went wrong in Maven build to go offline. Log file is: '" + logOutput.getAbsolutePath() + "'");

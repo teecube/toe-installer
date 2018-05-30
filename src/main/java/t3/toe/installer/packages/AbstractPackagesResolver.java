@@ -209,7 +209,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 					}
 				}
 			}
-		} else { // the topology is empty, use resolved packages to guess environments to create
+		} else if (installers != null) { // the topology is empty, use resolved packages to guess environments to create
 			for (CommonInstaller installer : installers) {
 				String os = installer.getInstallationPackageOs(true);
 				if (!environmentsToCreate.containsKey(os)) {
@@ -243,8 +243,19 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 				if (!osEnvironment.startsWith(installer.getInstallationPackageOs(true))) continue;
 
 				if (topologyType.equals(TopologyType.REMOTE) && tibcoProduct.getPackage().getLocal() != null) {
-					getLog().info(installer.getInstallationPackage().getAbsolutePath());
-					// TODO : translate to MavenArtifactPackage
+					// translate LocalPackage to MavenArtifactPackage
+					MavenArtifactPackage mavenArtifactPackage = new MavenArtifactPackage();
+					mavenArtifactPackage.setGroupId(installer.getRemoteInstallationPackageGroupId());
+					mavenArtifactPackage.setArtifactId(installer.getRemoteInstallationPackageArtifactId());
+					mavenArtifactPackage.setVersion(installer.getInstallationPackageVersion());
+					mavenArtifactPackage.setPackaging(installer.getRemoteInstallationPackagePackaging());
+					String classifier = getInstallerClassifier(installer);
+					if (classifier != null) {
+						mavenArtifactPackage.setClassifier(classifier);
+					}
+
+					tibcoProduct.getPackage().setMavenArtifact(mavenArtifactPackage);
+					tibcoProduct.getPackage().setLocal(null);
 				}
 				/*
 				Product.Package productPackage = new Product.Package();

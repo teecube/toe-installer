@@ -428,13 +428,16 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		if (topologyTemplateFile != null && topologyTemplateFile.exists()) {
 			FileUtils.copyFile(topologyTemplateFile, standaloneTopologyGeneratedFile);
 			getLog().info("Generating topology file using topology template '" + topologyTemplateFile + "'");
-		} else if (localTIBCOInstallationPackagesResolved) {
-			getLog().info("Generating topology file for the locally resolved TIBCO installation packages...");
+		} else {
 			// copy an empty topology to target file
 			InputStream emptyEnvironments = EnvironmentInstallerMojo.class.getResourceAsStream("/xml/environments.xml");
 			FileUtils.copyInputStreamToFile(emptyEnvironments, standaloneTopologyGeneratedFile);
-		} else {
-			getLog().warn("No locally resolved TIBCO installation packages nor topology template file found. Topology file will be empty.");
+
+			if (localTIBCOInstallationPackagesResolved) {
+				getLog().info("Generating topology file for the locally resolved TIBCO installation packages...");
+			} else {
+				getLog().warn("No locally resolved TIBCO installation packages nor topology template file found. Topology file will be empty.");
+			}
 		}
 
 		try {

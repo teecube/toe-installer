@@ -1,3 +1,5 @@
+## Additional plugins dependencies (to be included in standalone archives)
+
 # default t3-common plugins
 
 org.apache.maven.plugins:maven-dependency-plugin

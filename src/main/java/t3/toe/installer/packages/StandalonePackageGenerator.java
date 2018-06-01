@@ -50,7 +50,7 @@ import org.jboss.shrinkwrap.resolver.api.maven.MavenResolvedArtifact;
 import org.jboss.shrinkwrap.resolver.api.maven.embedded.BuiltProject;
 import org.jboss.shrinkwrap.resolver.impl.maven.bootstrap.MavenSettingsBuilder;
 import org.xml.sax.SAXException;
-import t3.Messages;
+import t3.LifecyclesUtils;
 import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.InstallerLifecycleParticipant;
@@ -60,11 +60,15 @@ import t3.toe.installer.environments.products.ProductToInstall;
 import t3.toe.installer.environments.products.ProductsToInstall;
 import t3.utils.POMManager;
 import t3.utils.Utils;
+import t3.utils.ZipUtils;
 
 import javax.xml.bind.JAXBException;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -522,16 +526,17 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 //		MavenResolvedArtifact plexusUtils11 = mavenResolver.resolve("org.codehaus.plexus:plexus-utils:jar:1.1").withoutTransitivity().asSingle(MavenResolvedArtifact.class);
 //		installArtifact(project, localRepositoryPath, getArtifactFromMavenResolvedArtifact(plexusUtils11));
 
+		List<File> poms = new ArrayList<File>();
+
 		for (Plugin plugin : project.getBuild().getPlugins()) {
 			MavenResolvedArtifact mra = mavenResolver.resolve(plugin.getKey() + ":jar:" + plugin.getVersion()).withoutTransitivity().asSingle(MavenResolvedArtifact.class);
 			if (plugin.getGroupId().startsWith("io.teecube")) {
-				File pluginJarFile = mra.asFile();
-				if (!pluginJarFile.exists()) {
+				if (!mra.asFile().exists()) {
 					getLog().warn("The plugin file does not exist.");
 				} else {
 					MavenResolvedArtifact[] pluginDependencies = mavenResolver.resolve(plugin.getKey() + ":jar:" + plugin.getVersion()).withTransitivity().as(MavenResolvedArtifact.class);
 					try {
-						addIndirectPlugins(pluginJarFile, mra, pluginDependencies, plugins, tmpDirectory);
+						addIndirectPlugins(mra, pluginDependencies, plugins, poms, tmpDirectory);
 					} catch (IOException e) {
 						throw new MojoExecutionException(e.getLocalizedMessage(), e);
 					}
@@ -544,7 +549,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		project.getBuild().getPlugins().addAll(plugins);
 
 		// create one POM per plugin with an execution in project/model/build
-		List<File> poms = getPOMsFromProject(project, tmpDirectory);
+		poms.addAll(getPOMsFromProject(project, tmpDirectory));
 
 		PrintStream oldSystemErr = System.err;
 		PrintStream oldSystemOut = System.out;
@@ -552,7 +557,6 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			silentSystemStreams();
 
 			for (File pom : poms) {
-
 				BuiltProject result = executeGoal(pom, globalSettingsFile, userSettingsFile, localRepositoryPath, mavenVersion);
 				if (result == null || result.getMavenBuildExitCode() != 0) {
 					File goOfflineDirectory = new File(directory, "go-offline");
@@ -589,18 +593,60 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		}
 	}
 
-	private void addIndirectPlugins(File pluginJarFile, MavenResolvedArtifact initialPlugin, MavenResolvedArtifact[] pluginDependencies, List<Plugin> plugins, File tmpDirectory) throws IOException, MojoExecutionException {
-		BufferedReader bufferedReader = getReaderOfPluginsConfiguration(pluginJarFile, "plugins.list");
+	private void addIndirectPlugins(MavenResolvedArtifact initialPlugin, MavenResolvedArtifact[] pluginDependencies, List<Plugin> plugins, List<File> poms, File tmpDirectory) throws IOException, MojoExecutionException {
+		BufferedReader pluginsConfigurationReader = getReaderOfPluginsConfiguration(initialPlugin.asFile());
+		File plexusComponents = getPlexusComponents(initialPlugin.asFile(), tmpDirectory);
 
-		if (bufferedReader != null) {
+		try {
+			List<String> lifecylePlugins = new ArrayList<String>();
+			List<LifecyclesUtils.Lifecycle<LifecyclesUtils.Phase>> lifecyles = LifecyclesUtils.parse(plexusComponents, project, session);
+			for (LifecyclesUtils.Lifecycle<LifecyclesUtils.Phase> lifecyle : lifecyles) {
+				for (LifecyclesUtils.Phase phase : lifecyle.getPhases()) {
+					for (String goal : phase.getGoals()) {
+						Matcher matcher = indirectPluginPattern.matcher(goal);
+						if (matcher.matches()) {
+							String groupId = matcher.group(1);
+							String artifactId = matcher.group(2);
+							String pluginKey = groupId + ":" + artifactId;
+
+							if (!goal.startsWith("io.teecube") && !lifecylePlugins.contains(pluginKey)) {
+								lifecylePlugins.add(pluginKey);
+								addIndirectPlugin(goal, initialPlugin, pluginDependencies, plugins, poms, tmpDirectory);
+							}
+						}
+					}
+				}
+			}
+		} catch (SAXException e) {
+			throw new MojoExecutionException(e.getLocalizedMessage(), e);
+		}
+
+		if (pluginsConfigurationReader != null) {
 			String line = null;
-			while ((line = bufferedReader.readLine()) != null) {
+			while ((line = pluginsConfigurationReader.readLine()) != null) {
 				line = line.trim();
 				if (line.isEmpty() || line.startsWith("#")) continue;
 
-				addIndirectPlugin(line, initialPlugin, pluginDependencies, plugins, tmpDirectory);
+				addIndirectPlugin(line, initialPlugin, pluginDependencies, plugins, poms, tmpDirectory);
 			}
 		}
+	}
+
+	private boolean copyPluginsConfigurationDependency(File pluginJarFile, String pluginGroupId, String pluginArtifactId, File outputDirectory) throws MojoExecutionException {
+		String directoryToCopy = "plugins-configuration/dependencies/" + pluginGroupId + "/" + pluginArtifactId + "/";
+		return ZipUtils.extractDirectoryFromZip(pluginJarFile, directoryToCopy, outputDirectory);
+	}
+
+	private BufferedReader getReaderOfPluginsConfiguration(File pluginJarFile) throws MojoExecutionException {
+		String fileName = "plugins-configuration/dependencies/plugins.list";
+
+		return getReaderOfPluginsConfiguration(pluginJarFile, fileName);
+	}
+
+	private File getPlexusComponents(File pluginJarFile, File outputDirectory) throws MojoExecutionException {
+		String fileName = "META-INF/plexus/components.xml";
+
+		return ZipUtils.extractFileFromZip(pluginJarFile, fileName, outputDirectory);
 	}
 
 	private BufferedReader getReaderOfPluginsConfiguration(File pluginJarFile, String fileName) throws MojoExecutionException {
@@ -611,7 +657,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			byte[] buffer = new byte[2048];
 
 			while ((entry = zipStream.getNextEntry()) != null ) {
-				if (("plugins-configuration/" + fileName).equals(entry.getName())) {
+				if (fileName.equals(entry.getName())) {
 					ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 					int len;
 					while ((len = zipStream.read(buffer)) > 0) {
@@ -629,10 +675,10 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		return null;
 	}
 
-	private final static String indirectPluginRegex = "([^|]*):([^|]*)\\|?([^|]*)\\|?([^|]*)";
+	private final static String indirectPluginRegex = "([^:]*):([^:]*):?([^:]*):?([^:]*)";
 	private final static Pattern indirectPluginPattern = Pattern.compile(indirectPluginRegex);
 
-	private void addIndirectPlugin(String pluginCoordinate, MavenResolvedArtifact initialPlugin, MavenResolvedArtifact[] pluginDependencies, List<Plugin> plugins, File tmpDirectory) throws IOException, MojoExecutionException {
+	private void addIndirectPlugin(String pluginCoordinate, MavenResolvedArtifact initialPlugin, MavenResolvedArtifact[] pluginDependencies, List<Plugin> plugins, List<File> poms, File tmpDirectory) throws IOException, MojoExecutionException {
 		Matcher matcher = indirectPluginPattern.matcher(pluginCoordinate);
 		if (!matcher.matches()) {
 			return;
@@ -640,26 +686,36 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
 		String groupId = matcher.group(1);
 		String artifactId = matcher.group(2);
-		String goal = StringUtils.isNotEmpty(matcher.group(3)) ? matcher.group(3) : "help";
-		String ignoreMessage = StringUtils.isNotEmpty(matcher.group(4)) ? matcher.group(4) : null;
+		String version = StringUtils.isNotEmpty(matcher.group(3)) ? matcher.group(3) : null;
+		String goal = StringUtils.isNotEmpty(matcher.group(4)) ? matcher.group(4) : "help";
+		if (groupId.equals("org.apache.maven.plugins")) {
+			goal = "help";
+		}
 
 		boolean found = false;
-		for (MavenResolvedArtifact pluginDependency : pluginDependencies) {
-			if (pluginDependency.getCoordinate().getArtifactId().equals(artifactId) && pluginDependency.getCoordinate().getGroupId().equals(groupId)) {
-				Plugin plugin = null;
-				if (StringUtils.isNotEmpty(ignoreMessage)) {
-					String baseDirectory = tmpDirectory.getAbsolutePath() + "/" + pluginDependency.getCoordinate().getGroupId() + "/" + pluginDependency.getCoordinate().getArtifactId();
-					File ignoreMessageFile = new File(baseDirectory, "ignore.message");
-					FileUtils.write(ignoreMessageFile, ignoreMessage);
-				}
-				plugin = getMavenPlugin(groupId, artifactId, pluginDependency.getCoordinate().getVersion(), goal);
+		Plugin plugin = null;
+		File baseDirectory = new File(tmpDirectory.getAbsolutePath() + "/plugins/" + groupId + "/" + artifactId);
 
-				if (plugin != null) {
-					found = true;
-					plugins.add(plugin);
+		if (copyPluginsConfigurationDependency(initialPlugin.asFile(), groupId, artifactId, baseDirectory)) {
+			File customPom = new File(baseDirectory, "pom.xml");
+			Utils.replaceByLine(customPom, "\\$\\{plugin.version\\}", version, true, sourceEncoding);
+			if (!customPom.exists()) {
+				getLog().warn("Plugin '" + pluginCoordinate + "' has no custom POM.");
+			} else {
+				found = true;
+				poms.add(customPom);
+			}
+		}// else {
+			for (MavenResolvedArtifact pluginDependency : pluginDependencies) {
+				if (pluginDependency.getCoordinate().getArtifactId().equals(artifactId) && pluginDependency.getCoordinate().getGroupId().equals(groupId)) {
+					plugin = getMavenPlugin(groupId, artifactId, pluginDependency.getCoordinate().getVersion(), goal);
+					if (plugin != null) {
+						found = true;
+						plugins.add(plugin);
+					}
 				}
 			}
-		}
+//		}
 		if (!found) {
 			getLog().warn("Plugin '" + pluginCoordinate + "' was not found.");
 		}

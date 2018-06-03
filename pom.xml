@@ -117,34 +117,33 @@
 							<content><![CDATA[
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?>
 &lt;environments xmlns=&quot;http://teecu.be/toe-installer/environments&quot;>
-	&lt;environment>
-		&lt;environmentName>BW640-test&lt;/environmentName>
+	&lt;environment name=&quot;BW640-test&quot;>
 		&lt;tibcoRoot>C:/tibco/BW640-test&lt;/tibcoRoot>
 		&lt;products>
-			&lt;product type=&quot;tea&quot;>
+			&lt;tibcoProduct type=&quot;tea&quot;>
 				&lt;package>
-					&lt;remote>
-						&lt;version>2.2.0&lt;/version>
+					&lt;mavenTIBCOArtifact>
+						&lt;version>2.3.0&lt;/version>
 						&lt;classifier>win_x86_64&lt;/classifier>
-					&lt;/remote>
+					&lt;/mavenTIBCOArtifact>
 				&lt;/package>
-			&lt;/product>
-			&lt;product type=&quot;ems&quot;>
+			&lt;/tibcoProduct>
+			&lt;tibcoProduct type=&quot;ems&quot;>
 				&lt;package>
-					&lt;remote>
-						&lt;version>8.3.0&lt;/version>
+					&lt;mavenTIBCOArtifact>
+						&lt;version>8.4.0&lt;/version>
 						&lt;classifier>win_x86_64&lt;/classifier>
-					&lt;/remote>
+					&lt;/mavenTIBCOArtifact>
 				&lt;/package>
-			&lt;/product>
-			&lt;product type=&quot;bw6&quot;>
+			&lt;/tibcoProduct>
+			&lt;tibcoProduct type=&quot;bw6&quot;>
 				&lt;package>
-					&lt;remote>
-						&lt;version>6.4.0&lt;/version>
+					&lt;mavenTIBCOArtifact>
+						&lt;version>6.4.2&lt;/version>
 						&lt;classifier>win_x86_64&lt;/classifier>
-					&lt;/remote>
+					&lt;/mavenTIBCOArtifact>
 				&lt;/package>
-			&lt;/product>
+			&lt;/tibcoProduct>
 		&lt;/products>
 	&lt;/environment>
 &lt;/environments>
@@ -152,38 +151,37 @@
 						</sample>
 						<sample>
 							<property>fullEnvironmentFileSample_BW5-Admin-EMS_Windows</property>
-							<title><![CDATA[<strong>bw6-full.xml</strong> (BW5 with Administrator &amp; EMS on Windows)]]></title>
+							<title><![CDATA[<strong>bw5-full.xml</strong> (BW5 with Administrator &amp; EMS on Windows)]]></title>
 							<content><![CDATA[
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?>
 &lt;environments xmlns=&quot;http://teecu.be/toe-installer/environments&quot;>
-	&lt;environment>
-		&lt;environmentName>BW5130-test&lt;/environmentName>
+	&lt;environment name=&quot;BW5130-test&quot;>
 		&lt;tibcoRoot>C:/tibco/BW5130-test&lt;/tibcoRoot>
 		&lt;products>
-			&lt;product type=&quot;admin&quot;>
+			&lt;tibcoProduct type=&quot;admin&quot;>
 				&lt;package>
-					&lt;remote>
+					&lt;mavenTIBCOArtifact>
 						&lt;version>5.10.0&lt;/version>
 						&lt;classifier>win_x86_64&lt;/classifier>
-					&lt;/remote>
+					&lt;/mavenTIBCOArtifact>
 				&lt;/package>
-			&lt;/product>
-			&lt;product type=&quot;ems&quot;>
+			&lt;/tibcoProduct>
+			&lt;tibcoProduct type=&quot;ems&quot;>
 				&lt;package>
-					&lt;remote>
-						&lt;version>8.3.0&lt;/version>
+					&lt;mavenTIBCOArtifact>
+						&lt;version>8.4.0&lt;/version>
 						&lt;classifier>win_x86_64&lt;/classifier>
-					&lt;/remote>
+					&lt;/mavenTIBCOArtifact>
 				&lt;/package>
-			&lt;/product>
-			&lt;product type=&quot;bw5&quot;>
+			&lt;/tibcoProduct>
+			&lt;tibcoProduct type=&quot;bw5&quot;>
 				&lt;package>
-					&lt;remote>
+					&lt;mavenTIBCOArtifact>
 						&lt;version>5.13.0&lt;/version>
 						&lt;classifier>win_x86_64&lt;/classifier>
-					&lt;/remote>
+					&lt;/mavenTIBCOArtifact>
 				&lt;/package>
-			&lt;/product>
+			&lt;/tibcoProduct>
 		&lt;/products>
 	&lt;/environment>
 &lt;/environments>

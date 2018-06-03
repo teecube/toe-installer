@@ -93,9 +93,6 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 			// populate list of products to install in environment
 			ProductsToInstall productsToInstall = new ProductsToInstall(environment, this);
-			if (productsToInstall.isAtLeastOneMavenArtifactResolved()) {
-				getLog().info("");
-			}
 
 			// display the list of products to be installed
 			int i = 1;

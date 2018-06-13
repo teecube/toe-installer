@@ -230,7 +230,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 			if (environment.isToBeDeleted()) {
 				addProperty(configuration, ignoredParameters, "removeExistingEnvironment", "true", CommonInstaller.class);
 			} else {
-				addProperty(configuration, ignoredParameters, "createNewEnvironment", "false", CommonInstaller.class);
+				addProperty(configuration, ignoredParameters, "createNewEnvironment", "true", CommonInstaller.class);
 			}
 			firstDependency = false;
 		}

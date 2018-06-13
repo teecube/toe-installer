@@ -21,8 +21,4 @@ site-redeploy:
 
 mirror:
     script:
-        - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-        # SSH private key must be in '/root/.ssh/teecube_github'
-        - eval $(ssh-agent -s) && ssh-add /root/.ssh/teecube_github && ssh-keyscan github.com | sort -u - ~/.ssh/known_hosts -o ~/.ssh/known_hosts
-        # git clone --mirror && git push --mirror
-        - GIT_REPO_URL=`git config --get remote.origin.url` && GIT_REPO_NAME=`basename $GIT_REPO_URL .git` && rm -rf tmp_mirror.git && git clone --mirror $GIT_REPO_URL tmp_mirror.git && cd tmp_mirror.git && git push --mirror git@github.com:teecube/$GIT_REPO_NAME.git
+        - sh -c "$(curl -fsSL https://git.teecu.be/teecube/meta/release-engineering/raw/master/mirror-repository-to-github.sh?private_token=$GITLAB_PRIVATE_TOKEN)"

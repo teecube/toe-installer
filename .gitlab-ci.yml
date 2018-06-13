@@ -1,0 +1,30 @@
+image: debovema/docker-mvn
+
+before_script:
+  - source ./release.sh
+  - initCI
+
+stages:
+  - release
+
+tag-release:
+  stage: release
+  tags:
+    - docker
+  script:
+    # call createTriggerTag from maven-auto-releaser script
+    - createTriggerTag
+  only:
+    - release-trigger-minor
+
+release:
+  stage: release
+  tags:
+    - docker
+  script:
+    # call prepareRelease from maven-auto-releaser script
+    - prepareRelease
+    # call executeRelease from maven-auto-releaser script
+    - executeRelease
+  only:
+    - tags

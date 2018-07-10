@@ -431,7 +431,8 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		getLog().info("");
 		if (topologyTemplateFile != null && topologyTemplateFile.exists()) {
 			FileUtils.copyFile(topologyTemplateFile, standaloneTopologyGeneratedFile);
-			getLog().info("Generating topology file using topology template '" + topologyTemplateFile + "'");
+			getLog().info("Generating topology file '" + standaloneTopologyGeneratedFile + "'");
+			getLog().info(" using topology template '" + topologyTemplateFile + "'");
 		} else {
 			// copy an empty topology to target file
 			InputStream emptyEnvironments = EnvironmentInstallerMojo.class.getResourceAsStream("/xml/environments.xml");

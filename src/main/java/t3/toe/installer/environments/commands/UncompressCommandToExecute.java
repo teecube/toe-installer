@@ -63,7 +63,12 @@ public class UncompressCommandToExecute extends CommandToExecute<UncompressComma
     }
 
     @Override
-    public void doExecuteCommand(String commandPrefix, String commandCaption) throws MojoExecutionException {
+    public String commandFailureMessagge() {
+        return "The uncompress command failed.";
+    }
+
+    @Override
+    public boolean doExecuteCommand(String commandCaption) throws MojoExecutionException {
         if (productToInstall == null || productToInstall.getResolvedInstallationPackage() == null || !productToInstall.getResolvedInstallationPackage().exists()) {
             getLog().error("The package file for this custom product was not resolved.");
             throw new MojoExecutionException("The package file for this custom product was not resolved.", new FileNotFoundException());
@@ -101,6 +106,8 @@ public class UncompressCommandToExecute extends CommandToExecute<UncompressComma
                 }
                 break;
         }
+
+        return true;
     }
 
     @Override

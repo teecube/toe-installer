@@ -43,7 +43,12 @@ public class SystemCommandToExecute extends CommandToExecute<SystemCommand> {
     }
 
     @Override
-    public void doExecuteCommand(String commandPrefix, String commandCaption) throws MojoExecutionException {
+    public String commandFailureMessagge() {
+        return "The system command failed.";
+    }
+
+    @Override
+    public boolean doExecuteCommand(String commandCaption) throws MojoExecutionException {
         String commandLine = null;
         try {
             commandLine = getCommandLine(this.command);
@@ -54,12 +59,12 @@ public class SystemCommandToExecute extends CommandToExecute<SystemCommand> {
         File workingDirectory = getWorkingDirectory();
         CollectingLogOutputStream commandOutputStream = null;
         try {
-            CommonMojo.commandOutputStream = new CollectingLogOutputStream(getLog(), commandPrefix, false);
+            CommonMojo.commandOutputStream = new CollectingLogOutputStream(getLog(), "", false);
             if (executeBinary(commandLine, workingDirectory, "The command '" + commandCaption + "' failed.") != 0) {
-                failedCommand(command);
+                return false;
             }
         } catch (MojoExecutionException | IOException e) {
-            failedCommand(command);
+            return false;
         } finally {
             try {
                 if (commandOutputStream != null) {
@@ -68,6 +73,8 @@ public class SystemCommandToExecute extends CommandToExecute<SystemCommand> {
             } catch (IOException e) {
             }
         }
+
+        return true;
     }
 
     private String getCommandLine(SystemCommand command) throws IOException {

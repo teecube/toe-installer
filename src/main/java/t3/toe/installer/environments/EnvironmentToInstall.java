@@ -47,6 +47,17 @@ public class EnvironmentToInstall extends Environment {
 	}
 
 	/**
+	 * Filter products of environment to keep only non-TIBCO products.
+	 *
+	 * @return the list of non-TIBCO products of the environment
+	 */
+	public List<CustomProduct> getNonTIBCOProducts() {
+		return FluentIterable.from(this.getProducts().getTibcoProductOrCustomProduct())
+							 .filter(CustomProduct.class)
+							 .toList();
+	}
+
+	/**
 	 * Filter products of environment to keep only TIBCO products.
 	 *
 	 * @return the list of TIBCO products of the environment

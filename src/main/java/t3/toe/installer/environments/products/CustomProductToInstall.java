@@ -24,6 +24,7 @@ import t3.toe.installer.environments.*;
 import t3.toe.installer.environments.commands.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,7 +58,11 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
     public void init(int productIndex) throws MojoExecutionException {
         if (customProduct.getPackage().getLocal() != null) {
             if (customProduct.getPackage().getLocal().getFileWithVersion() != null) {
-                setResolvedInstallationPackage(new File(customProduct.getPackage().getLocal().getFileWithVersion().getFile()));
+                try {
+                    setResolvedInstallationPackage(new File(customProduct.getPackage().getLocal().getFileWithVersion().getFile()));
+                } catch (IOException e) {
+                    throw new MojoExecutionException(e.getLocalizedMessage(), e);
+                }
                 setVersion(customProduct.getPackage().getLocal().getFileWithVersion().getVersion());
             } else if (customProduct.getPackage().getLocal().getDirectoryWithPattern() != null) {
                 logger.warn("directory with pattern is not supported for custom products");
@@ -77,7 +82,7 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
                 if (resolvedDependency != null && resolvedDependency.exists()) {
                     this.setResolvedInstallationPackage(resolvedDependency);
                 }
-            } catch (ArtifactNotFoundException | ArtifactResolutionException e) {
+            } catch (ArtifactNotFoundException | ArtifactResolutionException | IOException e) {
                 throw new MojoExecutionException(e.getLocalizedMessage(), e);
             }
         }

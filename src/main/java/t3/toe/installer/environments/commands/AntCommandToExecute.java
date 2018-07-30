@@ -33,8 +33,13 @@ public class AntCommandToExecute extends CommandToExecute<AntCommand> {
     }
 
     @Override
-    public void doExecuteCommand(String commandPrefix, String commandCaption) throws MojoExecutionException {
+    public String commandFailureMessagge() {
+        return "The Ant command failed.";
+    }
 
+    @Override
+    public boolean doExecuteCommand(String commandCaption) throws MojoExecutionException {
+        return false;
     }
 
     @Override

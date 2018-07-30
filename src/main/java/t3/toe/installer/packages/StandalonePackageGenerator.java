@@ -118,8 +118,8 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 	@Parameter(property = InstallerMojosInformation.Packages.Standalone.includeLocalTIBCOInstallationPackages, defaultValue = InstallerMojosInformation.Packages.Standalone.includeLocalTIBCOInstallationPackages_default)
 	protected Boolean includeLocalTIBCOInstallationPackages;
 
-	@Parameter (property = InstallerMojosInformation.Packages.Standalone.includeTopologyTIBCOInstallationPackages, defaultValue = InstallerMojosInformation.Packages.Standalone.includeTopologyTIBCOInstallationPackages_default)
-	protected Boolean includeTopologyTIBCOInstallationPackages;
+	@Parameter (property = InstallerMojosInformation.Packages.Standalone.includeTopologyInstallationPackages, defaultValue = InstallerMojosInformation.Packages.Standalone.includeTopologyInstallationPackages_default)
+	protected Boolean includeTopologyInstallationPackages;
 
 	@Parameter (property = InstallerMojosInformation.Packages.Standalone.directory, defaultValue = InstallerMojosInformation.Packages.Standalone.directory_default)
 	protected File standaloneDirectory;
@@ -167,7 +167,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
 	private boolean localTIBCOInstallationPackagesResolved = false;
 
-	private static final String messageIncludeTIBCOInstallationPackagesFromTopology  = "TIBCO and custom installation packages from topology file";
+	private static final String messageIncludeInstallationPackagesFromTopology = "TIBCO and custom installation packages from topology file";
 	private static final String messageIncludeLocalTIBCOInstallationPackages  = "TIBCO installation packages resolved locally";
 	private static final String messageIncludePlugins  = "Maven plugins";
 	private static final String messageGenerateSettings  = "Maven settings.xml to use included Maven plugins";
@@ -204,8 +204,8 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
 		getLog().info("List of included elements:");
 		int elementIncludedIndex = 0;
-		if (includeTIBCOInstallationPackagesFromTopology()) {
-			getLog().info(++elementIncludedIndex + ". " + messageIncludeTIBCOInstallationPackagesFromTopology);
+		if (includeInstallationPackagesFromTopology()) {
+			getLog().info(++elementIncludedIndex + ". " + messageIncludeInstallationPackagesFromTopology);
 		}
 		if (includeLocalTIBCOInstallationPackages) {
 			getLog().info(++elementIncludedIndex + ". " + messageIncludeLocalTIBCOInstallationPackages);
@@ -234,9 +234,9 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
 		elementIncludedIndex = 0;
 
-		if (includeTIBCOInstallationPackagesFromTopology()) {
+		if (includeInstallationPackagesFromTopology()) {
 			getLog().info("");
-			getLog().info(++elementIncludedIndex + ". Include " + messageIncludeTIBCOInstallationPackagesFromTopology);
+			getLog().info(++elementIncludedIndex + ". Include " + messageIncludeInstallationPackagesFromTopology);
 			getLog().info("");
 
 			getLog().info("Using topology file '" + topologyTemplateFile.getAbsolutePath() + "'");
@@ -377,6 +377,15 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 			} catch (IOException | ArchiveException e) {
 				throw new MojoExecutionException(e.getLocalizedMessage(), e);
 			}
+		}
+
+		getLog().info("");
+		getLog().info("---");
+		getLog().info("");
+
+		getLog().info("Standalone package was generated in directory: '" + standaloneDirectory.getAbsolutePath() + "'");
+		if (generateStandaloneArchive) {
+			getLog().info("Standalone package archive is: '" + standaloneArchive.getAbsolutePath() + "'");
 		}
 	}
 
@@ -552,45 +561,36 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		// create one POM per plugin with an execution in project/model/build
 		poms.addAll(getPOMsFromProject(project, tmpDirectory));
 
-		PrintStream oldSystemErr = System.err;
-		PrintStream oldSystemOut = System.out;
-		try {
-			silentSystemStreams();
+		for (File pom : poms) {
+			BuiltProject result = executeGoal(pom, globalSettingsFile, userSettingsFile, localRepositoryPath, mavenVersion);
+			if (result == null || result.getMavenBuildExitCode() != 0) {
+				File goOfflineDirectory = new File(directory, "go-offline");
+				goOfflineDirectory.mkdirs();
 
-			for (File pom : poms) {
-				BuiltProject result = executeGoal(pom, globalSettingsFile, userSettingsFile, localRepositoryPath, mavenVersion);
-				if (result == null || result.getMavenBuildExitCode() != 0) {
-					File goOfflineDirectory = new File(directory, "go-offline");
-					goOfflineDirectory.mkdirs();
+				File logOutput = new File(goOfflineDirectory, "go-offline.log");
+				try {
+					FileUtils.writeStringToFile(logOutput, result.getMavenLog(), StandardCharsets.UTF_8);
+				} catch (IOException e) {
 
-					File logOutput = new File(goOfflineDirectory, "go-offline.log");
-					try {
-						FileUtils.writeStringToFile(logOutput, result.getMavenLog(), StandardCharsets.UTF_8);
-					} catch (IOException e) {
-
-					}
-
-					String ignoreMessage = "";
-					File ignoreMessageFile = new File(pom.getParentFile(), "ignore.message");
-					if (ignoreMessageFile.exists()) {
-						try {
-							ignoreMessage = FileUtils.readFileToString(ignoreMessageFile);
-						} catch (IOException e) {
-							throw new MojoExecutionException(e.getLocalizedMessage(), e);
-						}
-					}
-					if (result.getMavenLog().contains("Property groupId is missing.") || // this one for archetypes
-						(StringUtils.isNotEmpty(ignoreMessage) && result.getMavenLog().contains(ignoreMessage))) {
-						continue;
-					}
-					getLog().error("Something went wrong in Maven build to go offline. Log file is: '" + logOutput.getAbsolutePath() + "'");
-
-					throw new MojoExecutionException("Unable to execute plugins goals to go offline.");
 				}
+
+				String ignoreMessage = "";
+				File ignoreMessageFile = new File(pom.getParentFile(), "ignore.message");
+				if (ignoreMessageFile.exists()) {
+					try {
+						ignoreMessage = FileUtils.readFileToString(ignoreMessageFile);
+					} catch (IOException e) {
+						throw new MojoExecutionException(e.getLocalizedMessage(), e);
+					}
+				}
+				if (result.getMavenLog().contains("Property groupId is missing.") || // this one for archetypes
+					(StringUtils.isNotEmpty(ignoreMessage) && result.getMavenLog().contains(ignoreMessage))) {
+					continue;
+				}
+				getLog().error("Something went wrong in Maven build to go offline. Log file is: '" + logOutput.getAbsolutePath() + "'");
+
+				throw new MojoExecutionException("Unable to execute plugins goals to go offline.");
 			}
-		} finally {
-			System.setErr(oldSystemErr);
-			System.setOut(oldSystemOut);
 		}
 	}
 
@@ -722,8 +722,8 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		}
 	}
 
-	private boolean includeTIBCOInstallationPackagesFromTopology() {
-		return (includeTopologyTIBCOInstallationPackages && topologyTemplateFile != null && topologyTemplateFile.exists());
+	private boolean includeInstallationPackagesFromTopology() {
+		return (includeTopologyInstallationPackages && topologyTemplateFile != null && topologyTemplateFile.exists());
 	}
 
 	private boolean includePlugins() {

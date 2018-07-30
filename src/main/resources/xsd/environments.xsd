@@ -216,7 +216,13 @@
 		<xs:complexContent>
 			<xs:extension base="AbstractCommand">
 				<xs:sequence>
-					<xs:element name="goals" type="xs:string"/>
+					<xs:element name="goals">
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element name="goal" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+							</xs:sequence>
+						</xs:complexType>
+					</xs:element>
 					<xs:element name="arguments" minOccurs="0">
 						<xs:complexType>
 							<xs:sequence>

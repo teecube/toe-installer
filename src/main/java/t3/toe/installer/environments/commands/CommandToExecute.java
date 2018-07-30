@@ -23,7 +23,6 @@ import t3.CommonMojo;
 import t3.log.PrefixedLogger;
 import t3.toe.installer.environments.AbstractCommand;
 import t3.toe.installer.environments.CustomProduct;
-import t3.toe.installer.environments.UncompressCommand;
 import t3.toe.installer.environments.products.CustomProductToInstall;
 import t3.toe.installer.environments.products.ProductToInstall;
 import t3.utils.Utils;
@@ -55,6 +54,7 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
 
     protected final Command command;
     protected final int commandIndex;
+    protected final CommonMojo commonMojo;
     protected final CommandType commandType;
     protected final ProductToInstall<CustomProduct> productToInstall;
 
@@ -65,6 +65,7 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
     public CommandToExecute(Command command, CommonMojo commonMojo, int commandIndex, CommandType commandType, ProductToInstall<CustomProduct> productToInstall) {
         this.command = command;
         this.commandIndex = commandIndex;
+        this.commonMojo = commonMojo;
         this.commandType = commandType;
         this.productToInstall = productToInstall;
 
@@ -76,7 +77,8 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
         this.executionEnvironment = new MojoExecutor.ExecutionEnvironment(this.project, this.session, commonMojo.getPluginManager());
     }
 
-    public abstract void doExecuteCommand(String commandPrefix, String commandCaption) throws MojoExecutionException;
+    public abstract boolean doExecuteCommand(String commandCaption) throws MojoExecutionException;
+    public abstract String commandFailureMessagge();
     public abstract String getCommandTypeCaption();
 
     public void executeCommand() throws MojoExecutionException {
@@ -111,21 +113,30 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
             getLog().info("   Description: " + this.command.getDescription());
         }
 
-        doExecuteCommand("", commandCaption);
+        boolean commandSucceeded = true;
+        try {
+            commandSucceeded = doExecuteCommand(commandCaption);
+        } catch (MojoExecutionException e) {
+            failedCommand(command);
+        }
+
+        if (!commandSucceeded) {
+            failedCommand(command);
+        }
     }
 
     protected void failedCommand(AbstractCommand command) throws MojoExecutionException {
         switch (command.getOnError()) {
             case FAIL:
                 getLog().info("");
-                getLog().error("The command failed.");
-                throw new MojoExecutionException("The command failed.");
+                getLog().error(commandFailureMessagge());
+                throw new MojoExecutionException(commandFailureMessagge());
             case IGNORE:
                 getLog().info("");
                 break;
             case WARN:
                 getLog().info("");
-                getLog().warn("The command failed.");
+                getLog().warn(commandFailureMessagge());
                 break;
         }
     }
@@ -164,6 +175,9 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
                 index = Integer.parseInt(_index);
             }
             int i = 1; // XPath-like so starts from 1
+            if (selector.equals("packagesDirectory")) {
+                o = "C:/packages";
+            }
             if (selector.equals("uncompressCommand")) {
                 for (CommandToExecute commandToExecute : customProductToInstall.getCommandsToExecute()) {
                     if (commandToExecute instanceof UncompressCommandToExecute) {

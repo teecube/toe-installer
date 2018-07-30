@@ -257,36 +257,18 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 					tibcoProduct.getPackage().setMavenArtifact(mavenArtifactPackage);
 					tibcoProduct.getPackage().setLocal(null);
 				}
-				/*
-				Product.Package productPackage = new Product.Package();
-				switch (topologyType) {
-				case LOCAL:
-					LocalPackage localPackage = new LocalPackage();
-					LocalFileWithVersion fileWithVersion = new LocalFileWithVersion();
-					fileWithVersion.setFile(installer.getInstallationPackage().getAbsolutePath());
-					fileWithVersion.setVersion(installer.getInstallationPackageVersion());
-					localPackage.setFileWithVersion(fileWithVersion);
-					productPackage.setLocal(localPackage);
 
-					break;
-				case REMOTE:
-					MavenArtifactPackage mavenRemotePackage = new MavenArtifactPackage();
-					mavenRemotePackage.setGroupId(installer.getRemoteInstallationPackageGroupId());
-					mavenRemotePackage.setArtifactId(installer.getRemoteInstallationPackageArtifactId());
-					mavenRemotePackage.setVersion(installer.getInstallationPackageVersion());
-					mavenRemotePackage.setPackaging(installer.getRemoteInstallationPackagePackaging());
-					String classifier = getInstallerClassifier(installer);
-					if (classifier != null) {
-						mavenRemotePackage.setClassifier(classifier);
-					}
-
-					productPackage.setMavenRemote(mavenRemotePackage);
-
-					break;
-				}
-				tibcoProduct.setPackage(productPackage);
-				*/
 				products.getTibcoProductOrCustomProduct().add(tibcoProduct.getProduct());
+			}
+
+			for (CustomProduct nonTIBCOProduct : environment.getNonTIBCOProducts()) {
+				if (topologyType.equals(TopologyType.REMOTE) && nonTIBCOProduct.getPackage().getLocal() != null) {
+					if (nonTIBCOProduct.getPackage().getLocal().getFileWithVersion() != null) {
+						File localFile = new File(nonTIBCOProduct.getPackage().getLocal().getFileWithVersion().getFile());
+						nonTIBCOProduct.getPackage().getLocal().getFileWithVersion().setFile("./packages/" + localFile.getName());
+					}
+				}
+
 			}
 
             environment.setProducts(products);

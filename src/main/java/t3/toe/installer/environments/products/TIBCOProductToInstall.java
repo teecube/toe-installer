@@ -27,6 +27,7 @@ import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -336,8 +337,12 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 		File resolvedInstallationPackage = installer.getInstallationPackage();
 		if (resolvedInstallationPackage != null && resolvedInstallationPackage.exists()) {
-            this.setResolvedInstallationPackage(installer.getInstallationPackage());
-            this.setInstaller(installer);
+			try {
+				this.setResolvedInstallationPackage(installer.getInstallationPackage());
+			} catch (IOException e) {
+				throw new MojoExecutionException(e.getLocalizedMessage(), e);
+			}
+			this.setInstaller(installer);
         } else {
 		    logger.error("Unresolved TIBCO installation package!");
         }

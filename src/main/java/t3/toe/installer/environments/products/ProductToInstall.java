@@ -61,8 +61,8 @@ public abstract class ProductToInstall<P extends Product> {
         return resolvedInstallationPackage;
     }
 
-    public void setResolvedInstallationPackage(File resolvedInstallationPackage) {
-        this.resolvedInstallationPackage = resolvedInstallationPackage;
+    public void setResolvedInstallationPackage(File resolvedInstallationPackage) throws IOException {
+        this.resolvedInstallationPackage = new File(resolvedInstallationPackage.getCanonicalPath());
     }
 
     private boolean alreadyInstalled;

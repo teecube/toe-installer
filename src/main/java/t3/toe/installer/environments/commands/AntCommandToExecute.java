@@ -20,13 +20,18 @@ import org.apache.maven.plugin.MojoExecutionException;
 import t3.CommonMojo;
 import t3.toe.installer.environments.AntCommand;
 import t3.toe.installer.environments.CustomProduct;
+import t3.toe.installer.environments.EnvironmentToInstall;
 import t3.toe.installer.environments.products.ProductToInstall;
 
 public class AntCommandToExecute extends CommandToExecute<AntCommand> {
 
     private final AntCommand antCommand;
 
-    public AntCommandToExecute(AntCommand command, CommonMojo commonMojo, int commandIndex, CommandType commandType, ProductToInstall<CustomProduct> productToInstall) {
+    public AntCommandToExecute(AntCommand command, CommonMojo commonMojo, int commandIndex, CommandType commandType) {
+        this(command, commonMojo, commandIndex, commandType, null);
+    }
+
+    public AntCommandToExecute(AntCommand command, CommonMojo commonMojo, int commandIndex, CommandType commandType, ProductToInstall productToInstall) {
         super(command, commonMojo, commandIndex, commandType, productToInstall);
 
         this.antCommand = command;

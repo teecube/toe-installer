@@ -25,6 +25,7 @@ import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import t3.CommonMojo;
 import t3.toe.installer.environments.UncompressCommand;
 import t3.toe.installer.environments.products.CustomProductToInstall;
+import t3.toe.installer.environments.products.ProductToInstall;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -36,7 +37,11 @@ public class UncompressCommandToExecute extends CommandToExecute<UncompressComma
     private final UncompressCommand uncompressCommand;
     private File destinationDirectory;
 
-    public UncompressCommandToExecute(UncompressCommand command, CommonMojo commonMojo, int commandIndex, CommandType commandType, CustomProductToInstall customProductToInstall) {
+    public UncompressCommandToExecute(UncompressCommand command, CommonMojo commonMojo, int commandIndex, CommandType commandType) {
+        this(command, commonMojo, commandIndex, commandType, null);
+    }
+
+    public UncompressCommandToExecute(UncompressCommand command, CommonMojo commonMojo, int commandIndex, CommandType commandType, ProductToInstall customProductToInstall) {
         super(command, commonMojo, commandIndex, commandType, customProductToInstall);
 
         this.uncompressCommand = command;

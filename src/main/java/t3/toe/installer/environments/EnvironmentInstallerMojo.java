@@ -28,8 +28,7 @@ import t3.plugin.annotations.Parameter;
 import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerLifecycleParticipant;
 import t3.toe.installer.InstallerMojosInformation;
-import t3.toe.installer.environments.commands.CommandToExecute;
-import t3.toe.installer.environments.commands.SystemCommandToExecute;
+import t3.toe.installer.environments.commands.*;
 import t3.toe.installer.environments.products.ProductToInstall;
 import t3.toe.installer.environments.products.ProductsToInstall;
 import t3.toe.installer.environments.products.TIBCOProductToInstall;
@@ -94,6 +93,10 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			// populate list of products to install in environment
 			ProductsToInstall productsToInstall = new ProductsToInstall(environment, this);
 
+			if (productsToInstall.isAtLeastOneMavenArtifactResolved()) {
+				getLog().info("");
+			}
+
 			// display the list of products to be installed
 			int i = 1;
 			for (ProductToInstall product : productsToInstall) {
@@ -117,12 +120,20 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 			// execute environment pre-install commands
 			i = 1;
-			if (environment.getPreInstallCommands() != null && !environment.getPreInstallCommands().getCommand().isEmpty()) {
+			if (environment.getPreInstallCommands() != null && !environment.getPreInstallCommands().getAntCommandOrMavenCommandOrSystemCommand().isEmpty()) {
+				getLog().info("");
 				getLog().info("Executing pre-install commands");
-				for (SystemCommand command : environment.getPreInstallCommands().getCommand()) {
-					new SystemCommandToExecute(command, this, i, CommandToExecute.CommandType.GLOBAL_PRE).executeCommand();
+				for (AbstractCommand command : environment.getPreInstallCommands().getAntCommandOrMavenCommandOrSystemCommand()) {
+					CommandToExecute commandToExecute = getCommandToExecute(command, CommandToExecute.CommandType.GLOBAL_PRE, i);
+
+					if (commandToExecute != null) {
+						commandToExecute.executeCommand();
+					}
+
 					i++;
 				}
+				getLog().info("");
+				getLog().info("End of pre-install commands execution");
 			}
 
 			// install products
@@ -133,17 +144,24 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			}
 
 			getLog().info("");
-			getLog().info("End of products installation.");
+			getLog().info("End of products installation");
 
 			// execute environment post-install commands
 			i = 1;
-			if (environment.getPostInstallCommands() != null && !environment.getPostInstallCommands().getCommand().isEmpty()) {
+			if (environment.getPostInstallCommands() != null && !environment.getPostInstallCommands().getAntCommandOrMavenCommandOrSystemCommand().isEmpty()) {
 				getLog().info("");
 				getLog().info("Executing post-install commands");
-				for (SystemCommand command : environment.getPostInstallCommands().getCommand()) {
-					new SystemCommandToExecute(command, this, i, CommandToExecute.CommandType.GLOBAL_POST).executeCommand();
-					i++;
-				}
+                for (AbstractCommand command : environment.getPostInstallCommands().getAntCommandOrMavenCommandOrSystemCommand()) {
+                    CommandToExecute commandToExecute = getCommandToExecute(command, CommandToExecute.CommandType.GLOBAL_POST, i);
+
+                    if (commandToExecute != null) {
+                        commandToExecute.executeCommand();
+                    }
+
+                    i++;
+                }
+				getLog().info("");
+				getLog().info("End of post-install commands execution");
 			}
 
 			if (environmentsCount > 1 && environmentsIndex < environmentsCount) { // add space between environments
@@ -151,6 +169,21 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 				environmentsIndex++;
 			}
 		}
+	}
+
+	protected CommandToExecute getCommandToExecute(AbstractCommand command, CommandToExecute.CommandType commandType, int index) {
+		CommandToExecute commandToExecute = null;
+		if (command instanceof AntCommand) {
+			commandToExecute = new AntCommandToExecute((AntCommand) command, this, index, commandType);
+		} else if (command instanceof MavenCommand) {
+			commandToExecute = new MavenCommandToExecute((MavenCommand) command, this, index, commandType);
+		} else if (command instanceof SystemCommand) {
+			commandToExecute = new SystemCommandToExecute((SystemCommand) command, this, index, commandType);
+		} else if (command instanceof UncompressCommand) {
+			commandToExecute = new UncompressCommandToExecute((UncompressCommand) command, this, index, commandType);
+		}
+
+		return commandToExecute;
 	}
 
 	private boolean deleteEnvironment(EnvironmentToInstall environment) throws MojoExecutionException {

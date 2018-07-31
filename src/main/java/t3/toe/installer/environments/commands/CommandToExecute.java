@@ -18,19 +18,32 @@ package t3.toe.installer.environments.commands;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
 import t3.CommonMojo;
 import t3.log.PrefixedLogger;
 import t3.toe.installer.environments.AbstractCommand;
 import t3.toe.installer.environments.CustomProduct;
+import t3.toe.installer.environments.EnvironmentToInstall;
 import t3.toe.installer.environments.products.CustomProductToInstall;
 import t3.toe.installer.environments.products.ProductToInstall;
 import t3.utils.Utils;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class CommandToExecute<Command extends AbstractCommand> extends CommonMojo {
+
+    private String prefix;
+    private String prefixMinusOne;
+    private String prefixMinusTwo;
+    private String prefixMinusThree;
+
+    private Map<String, Log> loggers;
 
     public enum CommandType {
         GLOBAL_PRE ("Global pre-install command"),
@@ -75,6 +88,8 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
         this.project = commonMojo.getProject();
         this.session = commonMojo.getSession();
         this.executionEnvironment = new MojoExecutor.ExecutionEnvironment(this.project, this.session, commonMojo.getPluginManager());
+
+        loggers = new HashMap<String, Log>();
     }
 
     public abstract boolean doExecuteCommand(String commandCaption) throws MojoExecutionException;
@@ -90,24 +105,28 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
         getLog().info("");
 
         String name = this.command.getName();
-        String commandCaption = (name != null ? name : getCommandTypeCaption()) + (this.command.getId() != null ? " (id: " + this.command.getId() + ")" : "");
+        String commandCaption = (StringUtils.isNotEmpty(name) ? name : getCommandTypeCaption()) + (this.command.getId() != null ? " (id: " + this.command.getId() + ")" : "");
 
         String commandDisplay;
-        String prefix = "";
+        prefix = "";
         switch (commandType) {
+            case PRODUCT_PRE:
+            case PRODUCT_POST:
             case CUSTOM_PRODUCT:
                 prefix = "   " + Utils.toAlphabetic(commandIndex - 1) + ". ";
                 break;
             default:
-                prefix = commandIndex + ". Name: ";
+                prefix = commandIndex + ". ";
         }
         commandDisplay = prefix + commandCaption;
-        prefix = StringUtils.repeat(" ", prefix.length() - 2);
-        String prefixShort = StringUtils.repeat(" ", prefix.length() - 1);
+        this.prefix = StringUtils.repeat(" ", prefix.length() - 2);
+        this.prefixMinusOne = StringUtils.repeat(" ", prefix.length() - 1);
+        this.prefixMinusTwo = StringUtils.repeat(" ", prefix.length() - 2);
+        this.prefixMinusThree = StringUtils.repeat(" ", prefix.length() - 3);
 
         getLog().info(commandDisplay);
 
-        this.setLog(new PrefixedLogger(logger, prefixShort + "| ", prefix + "| ", prefix + "| ", prefixShort + "| "));
+        this.setLog(new PrefixedLogger(logger, prefixMinusOne + "| ", prefix + "| ", prefixMinusThree + "! ", prefixMinusTwo + "!! "));
 
         if (StringUtils.isNotBlank(this.command.getDescription())) {
             getLog().info("   Description: " + this.command.getDescription());
@@ -123,6 +142,16 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
         if (!commandSucceeded) {
             failedCommand(command);
         }
+    }
+
+    protected Log getLog(String customPrefix) {
+        if (loggers.containsKey(customPrefix)) {
+            return loggers.get(customPrefix);
+        }
+
+        PrefixedLogger logger = new PrefixedLogger(this.logger, prefixMinusOne + customPrefix + " ", prefix + customPrefix + " ", prefixMinusThree + customPrefix + " ", prefixMinusTwo + customPrefix + " ");
+        loggers.put(customPrefix, logger);
+        return logger;
     }
 
     protected void failedCommand(AbstractCommand command) throws MojoExecutionException {
@@ -175,8 +204,8 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
                 index = Integer.parseInt(_index);
             }
             int i = 1; // XPath-like so starts from 1
-            if (selector.equals("packagesDirectory")) {
-                o = "C:/packages";
+            if (selector.equals("packageDirectory")) {
+                o = "./packages/" + productToInstall.getName();
             }
             if (selector.equals("uncompressCommand")) {
                 for (CommandToExecute commandToExecute : customProductToInstall.getCommandsToExecute()) {
@@ -200,6 +229,36 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
         }
 
         return o.toString();
+    }
+
+    protected File getWorkingDirectory() {
+        File workingDirectory = new File(session.getRequest().getBaseDirectory());
+
+        String commandWorkingDirectory = command.getWorkingDirectory();
+        if (StringUtils.isNotEmpty(commandWorkingDirectory)) {
+            Matcher m = mavenPropertyPattern.matcher(commandWorkingDirectory);
+
+            StringBuffer sb = new StringBuffer();
+
+            while (m.find()) {
+                String propertyKey = m.group(1);
+                String propertyValue = getCommandPropertyValue(propertyKey);
+                if (propertyValue != null) {
+                    m.appendReplacement(sb, Matcher.quoteReplacement(propertyValue));
+                }
+            }
+            m.appendTail(sb);
+            commandWorkingDirectory = sb.toString();
+
+            workingDirectory = new File(commandWorkingDirectory);
+            try {
+                workingDirectory = new File(workingDirectory.getCanonicalPath());
+            } catch (IOException e) {
+                workingDirectory = new File(commandWorkingDirectory);
+            }
+        }
+
+        return workingDirectory;
     }
 
 }

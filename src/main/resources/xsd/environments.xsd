@@ -18,7 +18,7 @@
 
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://teecu.be/toe-installer/environments"
-	targetNamespace="http://teecu.be/toe-installer/environments" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
+	targetNamespace="http://teecu.be/toe-installer/environments"
 	elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<!-- Products -->
@@ -202,7 +202,7 @@
 		<xs:attribute name="description" type="xs:string" use="optional" />
 		<xs:attribute name="onError" type="CommandOnErrorBehaviour" default="fail" />
 		<xs:attribute name="skip" type="xs:boolean" use="optional" default="false" />
-		<xs:attribute name="workingDirectory" type="xs:string" use="optional" />
+		<xs:attribute name="workingDirectory" type="xs:string" use="optional" default="${packageDirectory}" />
 	</xs:complexType>
 
 	<xs:complexType name="AntCommand">
@@ -292,7 +292,12 @@
 
 	<xs:complexType name="Commands">
 		<xs:sequence>
-			<xs:element name="command" type="SystemCommand" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:choice minOccurs="1" maxOccurs="unbounded">
+				<xs:element name="antCommand" type="AntCommand"/>
+				<xs:element name="mavenCommand" type="MavenCommand"/>
+				<xs:element name="systemCommand" type="SystemCommand"/>
+				<xs:element name="uncompressCommand" type="UncompressCommand"/>
+			</xs:choice>
 		</xs:sequence>
 	</xs:complexType>
 
@@ -311,6 +316,10 @@
 						</xs:choice>
 					</xs:sequence>
 				</xs:complexType>
+				<xs:unique name="UniqueProductName">
+					<xs:selector xpath=".//*" />
+					<xs:field xpath="@name" />
+				</xs:unique>
 			</xs:element>
 			<xs:element name="postInstallCommands" minOccurs="0" type="Commands"/>
 		</xs:sequence>

@@ -265,7 +265,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 				if (topologyType.equals(TopologyType.REMOTE) && nonTIBCOProduct.getPackage().getLocal() != null) {
 					if (nonTIBCOProduct.getPackage().getLocal().getFileWithVersion() != null) {
 						File localFile = new File(nonTIBCOProduct.getPackage().getLocal().getFileWithVersion().getFile());
-						nonTIBCOProduct.getPackage().getLocal().getFileWithVersion().setFile("./packages/" + localFile.getName());
+						nonTIBCOProduct.getPackage().getLocal().getFileWithVersion().setFile("./packages/" + nonTIBCOProduct.getName() + "/" + localFile.getName());
 					}
 				}
 

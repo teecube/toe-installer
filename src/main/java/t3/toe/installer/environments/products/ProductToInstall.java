@@ -24,8 +24,7 @@ import org.apache.maven.project.MavenProject;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
 import t3.CommonMojo;
 import t3.toe.installer.environments.*;
-import t3.toe.installer.environments.commands.CommandToExecute;
-import t3.toe.installer.environments.commands.SystemCommandToExecute;
+import t3.toe.installer.environments.commands.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -100,6 +99,21 @@ public abstract class ProductToInstall<P extends Product> {
     public abstract String fullProductName();
     public abstract void init(int productIndex) throws MojoExecutionException;
 
+    protected CommandToExecute getCommandToExecute(AbstractCommand command, CommandToExecute.CommandType commandType, int index) {
+        CommandToExecute commandToExecute = null;
+        if (command instanceof AntCommand) {
+            commandToExecute = new AntCommandToExecute((AntCommand) command, commonMojo, index, commandType, this);
+        } else if (command instanceof MavenCommand) {
+            commandToExecute = new MavenCommandToExecute((MavenCommand) command, commonMojo, index, commandType, this);
+        } else if (command instanceof SystemCommand) {
+            commandToExecute = new SystemCommandToExecute((SystemCommand) command, commonMojo, index, commandType, this);
+        } else if (command instanceof UncompressCommand) {
+            commandToExecute = new UncompressCommandToExecute((UncompressCommand) command, commonMojo, index, commandType, this);
+        }
+
+        return commandToExecute;
+    }
+
     public void install(EnvironmentToInstall environment, int productIndex) throws MojoExecutionException {
         logger.info("");
 
@@ -110,30 +124,39 @@ public abstract class ProductToInstall<P extends Product> {
             logger.info(productIndex + ". Skipping '" + this.fullProductName() + "' (already installed)");
             return;
         } else {
+            logger.info(productIndex + ". Installing '" + this.fullProductName() + "'");
+
             // execute pre-product-install commands
-            if (this.getPreInstallCommands() != null && !this.getPreInstallCommands().getCommand().isEmpty()) {
-                logger.info("Executing pre-install commands for current product");
+            if (this.getPreInstallCommands() != null && !this.getPreInstallCommands().getAntCommandOrMavenCommandOrSystemCommand().isEmpty()) {
+                logger.info("");
+                logger.info("   Executing pre-install commands for current product");
                 int i = 1;
-                for (SystemCommand command : this.getPreInstallCommands().getCommand()) {
-                    CommandToExecute commandToExecute = new SystemCommandToExecute(command, commonMojo, i, CommandToExecute.CommandType.PRODUCT_PRE, this);
-                    commandToExecute.executeCommand();
+                for (AbstractCommand command : this.getPreInstallCommands().getAntCommandOrMavenCommandOrSystemCommand()) {
+                    CommandToExecute commandToExecute = getCommandToExecute(command, CommandToExecute.CommandType.PRODUCT_PRE, i);
+
+                    if (commandToExecute != null) {
+                        commandToExecute.executeCommand();
+                    }
+
                     i++;
                 }
             }
-
-            logger.info(productIndex + ". Installing '" + this.fullProductName() + "'");
         }
 
         doInstall(environment, productIndex);
 
         // execute post-product-install commands
-        if (this.getPostInstallCommands() != null && !this.getPostInstallCommands().getCommand().isEmpty()) {
+        if (this.getPostInstallCommands() != null && !this.getPostInstallCommands().getAntCommandOrMavenCommandOrSystemCommand().isEmpty()) {
             logger.info("");
-            logger.info("Executing post-install commands for current product");
+            logger.info("   Executing post-install commands for current product");
             int i = 1;
-            for (SystemCommand command : this.getPostInstallCommands().getCommand()) {
-                CommandToExecute commandToExecute = new SystemCommandToExecute(command, commonMojo, i, CommandToExecute.CommandType.PRODUCT_POST, this);
-                commandToExecute.executeCommand();
+            for (AbstractCommand command : this.getPostInstallCommands().getAntCommandOrMavenCommandOrSystemCommand()) {
+                CommandToExecute commandToExecute = getCommandToExecute(command, CommandToExecute.CommandType.PRODUCT_POST, i);
+
+                if (commandToExecute != null) {
+                    commandToExecute.executeCommand();
+                }
+
                 i++;
             }
         }

@@ -31,7 +31,9 @@ public class EnvironmentToInstall extends Environment {
 		this.setName(environment.getName());
 		this.setIfExists(environment.getIfExists());
 		this.setPackagesDirectory(environment.getPackagesDirectory());
+		this.setPreInstallCommands(environment.getPreInstallCommands());
 		this.setProducts(environment.getProducts());
+		this.setPostInstallCommands(environment.getPostInstallCommands());
 		this.setTibcoRoot(environment.getTibcoRoot());
 
 		this.environmentsTopology = environmentsTopology;

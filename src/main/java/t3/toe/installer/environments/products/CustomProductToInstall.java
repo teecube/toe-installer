@@ -31,7 +31,6 @@ import java.util.List;
 public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
 
     private final CustomProduct customProduct;
-    private CommandToExecute commandToExecute;
     private List<CommandToExecute> commandsToExecute;
 
     public CustomProductToInstall(CustomProduct customProduct, EnvironmentToInstall environment, CommonMojo commonMojo) {
@@ -94,19 +93,13 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
         commandsToExecute = new ArrayList<CommandToExecute>();
 
         for (AbstractCommand command : customProduct.getAntCommandOrMavenCommandOrSystemCommand()) {
-            if (command instanceof AntCommand) {
-                commandToExecute = new AntCommandToExecute((AntCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this);
-            } else if (command instanceof MavenCommand) {
-                commandToExecute = new MavenCommandToExecute((MavenCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this);
-            } else if (command instanceof SystemCommand) {
-                commandToExecute = new SystemCommandToExecute((SystemCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this);
-            } else if (command instanceof UncompressCommand) {
-                commandToExecute = new UncompressCommandToExecute((UncompressCommand) command, commonMojo, i, CommandToExecute.CommandType.CUSTOM_PRODUCT, this);
+            CommandToExecute commandToExecute = getCommandToExecute(command, CommandToExecute.CommandType.CUSTOM_PRODUCT, i);
+
+            if (commandToExecute != null) {
+                commandsToExecute.add(commandToExecute);
+
+                commandToExecute.executeCommand();
             }
-
-            commandsToExecute.add(commandToExecute);
-
-            commandToExecute.executeCommand();
 
             i++;
         }

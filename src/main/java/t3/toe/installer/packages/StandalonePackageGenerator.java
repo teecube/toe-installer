@@ -307,7 +307,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 					try {
 						getLog().info("Adding '" + productToInstall.getResolvedInstallationPackage() + "' to standalone local packages directory");
 
-						FileUtils.copyFileToDirectory(productToInstall.getResolvedInstallationPackage(), standaloneLocalPackages);
+						FileUtils.copyFileToDirectory(productToInstall.getResolvedInstallationPackage(), new File(standaloneLocalPackages + "/" + productToInstall.getName()));
 					} catch (IOException e) {
 						throw new MojoExecutionException(e.getLocalizedMessage(), e);
 					}

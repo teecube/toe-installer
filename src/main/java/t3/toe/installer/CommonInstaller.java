@@ -982,6 +982,7 @@ public abstract class CommonInstaller extends CommonMojo {
 		} catch (IOException e) {
 			if (e.getCause().getMessage().contains("=740")) { // Windows and not admin
 				windowsNeedElevation();
+				//return;
 			}
 		}
 

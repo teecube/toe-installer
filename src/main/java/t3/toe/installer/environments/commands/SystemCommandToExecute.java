@@ -38,9 +38,11 @@ public class SystemCommandToExecute extends CommandToExecute<SystemCommand> {
         super(command, commonMojo, commandIndex, commandType, productToInstall);
     }
 
+/*
     public SystemCommandToExecute(SystemCommand command, CommonMojo commonMojo, int commandIndex, CommandType commandType, CustomProductToInstall customProductToInstall) {
         super(command, commonMojo, commandIndex, commandType, customProductToInstall);
     }
+*/
 
     @Override
     public String commandFailureMessagge() {
@@ -92,31 +94,6 @@ public class SystemCommandToExecute extends CommandToExecute<SystemCommand> {
             return "sh -c " + shellScript.getAbsolutePath().replace("\\", "/");
         }
         return "";
-    }
-
-    private File getWorkingDirectory() {
-        File workingDirectory = new File(session.getRequest().getBaseDirectory());
-
-        String commandWorkingDirectory = command.getWorkingDirectory();
-        if (StringUtils.isNotEmpty(commandWorkingDirectory)) {
-            Matcher m = mavenPropertyPattern.matcher(commandWorkingDirectory);
-
-            StringBuffer sb = new StringBuffer();
-
-            while (m.find()) {
-                String propertyKey = m.group(1);
-                String propertyValue = getCommandPropertyValue(propertyKey);
-                if (propertyValue != null) {
-                    m.appendReplacement(sb, Matcher.quoteReplacement(propertyValue));
-                }
-            }
-            m.appendTail(sb);
-            commandWorkingDirectory = sb.toString();
-
-            workingDirectory = new File(commandWorkingDirectory);
-        }
-
-        return workingDirectory;
     }
 
     @Override

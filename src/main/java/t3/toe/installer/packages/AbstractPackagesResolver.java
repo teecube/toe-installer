@@ -205,7 +205,6 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 
 							resolvedProducts.add(tibcoProductToInstall);
 						}
-						getLog().info("");
 					}
 				}
 			}

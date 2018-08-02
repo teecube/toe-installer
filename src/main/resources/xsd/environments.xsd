@@ -17,9 +17,11 @@
     limitations under the License.
 
 -->
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://teecu.be/toe-installer/environments"
-	targetNamespace="http://teecu.be/toe-installer/environments"
-	elementFormDefault="qualified" attributeFormDefault="unqualified">
+<xs:schema xmlns="http://teecu.be/toe-installer/environments"
+		   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		   xmlns:env="http://teecu.be/toe-installer/environments"
+		   targetNamespace="http://teecu.be/toe-installer/environments"
+		   elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<!-- Products -->
 	<xs:simpleType name="ProductType">
@@ -175,6 +177,7 @@
 				</xs:sequence>
 				<xs:attribute name="name" type="xs:string" use="optional" default="@type"/>
 				<xs:attribute name="type" type="ProductType" use="required"/>
+				<xs:attribute name="configure" type="xs:boolean" use="optional" default="true"/>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -223,10 +226,17 @@
 							</xs:sequence>
 						</xs:complexType>
 					</xs:element>
-					<xs:element name="arguments" minOccurs="0">
+					<xs:element name="properties" minOccurs="0">
 						<xs:complexType>
 							<xs:sequence>
-								<xs:element name="argument" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+								<xs:element name="property" minOccurs="0" maxOccurs="unbounded">
+									<xs:complexType>
+										<xs:sequence>
+											<xs:element name="key" type="xs:string"/>
+											<xs:element name="value" type="xs:string"/>
+										</xs:sequence>
+									</xs:complexType>
+								</xs:element>
 							</xs:sequence>
 						</xs:complexType>
 					</xs:element>
@@ -316,8 +326,8 @@
 						</xs:choice>
 					</xs:sequence>
 				</xs:complexType>
-				<xs:unique name="UniqueProductName">
-					<xs:selector xpath=".//*" />
+				<xs:unique name="UniqueCustomProductName">
+					<xs:selector xpath="env:customProduct" />
 					<xs:field xpath="@name" />
 				</xs:unique>
 			</xs:element>

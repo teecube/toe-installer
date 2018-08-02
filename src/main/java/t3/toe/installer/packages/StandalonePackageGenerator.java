@@ -58,6 +58,7 @@ import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.*;
 import t3.toe.installer.environments.products.ProductToInstall;
 import t3.toe.installer.environments.products.ProductsToInstall;
+import t3.utils.MavenRunner;
 import t3.utils.POMManager;
 import t3.utils.Utils;
 import t3.utils.ZipUtils;
@@ -561,8 +562,19 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		// create one POM per plugin with an execution in project/model/build
 		poms.addAll(getPOMsFromProject(project, tmpDirectory));
 
+		MavenRunner mavenRunner = new MavenRunner();
+		mavenRunner.setGlobalSettingsFile(globalSettingsFile);
+		mavenRunner.setUserSettingsFile(userSettingsFile);
+		mavenRunner.setLocalRepositoryDirectory(localRepositoryPath);
+		mavenRunner.setMavenVersion(mavenVersion);
+		mavenRunner.setGoals("validate");
+		mavenRunner.setFailAtEnd(true);
+		mavenRunner.setIgnoreFailure(true);
+		mavenRunner.setQuiet(true);
+
 		for (File pom : poms) {
-			BuiltProject result = executeGoal(pom, globalSettingsFile, userSettingsFile, localRepositoryPath, mavenVersion);
+			mavenRunner.setPomFile(pom);
+			BuiltProject result = mavenRunner.run();
 			if (result == null || result.getMavenBuildExitCode() != 0) {
 				File goOfflineDirectory = new File(directory, "go-offline");
 				goOfflineDirectory.mkdirs();

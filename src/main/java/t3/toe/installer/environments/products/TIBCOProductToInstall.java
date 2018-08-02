@@ -25,12 +25,11 @@ import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosFactory;
 import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.*;
+import t3.toe.installer.installers.BW5InstallerMojo;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
@@ -69,6 +68,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 	private ArrayList<Element> configuration;
 	private TIBCOProduct.Hotfixes hotfixes;
 	private ProductType type;
+	private boolean configure;
 
 	private TIBCOProductGoalAndPriority tibcoProductGoalAndPriority;
 	private String version;
@@ -79,6 +79,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 		this.setHotfixes(tibcoProduct.getHotfixes());
 		this.setName(tibcoProduct.getName());
 		this.setType(tibcoProduct.getType());
+		this.setConfigure(tibcoProduct.isConfigure());
 
 		this.setTibcoProductGoalAndPriority(TIBCOProductGoalAndPriority.valueOf(tibcoProduct.getType().value().toUpperCase()));
 	}
@@ -97,6 +98,14 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 	public ProductType getType() {
 		return type;
+	}
+
+	public void setConfigure(boolean configure) {
+		this.configure = configure;
+	}
+
+	public boolean isConfigure() {
+		return configure;
 	}
 
 	public TIBCOProductGoalAndPriority getTibcoProductGoalAndPriority() {
@@ -410,6 +419,94 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 		logger.info("");
 		logger.info("<<< " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " <<<");
+
+		if (this.isConfigure()) {
+			List<AbstractCommand> commands = new ArrayList<AbstractCommand>();
+
+			switch (type) {
+				case BW_5:
+				case BW_6:
+					MavenCommand configureCommand = new MavenCommand();
+
+					// set goal
+					MavenCommand.Goals mavenGoals = new MavenCommand.Goals();
+					switch (type) {
+						case BW_5:
+							configureCommand.setName("Post-install configuration of " + InstallerMojosInformation.BW5.category);
+							mavenGoals.getGoal().add("toe:configure-bw5");
+							break;
+						case BW_6:
+							configureCommand.setName("Post-install configuration of " + InstallerMojosInformation.BW5.category);
+							mavenGoals.getGoal().add("toe:configure-bw6");
+							break;
+					}
+					configureCommand.setGoals(mavenGoals);
+
+					// set arguments ("-D" parameters)
+					MavenCommand.Properties mavenArguments = new MavenCommand.Properties();
+					MavenCommand.Properties.Property environmentNameProperty = new MavenCommand.Properties.Property();
+					environmentNameProperty.setKey("tibco.installation.environmentName");
+					environmentNameProperty.setValue(environment.getName());
+
+					MavenCommand.Properties.Property writeToSettingsProperty = new MavenCommand.Properties.Property();
+					writeToSettingsProperty.setKey("tibco.configuration.writeToSettings");
+					writeToSettingsProperty.setValue("true");
+
+					mavenArguments.getProperty().add(environmentNameProperty);
+					mavenArguments.getProperty().add(writeToSettingsProperty);
+
+					File userSettingsFile = session.getRequest().getUserSettingsFile();
+					if (userSettingsFile.exists()) {
+						MavenCommand.Properties.Property overriddenSettingsLocationProperty = new MavenCommand.Properties.Property();
+						overriddenSettingsLocationProperty.setKey("tibco.configuration.overriddenSettingsLocation");
+						overriddenSettingsLocationProperty.setValue(userSettingsFile.getAbsolutePath());
+
+						mavenArguments.getProperty().add(overriddenSettingsLocationProperty);
+					}
+
+					configureCommand.setProperties(mavenArguments);
+
+					commands.add(configureCommand);
+
+					if (type.equals(ProductType.BW_6)) {
+						// mvn bw6:p2maven-install -P tic-bw6
+						MavenCommand p2MavenInstallCommand = new MavenCommand();
+
+						MavenCommand.Goals p2MavenInstallGoals = new MavenCommand.Goals();
+						p2MavenInstallGoals.getGoal().add("bw6:p2maven-install");
+						p2MavenInstallCommand.setGoals(p2MavenInstallGoals);
+
+						MavenCommand.Profiles p2MavenInstallProfiles = new MavenCommand.Profiles();
+						p2MavenInstallProfiles.getProfile().add("tic-bw6");
+						p2MavenInstallCommand.setProfiles(p2MavenInstallProfiles);
+
+						commands.add(p2MavenInstallCommand);
+
+						// mvn bw6:studio-proxy-install -P tic-bw6
+						MavenCommand studioProxyInstallCommand = new MavenCommand();
+
+						MavenCommand.Goals studioProxyInstallGoals = new MavenCommand.Goals();
+						studioProxyInstallGoals.getGoal().add("bw6:studio-proxy-install");
+						studioProxyInstallCommand.setGoals(studioProxyInstallGoals);
+
+						MavenCommand.Profiles studioProxyInstallProfiles = new MavenCommand.Profiles();
+						studioProxyInstallProfiles.getProfile().add("tic-bw6");
+						studioProxyInstallCommand.setProfiles(studioProxyInstallProfiles);
+
+						commands.add(studioProxyInstallCommand);
+					}
+					break;
+			}
+
+			if (!commands.isEmpty()) {
+				if (this.getPostInstallCommands() == null) {
+					Commands postInstallCommands = new Commands();
+					this.setPostInstallCommands(postInstallCommands);
+				}
+
+				this.getPostInstallCommands().getAntCommandOrMavenCommandOrSystemCommand().addAll(commands);
+			}
+		}
 	}
 
 }

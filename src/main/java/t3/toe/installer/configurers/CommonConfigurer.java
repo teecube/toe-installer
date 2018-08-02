@@ -76,6 +76,9 @@ public abstract class CommonConfigurer extends CommonMojo {
 	@Parameter(property = InstallerMojosInformation.useGlobalSettings, defaultValue = InstallerMojosInformation.useGlobalSettings_default, description = InstallerMojosInformation.useGlobalSettings_description)
 	protected Boolean useGlobalSettings;
 
+	@Parameter(property = InstallerMojosInformation.overriddenSettingsLocation, defaultValue = InstallerMojosInformation.overriddenSettingsLocation_default, description = InstallerMojosInformation.overriddenSettingsLocation_description)
+	protected File overriddenSettingsLocation;
+
 	@Parameter(property = InstallerMojosInformation.writeToSettings, defaultValue = InstallerMojosInformation.writeToSettings_description, description = InstallerMojosInformation.writeToSettings_description)
 	protected Boolean writeToSettings;
 	
@@ -101,7 +104,7 @@ public abstract class CommonConfigurer extends CommonMojo {
 			currentEnvironment = CommonInstaller.getCurrentEnvironment(environmentName);
 			if (currentEnvironment == null && !InstallerMojosInformation.environmentName_default.equals(environmentName)) {
 				getLog().info("");
-				getLog().warn("Environment '" + environmentName + "' set but not found.");
+				getLog().warn("The provided environment '" + environmentName + "' is not found.");
 				getLog().info("");
 			} else if (currentEnvironment != null && !validateProfileProperties(currentEnvironment)) {
 				getLog().info("");
@@ -111,7 +114,7 @@ public abstract class CommonConfigurer extends CommonMojo {
 
 			} else if (!InstallerMojosInformation.environmentName_default.equals(environmentName)) {
 				getLog().info("");
-				getLog().warn("The provided environment '" + environmentName + "' is not found.");
+				getLog().warn("The default environment '" + environmentName + "' is not found.");
 				getLog().info("");
 			}
 		}
@@ -242,6 +245,10 @@ public abstract class CommonConfigurer extends CommonMojo {
 	}
 
 	protected File getSettingsXml() {
+		if (overriddenSettingsLocation != null && overriddenSettingsLocation.exists()) {
+			return overriddenSettingsLocation;
+		}
+
 		if (!session.getRequest().getUserSettingsFile().exists() && !session.getRequest().getGlobalSettingsFile().exists()) {
 			return null;
 		}

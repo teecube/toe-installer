@@ -18,15 +18,24 @@ package t3.toe.installer.environments.commands;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.shared.invoker.InvokerLogger;
+import org.apache.maven.shared.invoker.PrintStreamLogger;
 import org.jboss.shrinkwrap.resolver.api.maven.embedded.BuiltProject;
 import t3.CommonMojo;
+import t3.log.PrefixedLogger;
 import t3.toe.installer.environments.CustomProduct;
 import t3.toe.installer.environments.MavenCommand;
 import t3.toe.installer.environments.products.ProductToInstall;
+import t3.utils.MavenRunner;
+import t3.utils.PrefixPrintStream;
 import t3.utils.SettingsManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 public class MavenCommandToExecute extends CommandToExecute<MavenCommand> {
 
@@ -65,17 +74,38 @@ public class MavenCommandToExecute extends CommandToExecute<MavenCommand> {
         File workingDirectory = getWorkingDirectory();
 
         File pomFileInWorkingDirectory = new File(workingDirectory, "pom.xml");
+        Properties properties = new Properties();
+        if (this.mavenCommand.getProperties() != null) {
+            for (MavenCommand.Properties.Property property : this.mavenCommand.getProperties().getProperty()) {
+                properties.put(property.getKey(), property.getValue());
+            }
+        }
         BuiltProject result;
+
+        List<String> profiles = this.mavenCommand.getProfiles() != null ? this.mavenCommand.getProfiles().getProfile() : new ArrayList<String>();
+
+        MavenRunner mavenRunner = new MavenRunner();
+        mavenRunner.setGlobalSettingsFile(settingsFile);
+        mavenRunner.setUserSettingsFile(settingsFile);
+        mavenRunner.setLocalRepositoryDirectory(new File(this.session.getSettings().getLocalRepository()));
+        mavenRunner.setMavenVersion("3.3.9");
+        mavenRunner.setGoals(this.mavenCommand.getGoals().getGoal());
+        PrintStream outPrintStream = new PrefixPrintStream(System.out,"MONPREFIXE ");
+        PrintStreamLogger printStreamLogger = new PrintStreamLogger(outPrintStream, InvokerLogger.INFO);
+        mavenRunner.setPrintStreamLogger(printStreamLogger);
+
         if (pomFileInWorkingDirectory.exists()) {
-            result = this.commonMojo.executeGoal(pomFileInWorkingDirectory, this.mavenCommand.getGoals().getGoal(), settingsFile, settingsFile, new File(this.session.getSettings().getLocalRepository()), "3.3.9");
-        } else {
-            result = this.commonMojo.executeGoal(this.mavenCommand.getGoals().getGoal(), settingsFile, settingsFile, new File(this.session.getSettings().getLocalRepository()), "3.3.9");
+            mavenRunner.setPomFile(pomFileInWorkingDirectory);
         }
 
+        result = mavenRunner.run();
+
+        /*
         String[] lines = result.getMavenLog().split("\\r?\\n");
         for (String line : lines) {
             getLog().info(line);
         }
+        */
 
         if (result.getMavenBuildExitCode() != 0) {
             return false;

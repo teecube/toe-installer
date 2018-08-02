@@ -92,7 +92,7 @@ public class BW6ConfigurerMojo extends CommonConfigurer {
 		};
 
 		File[] bwDirectory = new File(tibcoHome, "bw").listFiles(filter);
-		if (bwDirectory.length > 0) {
+		if (bwDirectory != null && bwDirectory.length > 0) {
 			profileProperties.put("tibco.bw6.version", bwDirectory[0].getName());
 		}
 

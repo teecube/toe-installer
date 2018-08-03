@@ -55,6 +55,11 @@ public abstract class ProductToInstall<P extends Product> {
     private Product.Properties properties;
     private Integer priority;
     private boolean skip;
+    private boolean executePostInstallCommandsWhenSkipped;
+
+    public void setexecutePostInstallCommandsWhenSkipped(boolean executePostInstallCommandsWhenSkipped) {
+        this.executePostInstallCommandsWhenSkipped = executePostInstallCommandsWhenSkipped;
+    }
 
     public File getResolvedInstallationPackage() {
         return resolvedInstallationPackage;
@@ -96,6 +101,7 @@ public abstract class ProductToInstall<P extends Product> {
     }
 
     public abstract void doInstall(EnvironmentToInstall environment, int productIndex) throws MojoExecutionException;
+    public abstract void addPostInstallCommands() throws MojoExecutionException;
     public abstract String fullProductName();
     public abstract void init(int productIndex) throws MojoExecutionException;
 
@@ -117,12 +123,20 @@ public abstract class ProductToInstall<P extends Product> {
     public void install(EnvironmentToInstall environment, int productIndex) throws MojoExecutionException {
         logger.info("");
 
+        boolean skip = false;
+
         if (this.isSkip()) {
             logger.info(productIndex + ". Skipping '" + this.fullProductName() + "'");
-            return;
+            skip = true;
+            if (!executePostInstallCommandsWhenSkipped) {
+                return;
+            }
         } else if (this.isAlreadyInstalled() && !environment.isToBeDeleted()) {
             logger.info(productIndex + ". Skipping '" + this.fullProductName() + "' (already installed)");
-            return;
+            skip = true;
+            if (!executePostInstallCommandsWhenSkipped) {
+                return;
+            }
         } else {
             logger.info(productIndex + ". Installing '" + this.fullProductName() + "'");
 
@@ -143,21 +157,26 @@ public abstract class ProductToInstall<P extends Product> {
             }
         }
 
-        doInstall(environment, productIndex);
+        if (!skip) {
+            doInstall(environment, productIndex);
+        }
+        addPostInstallCommands();
 
-        // execute post-product-install commands
-        if (this.getPostInstallCommands() != null && !this.getPostInstallCommands().getAntCommandOrMavenCommandOrSystemCommand().isEmpty()) {
-            logger.info("");
-            logger.info("   Executing post-install commands for current product");
-            int i = 1;
-            for (AbstractCommand command : this.getPostInstallCommands().getAntCommandOrMavenCommandOrSystemCommand()) {
-                CommandToExecute commandToExecute = getCommandToExecute(command, CommandToExecute.CommandType.PRODUCT_POST, i);
+        if (!skip || executePostInstallCommandsWhenSkipped) {
+            // execute post-product-install commands
+            if (this.getPostInstallCommands() != null && !this.getPostInstallCommands().getAntCommandOrMavenCommandOrSystemCommand().isEmpty()) {
+                logger.info("");
+                logger.info("   Executing post-install commands for current product");
+                int i = 1;
+                for (AbstractCommand command : this.getPostInstallCommands().getAntCommandOrMavenCommandOrSystemCommand()) {
+                    CommandToExecute commandToExecute = getCommandToExecute(command, CommandToExecute.CommandType.PRODUCT_POST, i);
 
-                if (commandToExecute != null) {
-                    commandToExecute.executeCommand();
+                    if (commandToExecute != null) {
+                        commandToExecute.executeCommand();
+                    }
+
+                    i++;
                 }
-
-                i++;
             }
         }
     }

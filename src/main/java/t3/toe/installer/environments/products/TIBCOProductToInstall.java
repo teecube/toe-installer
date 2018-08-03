@@ -25,11 +25,13 @@ import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosFactory;
 import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.*;
-import t3.toe.installer.installers.BW5InstallerMojo;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
@@ -419,7 +421,10 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 		logger.info("");
 		logger.info("<<< " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " <<<");
+	}
 
+	@Override
+	public void addPostInstallCommands() {
 		if (this.isConfigure()) {
 			List<AbstractCommand> commands = new ArrayList<AbstractCommand>();
 
@@ -432,11 +437,11 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 					MavenCommand.Goals mavenGoals = new MavenCommand.Goals();
 					switch (type) {
 						case BW_5:
-							configureCommand.setName("Post-install configuration of " + InstallerMojosInformation.BW5.category);
+							configureCommand.setName("Configuration of " + InstallerMojosInformation.BW5.category + " in Maven settings.xml");
 							mavenGoals.getGoal().add("toe:configure-bw5");
 							break;
 						case BW_6:
-							configureCommand.setName("Post-install configuration of " + InstallerMojosInformation.BW5.category);
+							configureCommand.setName("Configuration of " + InstallerMojosInformation.BW6.category + " in Maven settings.xml");
 							mavenGoals.getGoal().add("toe:configure-bw6");
 							break;
 					}
@@ -471,6 +476,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 					if (type.equals(ProductType.BW_6)) {
 						// mvn bw6:p2maven-install -P tic-bw6
 						MavenCommand p2MavenInstallCommand = new MavenCommand();
+                        p2MavenInstallCommand.setName("Installation of the p2 repositories");
 
 						MavenCommand.Goals p2MavenInstallGoals = new MavenCommand.Goals();
 						p2MavenInstallGoals.getGoal().add("bw6:p2maven-install");
@@ -484,6 +490,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 						// mvn bw6:studio-proxy-install -P tic-bw6
 						MavenCommand studioProxyInstallCommand = new MavenCommand();
+                        studioProxyInstallCommand.setName("Installation of the Studio proxy");
 
 						MavenCommand.Goals studioProxyInstallGoals = new MavenCommand.Goals();
 						studioProxyInstallGoals.getGoal().add("bw6:studio-proxy-install");
@@ -508,5 +515,4 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 			}
 		}
 	}
-
 }

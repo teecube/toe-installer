@@ -53,16 +53,30 @@ public class MavenCommandToExecute extends CommandToExecute<MavenCommand> {
     @Override
     public boolean doExecuteCommand(String commandCaption) throws MojoExecutionException {
         getLog().info("");
-        getLog(">").info("mvn " + StringUtils.join(this.command.getGoals().getGoal(), " "));
+        String commandLine = "mvn " + StringUtils.join(this.command.getGoals().getGoal(), " ");
+        if (this.command.getProfiles() != null && !this.command.getProfiles().getProfile().isEmpty()) {
+            for (String profile : this.command.getProfiles().getProfile()) {
+                commandLine += " -P " + profile;
+            }
+        }
+        if (this.command.getProperties() != null && !this.command.getProperties().getProperty().isEmpty()) {
+            for (MavenCommand.Properties.Property property : this.command.getProperties().getProperty()) {
+                commandLine += " -D" + property.getKey() + "=" + property.getValue();
+            }
+        }
+        getLog(">").info(commandLine);
         getLog().info("");
 
-        File settingsFile;
         File pomFile;
-        try {
-            // save current Settings object to a temporary file
-            settingsFile = SettingsManager.saveSettingsToTempFile(this.session.getSettings());
-        } catch (IOException e) {
-            throw new MojoExecutionException(e.getLocalizedMessage(), e);
+
+        File settingsFile = session.getRequest().getUserSettingsFile();
+        if (settingsFile == null || !settingsFile.exists()) {
+            try {
+                // save current Settings object to a temporary file
+                settingsFile = SettingsManager.saveSettingsToTempFile(session.getSettings());
+            } catch (IOException e) {
+                throw new MojoExecutionException(e.getLocalizedMessage(), e);
+            }
         }
 
         File workingDirectory = getWorkingDirectory();
@@ -79,12 +93,20 @@ public class MavenCommandToExecute extends CommandToExecute<MavenCommand> {
         List<String> profiles = this.mavenCommand.getProfiles() != null ? this.mavenCommand.getProfiles().getProfile() : new ArrayList<String>();
 
         MavenRunner mavenRunner = new MavenRunner();
+        mavenRunner.setDefaultVersion(String.valueOf(this.commandIndex));
+        mavenRunner.setDefaultProjectName(this.mavenCommand.getName());
         mavenRunner.setGlobalSettingsFile(settingsFile);
         mavenRunner.setUserSettingsFile(settingsFile);
         mavenRunner.setLocalRepositoryDirectory(new File(this.session.getSettings().getLocalRepository()));
         mavenRunner.setMavenVersion("3.3.9");
         mavenRunner.setGoals(this.mavenCommand.getGoals().getGoal());
+        if (this.mavenCommand.getProfiles() != null) {
+            mavenRunner.setProfiles(this.mavenCommand.getProfiles().getProfile());
+        }
+        mavenRunner.setProperties(properties);
+
         mavenRunner.setLog(getLog());
+        mavenRunner.setDebug(this.mavenCommand.isEnableDebugOutput());
 
         if (pomFileInWorkingDirectory.exists()) {
             mavenRunner.setPomFile(pomFileInWorkingDirectory);

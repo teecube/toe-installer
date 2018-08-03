@@ -37,6 +37,7 @@ public class ProductsToInstall extends ArrayList<ProductToInstall<?>> {
     private File environmentsTopology;
     private final int maxFullProductNameLength;
     private boolean atLeastOneMavenArtifactResolved;
+    private final boolean executePostInstallCommandsWhenSkipped;
 
     public int getMaxFullProductNameLength() {
         return maxFullProductNameLength;
@@ -46,13 +47,15 @@ public class ProductsToInstall extends ArrayList<ProductToInstall<?>> {
         return atLeastOneMavenArtifactResolved;
     }
 
-    public ProductsToInstall(EnvironmentToInstall environment, CommonMojo commonMojo) throws MojoExecutionException {
+    public ProductsToInstall(EnvironmentToInstall environment, CommonMojo commonMojo, boolean executePostInstallCommandsWhenSkipped) throws MojoExecutionException {
         super();
 
         this.atLeastOneMavenArtifactResolved = false;
         this.commonMojo = commonMojo;
         this.environment = environment;
         this.logger = commonMojo.getLog();
+
+        this.executePostInstallCommandsWhenSkipped = executePostInstallCommandsWhenSkipped;
 
         init(environment.getProducts());
 
@@ -69,7 +72,9 @@ public class ProductsToInstall extends ArrayList<ProductToInstall<?>> {
     private void init(Environment.Products products) throws MojoExecutionException {
         for (Product product : products.getTibcoProductOrCustomProduct()) {
             if (product instanceof t3.toe.installer.environments.TIBCOProduct) {
-                this.add(new TIBCOProductToInstall(((t3.toe.installer.environments.TIBCOProduct) product), environment, commonMojo));
+                TIBCOProductToInstall tibcoProductToInstall = new TIBCOProductToInstall(((TIBCOProduct) product), environment, commonMojo);
+                tibcoProductToInstall.setexecutePostInstallCommandsWhenSkipped(executePostInstallCommandsWhenSkipped);
+                this.add(tibcoProductToInstall);
             } else if (product instanceof CustomProduct) {
                 this.add(new CustomProductToInstall(((CustomProduct) product), environment, commonMojo));
             }

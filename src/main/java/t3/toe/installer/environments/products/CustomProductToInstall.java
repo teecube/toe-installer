@@ -20,8 +20,10 @@ import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import t3.CommonMojo;
-import t3.toe.installer.environments.*;
-import t3.toe.installer.environments.commands.*;
+import t3.toe.installer.environments.AbstractCommand;
+import t3.toe.installer.environments.CustomProduct;
+import t3.toe.installer.environments.EnvironmentToInstall;
+import t3.toe.installer.environments.commands.CommandToExecute;
 
 import java.io.File;
 import java.io.IOException;
@@ -105,4 +107,7 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
         }
     }
 
+    public void addPostInstallCommands() {
+
+    }
 }

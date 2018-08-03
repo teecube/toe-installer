@@ -441,6 +441,9 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 			public static final String topologyGeneratedFile = "tibco.packages.standalone.topology.generatedFile";
 			public static final String topologyGeneratedFile_default = "${tibco.packages.standalone.directory}/tibco-environments.xml";
 
+			public static final String ignoreDefaultSettings = "tibco.packages.standalone.topology.ignoreDefaultSettings";
+			public static final String ignoreDefaultSettings_default = "false";
+
 			public static class Archive {
 				public static final String archive = "tibco.packages.standalone.archive";
 				public static final String archive_default = "${project.build.directory}/t3-standalone.zip";
@@ -482,6 +485,9 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 	public static class FullEnvironment {
 		public static final String topologyFile = "tibco.environments.topology";
 		public static final String topologyFile_default = "${basedir}/tibco-environments.xml";
+
+		public static final String executePostInstallCommandsWhenSkipped = "tibco.environments.executePostInstallCommandsWhenSkipped";
+		public static final String executePostInstallCommandsWhenSkipped_default = "false";
 
 		public static final String topologyGenerate = "tibco.environments.topology.generate";
 		public static final String topologyGenerate_default = "false";

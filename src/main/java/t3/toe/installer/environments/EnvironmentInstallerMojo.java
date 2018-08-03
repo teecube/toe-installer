@@ -53,6 +53,9 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 	@Parameter (property = InstallerMojosInformation.FullEnvironment.topologyFile, defaultValue = InstallerMojosInformation.FullEnvironment.topologyFile_default)
 	protected File environmentsTopology;
 
+	@Parameter (property = InstallerMojosInformation.FullEnvironment.executePostInstallCommandsWhenSkipped, defaultValue = InstallerMojosInformation.FullEnvironment.executePostInstallCommandsWhenSkipped_default)
+	protected boolean executePostInstallCommandsWhenSkipped;
+
 	protected EnvironmentsMarshaller environmentsMarshaller;
 
 	@Override
@@ -91,7 +94,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			getLog().info("");
 
 			// populate list of products to install in environment
-			ProductsToInstall productsToInstall = new ProductsToInstall(environment, this);
+			ProductsToInstall productsToInstall = new ProductsToInstall(environment, this, executePostInstallCommandsWhenSkipped);
 
 			if (productsToInstall.isAtLeastOneMavenArtifactResolved()) {
 				getLog().info("");

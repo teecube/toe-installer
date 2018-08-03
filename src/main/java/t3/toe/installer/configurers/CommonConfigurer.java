@@ -273,7 +273,7 @@ public abstract class CommonConfigurer extends CommonMojo {
 		}
 	}
 
-	protected List<ArtifactResult> getPlugin(String pluginKey, String version) {
+	protected List<ArtifactResult> getPlugin(String pluginKey, String version) throws MojoExecutionException {
         Artifact artifact = new DefaultArtifact(pluginKey + ":" + version);
 
         DependencyFilter classpathFlter = DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE);
@@ -289,13 +289,15 @@ public abstract class CommonConfigurer extends CommonMojo {
 			ArtifactRequest artifactRequest = new ArtifactRequest(artifact, project.getRemotePluginRepositories(), "");
 			artifactResults.add(system.resolveArtifact(systemSession, artifactRequest));
 			artifactResults.addAll(system.resolveDependencies(systemSession, dependencyRequest).getArtifactResults());
-		} catch (DependencyResolutionException | ArtifactResolutionException e) {
+		} catch (DependencyResolutionException e) {
 			try {
 				// same player shoots again (sometimes two resolutions are required)
 				artifactResults.addAll(system.resolveDependencies(systemSession, dependencyRequest).getArtifactResults());
 			} catch (DependencyResolutionException e1) {
 				//
 			}
+		} catch (ArtifactResolutionException e) {
+			throw new MojoExecutionException(e.getLocalizedMessage(), e);
 		}
 
 		return artifactResults;

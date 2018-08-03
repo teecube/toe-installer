@@ -141,6 +141,9 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 	@Parameter (property = InstallerMojosInformation.Packages.Standalone.Archive.generate, defaultValue = InstallerMojosInformation.Packages.Standalone.Archive.generate_default)
 	protected Boolean generateStandaloneArchive;
 
+	@Parameter (property = InstallerMojosInformation.Packages.Standalone.ignoreDefaultSettings, defaultValue = InstallerMojosInformation.Packages.Standalone.ignoreDefaultSettings_default)
+	protected boolean ignoreDefaultSettings;
+
 	/* Plugins */
 	@Parameter (property = InstallerMojosInformation.Packages.Standalone.Plugins.include, defaultValue = InstallerMojosInformation.Packages.Standalone.Plugins.include_default)
 	protected Boolean includePluginsInStandalone;
@@ -250,7 +253,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 
 			boolean atLeastOneMavenArtifactResolved = false;
 			for (EnvironmentToInstall environment : environmentsToInstall) {
-				ProductsToInstall productsToInstall = new ProductsToInstall(environment, this);
+				ProductsToInstall productsToInstall = new ProductsToInstall(environment, this, false);
 
 				for (ProductToInstall product : productsToInstall) {
 					if (!uniqueProductsList.contains(product)) {
@@ -505,16 +508,16 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		localRepositoryPath.mkdirs();
 		File tmpDirectory = Files.createTempDir();
 
-		File userSettingsFile = this.session.getRequest().getUserSettingsFile();
-		if (userSettingsFile == null || !userSettingsFile.exists()) {
-			userSettingsFile = this.session.getRequest().getGlobalSettingsFile();
+		File providedSettingsFile = this.session.getRequest().getUserSettingsFile();
+		if (providedSettingsFile == null || !providedSettingsFile.exists()) {
+			providedSettingsFile = this.session.getRequest().getGlobalSettingsFile();
 		}
 		// create a settings.xml with <pluginGroups>
-		File globalSettingsFile = new File(tmpDirectory, "settings.xml");
-		copyResourceToFile("/maven/default-t3-settings.xml", globalSettingsFile);
+		File defaultSettingsFile = new File(tmpDirectory, "settings.xml");
+		copyResourceToFile("/maven/default-t3-settings.xml", defaultSettingsFile);
 
-		if (userSettingsFile == null || !userSettingsFile.exists()) {
-			userSettingsFile = globalSettingsFile;
+		if (providedSettingsFile == null || !providedSettingsFile.exists()) {
+			providedSettingsFile = defaultSettingsFile;
 		}
 
 		// create a maven-metadata-local.xml for Maven plugin group
@@ -563,8 +566,10 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		poms.addAll(getPOMsFromProject(project, tmpDirectory));
 
 		MavenRunner mavenRunner = new MavenRunner();
-		mavenRunner.setGlobalSettingsFile(globalSettingsFile);
-		mavenRunner.setUserSettingsFile(userSettingsFile);
+		if (!ignoreDefaultSettings) {
+			mavenRunner.setGlobalSettingsFile(defaultSettingsFile);
+		}
+		mavenRunner.setUserSettingsFile(providedSettingsFile);
 		mavenRunner.setLocalRepositoryDirectory(localRepositoryPath);
 		mavenRunner.setMavenVersion(mavenVersion);
 		mavenRunner.setGoals("validate");

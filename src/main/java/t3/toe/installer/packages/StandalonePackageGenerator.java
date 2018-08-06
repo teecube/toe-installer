@@ -26,6 +26,8 @@ import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.artifact.manager.WagonManager;
 import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.repository.Authentication;
+import org.apache.maven.artifact.repository.MavenArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
@@ -39,15 +41,20 @@ import org.apache.maven.plugin.version.PluginVersionNotFoundException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
+import org.apache.maven.repository.Proxy;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.io.DefaultSettingsWriter;
 import org.codehaus.mojo.versions.api.ArtifactVersions;
 import org.codehaus.mojo.versions.api.DefaultVersionsHelper;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.repository.RepositoryPolicy;
+import org.eclipse.aether.util.repository.AuthenticationBuilder;
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenResolvedArtifact;
 import org.jboss.shrinkwrap.resolver.api.maven.embedded.BuiltProject;
+import org.jboss.shrinkwrap.resolver.impl.maven.SettingsManager;
 import org.jboss.shrinkwrap.resolver.impl.maven.bootstrap.MavenSettingsBuilder;
 import org.xml.sax.SAXException;
 import t3.LifecyclesUtils;
@@ -65,6 +72,7 @@ import t3.utils.ZipUtils;
 
 import javax.xml.bind.JAXBException;
 import java.io.*;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -532,6 +540,7 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 		System.setProperty(MavenSettingsBuilder.ALT_LOCAL_REPOSITORY_LOCATION, session.getLocalRepository().getBasedir().replace("\\", "/"));
 
 		ConfigurableMavenResolverSystem mavenResolver = Maven.configureResolver();
+		addSettingsAndRepositoriesToMavenResolver(mavenResolver);
 
 		// actually install plugins (to generate their metadata in order to use them on the command line)
 		List<Plugin> plugins = new ArrayList<Plugin>();
@@ -609,6 +618,83 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
 				throw new MojoExecutionException("Unable to execute plugins goals to go offline.");
 			}
 		}
+	}
+
+	private void addSettingsAndRepositoriesToMavenResolver(ConfigurableMavenResolverSystem mavenResolver) throws MojoExecutionException {
+		try {
+			Field sessionContainerField = mavenResolver.getClass().getSuperclass().getSuperclass().getDeclaredField("sessionContainer");
+			sessionContainerField.setAccessible(true);
+			Object sessionContainer = sessionContainerField.get(mavenResolver);
+			Field sessionField = sessionContainer.getClass().getSuperclass().getSuperclass().getSuperclass().getDeclaredField("session");
+			sessionField.setAccessible(true);
+			Object session = sessionField.get(sessionContainer);
+
+			Field settingsManagerField = session.getClass().getSuperclass().getDeclaredField("settingsManager");
+			settingsManagerField.setAccessible(true);
+			SettingsManager settingsManager = (SettingsManager) settingsManagerField.get(session);
+			settingsManager.configureSettingsFromFile(this.session.getRequest().getGlobalSettingsFile(), this.session.getRequest().getUserSettingsFile());
+		} catch (NoSuchFieldException | IllegalAccessException e) {
+			throw new MojoExecutionException(e.getLocalizedMessage(), e);
+		}
+
+		for (MavenArtifactRepository remoteArtifactRepository : this.remoteArtifactRepositories) {
+			try {
+				addRemoteRepo(mavenResolver, remoteArtifactRepository);
+			} catch (NoSuchFieldException | IllegalAccessException e) {
+				throw new MojoExecutionException(e.getLocalizedMessage(), e);
+			}
+		}
+	}
+
+	private void addRemoteRepo(ConfigurableMavenResolverSystem mavenResolver, MavenArtifactRepository remoteArtifactRepository) throws NoSuchFieldException, IllegalAccessException {
+		// add the repo classically
+		mavenResolver.withRemoteRepo(remoteArtifactRepository.getId(), remoteArtifactRepository.getUrl(), remoteArtifactRepository.getLayout().toString());
+
+		Field sessionContainerField = mavenResolver.getClass().getSuperclass().getSuperclass().getDeclaredField("sessionContainer");
+		sessionContainerField.setAccessible(true);
+		Object sessionContainer = sessionContainerField.get(mavenResolver);
+		Field sessionField = sessionContainer.getClass().getSuperclass().getSuperclass().getSuperclass().getDeclaredField("session");
+		sessionField.setAccessible(true);
+		Object session = sessionField.get(sessionContainer);
+
+		// retrieve last one added to fix missing objects (policy, authentication & proxy)
+		Field additionalRemoteRepositoriesField = session.getClass().getDeclaredField("additionalRemoteRepositories");
+		additionalRemoteRepositoriesField.setAccessible(true);
+		List<RemoteRepository> additionalRemoteRepositories = (List<RemoteRepository>) additionalRemoteRepositoriesField.get(session);
+		RemoteRepository additionalRemoteRepository = additionalRemoteRepositories.get(additionalRemoteRepositories.size() - 1);
+		RemoteRepository.Builder remoteRepositoryBuilder = new RemoteRepository.Builder(additionalRemoteRepository);
+
+		// policy
+        remoteRepositoryBuilder.setPolicy(new RepositoryPolicy(true, RepositoryPolicy.UPDATE_POLICY_ALWAYS, RepositoryPolicy.CHECKSUM_POLICY_IGNORE));
+
+        // authentication
+        if (remoteArtifactRepository.getAuthentication() != null) {
+			Authentication originalAuthentication = remoteArtifactRepository.getAuthentication();
+			AuthenticationBuilder authenticationBuilder = new AuthenticationBuilder();
+			authenticationBuilder.addUsername(originalAuthentication.getUsername());
+			authenticationBuilder.addPassword(originalAuthentication.getPassword());
+
+			remoteRepositoryBuilder.setAuthentication(authenticationBuilder.build());
+		}
+
+		// proxy
+        if (remoteArtifactRepository.getProxy() != null) {
+            Proxy originalProxy = remoteArtifactRepository.getProxy();
+			org.eclipse.aether.repository.Authentication authentication = null;
+
+			if (originalProxy.getUserName() != null && originalProxy.getPassword() != null) {
+				AuthenticationBuilder authenticationBuilder = new AuthenticationBuilder();
+				authenticationBuilder.addUsername(originalProxy.getUserName());
+				authenticationBuilder.addPassword(originalProxy.getPassword());
+            	authentication = authenticationBuilder.build();
+			}
+
+            org.eclipse.aether.repository.Proxy proxy = new org.eclipse.aether.repository.Proxy(originalProxy.getProtocol(), originalProxy.getHost(), originalProxy.getPort(), authentication);
+            remoteRepositoryBuilder.setProxy(proxy);
+        }
+
+        additionalRemoteRepository = remoteRepositoryBuilder.build();
+		additionalRemoteRepositories.set(additionalRemoteRepositories.size() - 1, additionalRemoteRepository);
 	}
 
 	private void addIndirectPlugins(MavenResolvedArtifact initialPlugin, MavenResolvedArtifact[] pluginDependencies, List<Plugin> plugins, List<File> poms, File tmpDirectory) throws IOException, MojoExecutionException {
@@ -1064,10 +1150,10 @@ public class StandalonePackageGenerator extends AbstractPackagesResolver {
     protected org.apache.maven.artifact.metadata.ArtifactMetadataSource artifactMetadataSource;
 
     @org.apache.maven.plugins.annotations.Parameter( defaultValue = "${project.remoteArtifactRepositories}", readonly = true )
-    protected List<?> remoteArtifactRepositories;
+    protected List<MavenArtifactRepository> remoteArtifactRepositories;
 
     @org.apache.maven.plugins.annotations.Parameter( defaultValue = "${project.pluginArtifactRepositories}", readonly = true )
-    protected List<?> remotePluginRepositories;
+    protected List<MavenArtifactRepository> remotePluginRepositories;
 
     @org.apache.maven.plugins.annotations.Parameter( defaultValue = "${localRepository}", readonly = true )
     protected ArtifactRepository localRepository;

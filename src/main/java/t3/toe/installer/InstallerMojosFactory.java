@@ -23,9 +23,10 @@ import t3.toe.installer.envinfo.ListEnvInfoMojo;
 import t3.toe.installer.envinfo.RemoveEnvInfoMojo;
 import t3.toe.installer.environments.EnvironmentInstallerMojo;
 import t3.toe.installer.installers.*;
-import t3.toe.installer.packages.DisplayPackages;
-import t3.toe.installer.packages.InstallPackages;
-import t3.toe.installer.packages.StandalonePackageGenerator;
+import t3.toe.installer.packages.DeployPackagesMojo;
+import t3.toe.installer.packages.DisplayPackagesMojo;
+import t3.toe.installer.packages.InstallPackagesMojo;
+import t3.toe.installer.packages.StandalonePackageGeneratorMojo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,11 +67,14 @@ public class InstallerMojosFactory extends MojosFactory {
 		case "EnvironmentInstallerMojo":
 			return (T) new EnvironmentInstallerMojo();
 
-		case "DisplayPackages":
-			return (T) new DisplayPackages();
-
-		case "StandalonePackageGenerator":
-			return (T) new StandalonePackageGenerator();
+		case "DisplayPackagesMojo":
+			return (T) new DisplayPackagesMojo();
+		case "DeployPackagesMojo":
+			return (T) new DeployPackagesMojo();
+		case "InstallPackagesMojo":
+			return (T) new InstallPackagesMojo();
+		case "StandalonePackageGeneratorMojo":
+			return (T) new StandalonePackageGeneratorMojo();
 		default:
 			return super.getMojo(type);
 		}
@@ -101,9 +105,9 @@ public class InstallerMojosFactory extends MojosFactory {
 		case InstallerMojosInformation.pluginPrefix + "env-install":
 			return (T) new EnvironmentInstallerMojo();
 		case InstallerMojosInformation.pluginPrefix + "packages-display":
-			return (T) new DisplayPackages();
+			return (T) new DisplayPackagesMojo();
 		case InstallerMojosInformation.pluginPrefix + "packages-install":
-			return (T) new InstallPackages();
+			return (T) new InstallPackagesMojo();
 
 		default:
 			return null;

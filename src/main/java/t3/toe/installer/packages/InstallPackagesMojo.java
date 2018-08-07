@@ -39,7 +39,7 @@ import java.io.File;
 *
 */
 @Mojo(name = "packages-install", requiresProject = false)
-public class InstallPackages extends AbstractPackagesResolver {
+public class InstallPackagesMojo extends AbstractPackagesResolver {
 
 	@org.apache.maven.plugins.annotations.Parameter (property = InstallerMojosInformation.Packages.Install.localRepositoryPath, defaultValue = InstallerMojosInformation.Packages.Install.localRepositoryPath_default, readonly = true, required = true)
 	protected ArtifactRepository localRepository;

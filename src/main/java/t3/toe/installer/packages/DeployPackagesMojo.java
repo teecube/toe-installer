@@ -40,7 +40,7 @@ import java.io.File;
 *
 */
 @Mojo(name = "packages-deploy", requiresProject = false)
-public class DeployPackages extends AbstractPackagesResolver {
+public class DeployPackagesMojo extends AbstractPackagesResolver {
 
 	@Parameter (property = InstallerMojosInformation.Packages.Deploy.remoteRepositoryId, defaultValue = InstallerMojosInformation.Packages.Deploy.remoteRepositoryId_default, required = true)
 	protected String remoteRepositoryId; 

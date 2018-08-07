@@ -38,7 +38,7 @@ import java.io.File;
 *
 */
 @Mojo(name = "packages-display", requiresProject = false)
-public class DisplayPackages extends AbstractPackagesResolver {
+public class DisplayPackagesMojo extends AbstractPackagesResolver {
 
 	@Parameter(property = InstallerMojosInformation.FullEnvironment.topologyGenerate, defaultValue = InstallerMojosInformation.FullEnvironment.topologyGenerate_default)
 	protected Boolean generateTopology;

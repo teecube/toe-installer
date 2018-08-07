@@ -116,7 +116,7 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 *
 */
 @Mojo(name = "standalone-package", requiresProject = false)
-public class StandalonePackageGenerator extends AbstractPackagesResolver {
+public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 
 	@Parameter(property = InstallerMojosInformation.Packages.Standalone.generateSettings, defaultValue = InstallerMojosInformation.Packages.Standalone.generateSettings_default)
 	protected Boolean generateSettings;

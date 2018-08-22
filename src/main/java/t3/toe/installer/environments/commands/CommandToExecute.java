@@ -24,7 +24,6 @@ import t3.CommonMojo;
 import t3.log.PrefixedLogger;
 import t3.toe.installer.environments.AbstractCommand;
 import t3.toe.installer.environments.CustomProduct;
-import t3.toe.installer.environments.EnvironmentToInstall;
 import t3.toe.installer.environments.products.CustomProductToInstall;
 import t3.toe.installer.environments.products.ProductToInstall;
 import t3.utils.Utils;
@@ -44,6 +43,7 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
     private String prefixMinusThree;
 
     private Map<String, Log> loggers;
+    protected File workingDirectory;
 
     public enum CommandType {
         GLOBAL_PRE ("Global pre-install command"),
@@ -134,6 +134,8 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
 
         boolean commandSucceeded = true;
         try {
+            workingDirectory = getWorkingDirectory();
+
             commandSucceeded = doExecuteCommand(commandCaption);
         } catch (MojoExecutionException e) {
             failedCommand(command);
@@ -206,8 +208,9 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
             int i = 1; // XPath-like so starts from 1
             if (selector.equals("packageDirectory")) {
                 o = "./packages/" + productToInstall.getName();
-            }
-            if (selector.equals("uncompressCommand")) {
+            } else if (selector.equals("package")) {
+                o = productToInstall;
+            } else if (selector.equals("uncompressCommand")) {
                 for (CommandToExecute commandToExecute : customProductToInstall.getCommandsToExecute()) {
                     if (commandToExecute instanceof UncompressCommandToExecute) {
                         if (index == i) {
@@ -224,31 +227,40 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
                 } catch (MojoExecutionException e) {
                     o = "";
                 }
+            } else if (lastSelector.equals("package") && selector.equals("version")) {
+                o = ((ProductToInstall) o).getVersion();
             }
+
             lastSelector = selector;
         }
 
         return o.toString();
     }
 
-    protected File getWorkingDirectory() {
-        File workingDirectory = new File(session.getRequest().getBaseDirectory());
+    protected String getValueWithReplacedProperties(String string) {
+        Matcher m = mavenPropertyPattern.matcher(string);
+
+        StringBuffer sb = new StringBuffer();
+
+        while (m.find()) {
+            String propertyKey = m.group(1);
+            String propertyValue = getCommandPropertyValue(propertyKey);
+            if (propertyValue != null) {
+                m.appendReplacement(sb, Matcher.quoteReplacement(propertyValue));
+            }
+        }
+        m.appendTail(sb);
+        string = sb.toString();
+
+        return string;
+    }
+
+    private File getWorkingDirectory() {
+        File workingDirectory = null;
 
         String commandWorkingDirectory = command.getWorkingDirectory();
         if (StringUtils.isNotEmpty(commandWorkingDirectory)) {
-            Matcher m = mavenPropertyPattern.matcher(commandWorkingDirectory);
-
-            StringBuffer sb = new StringBuffer();
-
-            while (m.find()) {
-                String propertyKey = m.group(1);
-                String propertyValue = getCommandPropertyValue(propertyKey);
-                if (propertyValue != null) {
-                    m.appendReplacement(sb, Matcher.quoteReplacement(propertyValue));
-                }
-            }
-            m.appendTail(sb);
-            commandWorkingDirectory = sb.toString();
+            commandWorkingDirectory = getValueWithReplacedProperties(commandWorkingDirectory);
 
             workingDirectory = new File(commandWorkingDirectory);
             try {
@@ -256,6 +268,10 @@ public abstract class CommandToExecute<Command extends AbstractCommand> extends 
             } catch (IOException e) {
                 workingDirectory = new File(commandWorkingDirectory);
             }
+        }
+
+        if (workingDirectory == null || !workingDirectory.exists()) {
+            workingDirectory = new File(session.getRequest().getBaseDirectory());
         }
 
         return workingDirectory;

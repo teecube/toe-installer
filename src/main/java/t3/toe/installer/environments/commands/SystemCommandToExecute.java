@@ -16,17 +16,14 @@
  */
 package t3.toe.installer.environments.commands;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import t3.CommonMojo;
 import t3.toe.installer.environments.SystemCommand;
-import t3.toe.installer.environments.products.CustomProductToInstall;
 import t3.toe.installer.environments.products.ProductToInstall;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.regex.Matcher;
 
 public class SystemCommandToExecute extends CommandToExecute<SystemCommand> {
 
@@ -37,12 +34,6 @@ public class SystemCommandToExecute extends CommandToExecute<SystemCommand> {
     public SystemCommandToExecute(SystemCommand command, CommonMojo commonMojo, int commandIndex, CommandType commandType, ProductToInstall productToInstall) {
         super(command, commonMojo, commandIndex, commandType, productToInstall);
     }
-
-/*
-    public SystemCommandToExecute(SystemCommand command, CommonMojo commonMojo, int commandIndex, CommandType commandType, CustomProductToInstall customProductToInstall) {
-        super(command, commonMojo, commandIndex, commandType, customProductToInstall);
-    }
-*/
 
     @Override
     public String commandFailureMessagge() {
@@ -58,7 +49,6 @@ public class SystemCommandToExecute extends CommandToExecute<SystemCommand> {
             throw new MojoExecutionException(e.getLocalizedMessage(), e);
         }
 
-        File workingDirectory = getWorkingDirectory();
         CollectingLogOutputStream commandOutputStream = null;
         try {
             CommonMojo.commandOutputStream = new CollectingLogOutputStream(getLog(), "", false);

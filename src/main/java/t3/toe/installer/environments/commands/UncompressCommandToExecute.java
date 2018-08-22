@@ -24,7 +24,6 @@ import org.codehaus.plexus.archiver.tar.TarUnArchiver;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import t3.CommonMojo;
 import t3.toe.installer.environments.UncompressCommand;
-import t3.toe.installer.environments.products.CustomProductToInstall;
 import t3.toe.installer.environments.products.ProductToInstall;
 
 import java.io.File;
@@ -89,6 +88,7 @@ public class UncompressCommandToExecute extends CommandToExecute<UncompressComma
             }
         }
 
+        getLog().info("");
         getLog().info("Uncompressing file '" + productToInstall.getResolvedInstallationPackage().getAbsolutePath() + "' to '" + destinationDirectory.getAbsolutePath() + "'");
 
         switch (this.uncompressCommand.getFormat()) {
@@ -111,6 +111,8 @@ public class UncompressCommandToExecute extends CommandToExecute<UncompressComma
                 }
                 break;
         }
+
+        getLog().info("");
 
         return true;
     }

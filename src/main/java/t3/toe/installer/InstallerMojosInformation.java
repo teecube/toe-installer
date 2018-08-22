@@ -205,7 +205,7 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String remoteInstallationPackageVersion_description = "tibco.ems.installation.remotePackage.version";
 
 		public static final String remoteInstallationPackagePackaging = "tibco.ems.installation.remotePackage.packaging";
-		public static final String remoteInstallationPackagePackaging_description = "tibco.admin.installation.remotePackage.packaging";
+		public static final String remoteInstallationPackagePackaging_description = "tibco.ems.installation.remotePackage.packaging";
 		public static final String remoteInstallationPackagePackaging_default = "zip";
 
 		public static final String remoteInstallationPackageClassifier = "tibco.ems.installation.remotePackage.classifier";
@@ -337,8 +337,8 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String installationPackageOs = "tibco.admin.installation.package.os";
 
 		public static final String remoteInstallationPackageGroupId = "tibco.admin.installation.remotePackage.groupId";
-		public static final String remoteInstallationPackageGroupId_description = "tibco.admin.installation.remotePackage.groupId";
 		public static final String remoteInstallationPackageGroupId_default = "com.tibco.admin";
+		public static final String remoteInstallationPackageGroupId_description = "tibco.admin.installation.remotePackage.groupId";
 
 		public static final String remoteInstallationPackageArtifactId = "tibco.admin.installation.remotePackage.artifactId";
 		public static final String remoteInstallationPackageArtifactId_description = "tibco.admin.installation.remotePackage.artifactId";

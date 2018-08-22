@@ -64,7 +64,8 @@ public class MavenCommandToExecute extends CommandToExecute<MavenCommand> {
                 commandLine += " -D" + property.getKey() + "=" + property.getValue();
             }
         }
-        getLog(">").info(commandLine);
+        getLog(">").info("Working directory : " + workingDirectory.getAbsolutePath());
+        getLog(">").info("Command           : " + commandLine);
         getLog().info("");
 
         File pomFile;
@@ -78,8 +79,6 @@ public class MavenCommandToExecute extends CommandToExecute<MavenCommand> {
                 throw new MojoExecutionException(e.getLocalizedMessage(), e);
             }
         }
-
-        File workingDirectory = getWorkingDirectory();
 
         File pomFileInWorkingDirectory = new File(workingDirectory, "pom.xml");
         Properties properties = new Properties();

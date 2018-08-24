@@ -60,13 +60,17 @@ public class ProductsToInstall extends ArrayList<ProductToInstall<?>> {
         init(environment.getProducts());
 
         // compute the max length of full product name of all products (for display purpose)
-        ProductToInstall productWithLongestFullProductName = Collections.max(this, new Comparator<ProductToInstall>() {
-            @Override
-            public int compare(ProductToInstall p1, ProductToInstall p2) {
-            return p1.fullProductName().length() - p2.fullProductName().length();
-            }
-        });
-        maxFullProductNameLength = productWithLongestFullProductName.fullProductName().length();
+        if (!this.isEmpty()) {
+            ProductToInstall productWithLongestFullProductName = Collections.max(this, new Comparator<ProductToInstall>() {
+                @Override
+                public int compare(ProductToInstall p1, ProductToInstall p2) {
+                    return p1.fullProductName().length() - p2.fullProductName().length();
+                }
+            });
+            maxFullProductNameLength = productWithLongestFullProductName.fullProductName().length();
+        } else {
+            maxFullProductNameLength = 0;
+        }
     }
 
     private void init(Environment.Products products) throws MojoExecutionException {

@@ -85,19 +85,19 @@ public class TRAInstallerMojo extends CommonInstaller {
 	@Parameter(property = InstallerMojosInformation.TRA.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.TRA.remoteInstallationPackageClassifier_description)
 	protected String remoteInstallationPackageClassifier;
 
-	@Parameter(property = InstallerMojosInformation.TRA.configDirectory, defaultValue = "${user.home}/tibco_cfg")
-	private File configDirectoryRoot;
+	@Parameter(property = InstallerMojosInformation.TRA.configDirectory, defaultValue = InstallerMojosInformation.TRA.configDirectory_default)
+	private File configDirectory;
 
 	@Override
 	public void initDefaultParameters() throws MojoExecutionException {
 		super.initDefaultParameters();
 
-		if (configDirectoryRoot == null) {
+		if (configDirectory == null) {
 			File defaultConfigDirectoryRoot = new File(System.getProperty("user.home"), "tibco_cfg");
 			if (defaultConfigDirectoryRoot.exists() && getCreateNewEnvironment()) {
 				throw new MojoExecutionException("Configuration directory '" + defaultConfigDirectoryRoot.getAbsolutePath() + "' already exists. Please choose another one by setting '" + InstallerMojosInformation.TRA.configDirectory + "' property.", new FileAlreadyExistsException(defaultConfigDirectoryRoot.getAbsolutePath()));
 			} else {
-				configDirectoryRoot = defaultConfigDirectoryRoot;
+				configDirectory = defaultConfigDirectoryRoot;
 			}
 		}
 	}
@@ -266,7 +266,7 @@ public class TRAInstallerMojo extends CommonInstaller {
 		if (props == null) {
 			return;
 		}
-		props.setProperty("configDirectoryRoot", configDirectoryRoot.toString());
+		props.setProperty("configDirectoryRoot", configDirectory.toString());
 	}
 
 	@Override

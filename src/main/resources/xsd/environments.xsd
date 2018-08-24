@@ -30,6 +30,7 @@
 			<xs:enumeration value="bw5" />
 			<xs:enumeration value="bw6" />
 			<xs:enumeration value="ems" />
+			<xs:enumeration value="ftl" />
 			<xs:enumeration value="rv" />
 			<xs:enumeration value="tea" />
 			<xs:enumeration value="tra" />

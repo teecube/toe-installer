@@ -16,75 +16,71 @@
  */
 package t3.toe.installer.installers;
 
+import com.google.common.io.Files;
+import org.apache.commons.exec.CommandLine;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.codehaus.plexus.archiver.UnArchiver;
+import org.codehaus.plexus.archiver.manager.NoSuchArchiverException;
 import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.ProductType;
 
+import javax.validation.constraints.NotNull;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
 /**
 * <p>
-* This goal installs the TIBCO Enterprise Administrator 2.x product from an
-* official archive to a target environment.
+* This goal installs the TIBCO FTL product from an official archive to a target environment.
 * </p>
 *
 * @author Mathieu Debove &lt;mad@teecu.be&gt;
 *
 */
-@Mojo(name = "install-tea", requiresProject = false)
-public class TEAInstallerMojo extends CommonInstaller {
+@Mojo(name = "install-ftl", requiresProject = false)
+public class FTLInstallerMojo extends CommonInstaller {
 
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.installationPackage, defaultValue = "${" + InstallerMojosInformation.installationPackageDirectory + "}/${tibco.tea.installation.package.regex}")
+	@Parameter(property = InstallerMojosInformation.FTL.installationPackage, defaultValue = "${" + InstallerMojosInformation.installationPackageDirectory + "}/${tibco.tea.installation.package.regex}")
 	private File installationPackage;
 
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.installationPackageRegex, defaultValue = InstallerMojosInformation.EnterpriseAdministrator.installationPackageRegex_default)
+	@Parameter(property = InstallerMojosInformation.FTL.installationPackageRegex, defaultValue = InstallerMojosInformation.FTL.installationPackageRegex_default)
 	private String installationPackageRegex;
 
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.installationPackageRegexArchGroupIndex, defaultValue = InstallerMojosInformation.EnterpriseAdministrator.installationPackageRegexArchGroupIndex_default)
+	@Parameter(property = InstallerMojosInformation.FTL.installationPackageRegexArchGroupIndex, defaultValue = InstallerMojosInformation.FTL.installationPackageRegexArchGroupIndex_default)
 	private Integer installationPackageRegexArchGroupIndex;
 
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.installationPackageRegexOsGroupIndex, defaultValue = InstallerMojosInformation.EnterpriseAdministrator.installationPackageRegexOsGroupIndex_default)
+	@Parameter(property = InstallerMojosInformation.FTL.installationPackageRegexOsGroupIndex, defaultValue = InstallerMojosInformation.FTL.installationPackageRegexOsGroupIndex_default)
 	private Integer installationPackageRegexOsGroupIndex;
 
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.installationPackageRegexVersionGroupIndex, defaultValue = InstallerMojosInformation.EnterpriseAdministrator.installationPackageRegexVersionGroupIndex_default)
+	@Parameter(property = InstallerMojosInformation.FTL.installationPackageRegexVersionGroupIndex, defaultValue = InstallerMojosInformation.FTL.installationPackageRegexVersionGroupIndex_default)
 	private Integer installationPackageRegexVersionGroupIndex;
 
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.installationPackageVersion, defaultValue = "")
+	@Parameter(property = InstallerMojosInformation.FTL.installationPackageVersion, defaultValue = "")
 	private String installationPackageVersion;
 
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.installationPackageVersionMajorMinor, defaultValue = "")
+	@Parameter(property = InstallerMojosInformation.FTL.installationPackageVersionMajorMinor, defaultValue = "")
 	private String installationPackageVersionMajorMinor;
 
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageGroupId, defaultValue = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageGroupId_default, description = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageGroupId_description)
+	@Parameter(property = InstallerMojosInformation.FTL.remoteInstallationPackageGroupId, defaultValue = InstallerMojosInformation.FTL.remoteInstallationPackageGroupId_default, description = InstallerMojosInformation.FTL.remoteInstallationPackageGroupId_description)
 	protected String remoteInstallationPackageGroupId;
 
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageArtifactId, defaultValue = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageArtifactId_default, description = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageArtifactId_description)
+	@Parameter(property = InstallerMojosInformation.FTL.remoteInstallationPackageArtifactId, defaultValue = InstallerMojosInformation.FTL.remoteInstallationPackageArtifactId_default, description = InstallerMojosInformation.FTL.remoteInstallationPackageArtifactId_description)
 	protected String remoteInstallationPackageArtifactId;
 
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageVersion_description)
+	@Parameter(property = InstallerMojosInformation.FTL.remoteInstallationPackageVersion, defaultValue = "", description = InstallerMojosInformation.FTL.remoteInstallationPackageVersion_description)
 	protected String remoteInstallationPackageVersion;
 
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackagePackaging, defaultValue = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackagePackaging_default, description = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackagePackaging_description)
+	@Parameter(property = InstallerMojosInformation.FTL.remoteInstallationPackagePackaging, defaultValue = InstallerMojosInformation.FTL.remoteInstallationPackagePackaging_default, description = InstallerMojosInformation.FTL.remoteInstallationPackagePackaging_description)
 	protected String remoteInstallationPackagePackaging;
 
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageClassifier_description)
+	@Parameter(property = InstallerMojosInformation.FTL.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.FTL.remoteInstallationPackageClassifier_description)
 	protected String remoteInstallationPackageClassifier;
-
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.javaHomeDirectory, defaultValue = "c:\\Program Files\\Java\\jdk1.7.0_71") // default value is the one found in default .silent file
-	private File javaHomeDirectory;
-
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.teaWindowsServiceType, defaultValue = "manual")
-	private String teaWindowsServiceType;
-
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.configDirectory, defaultValue = InstallerMojosInformation.EnterpriseAdministrator.configDirectory_default)
-	private String configDirectory;
 
 	@Override
 	public List<String> getDependenciesGoals() {
@@ -132,27 +128,27 @@ public class TEAInstallerMojo extends CommonInstaller {
 
 	@Override
 	public String getInstallationPackagePropertyName() {
-		return InstallerMojosInformation.EnterpriseAdministrator.installationPackage;
+		return InstallerMojosInformation.FTL.installationPackage;
 	}
 
 	@Override
 	public String getInstallationPackageVersionPropertyName() {
-		return InstallerMojosInformation.EnterpriseAdministrator.installationPackageVersion;
+		return InstallerMojosInformation.FTL.installationPackageVersion;
 	}
 
 	@Override
 	public String getInstallationPackageVersionMajorMinorPropertyName() {
-		return InstallerMojosInformation.EnterpriseAdministrator.installationPackageVersionMajorMinor;
+		return InstallerMojosInformation.FTL.installationPackageVersionMajorMinor;
 	}
 
 	@Override
 	public String getInstallationPackageArchPropertyName() {
-		return InstallerMojosInformation.EnterpriseAdministrator.installationPackageArch;
+		return InstallerMojosInformation.FTL.installationPackageArch;
 	}
 
 	@Override
 	public String getInstallationPackageOsPropertyName() {
-		return InstallerMojosInformation.EnterpriseAdministrator.installationPackageOs;
+		return InstallerMojosInformation.FTL.installationPackageOs;
 	}
 
 	@Override
@@ -245,28 +241,36 @@ public class TEAInstallerMojo extends CommonInstaller {
 		if (props == null) {
 			return;
 		}
-
-		if (!javaHomeDirectory.exists()) {
-			String javaHome = System.getProperty("java.home");
-			if (new File(javaHome).exists()) {
-				javaHomeDirectory = new File(javaHome);
-			}
-		}
-
-		props.setProperty("configDirectoryRoot", configDirectory);
-		props.setProperty("java.home.directory", javaHomeDirectory.getAbsolutePath());
-		props.setProperty("teaWindowsServiceType", teaWindowsServiceType);
 	}
 
 	@Override
 	public String getProductName() {
-		return "TIBCO Enterprise Administrator (TEA)";
+		return "TIBCO FTL";
 	}
 
 	@Override
 	public ProductType getProductType() {
-		return ProductType.TEA;
+		return ProductType.FTL;
 	}
 
+	@Override
+	protected File extractInstallationPackage(@NotNull File installationPackage) throws MojoExecutionException {
+		return installationPackage.getParentFile();
+	}
+
+	@Override
+	protected File getExecutableFile(File directory) throws MojoExecutionException {
+		if (this.installationPackage.getName().toLowerCase().endsWith(".exe")) {
+			return this.installationPackage;
+		} else {
+			throw new MojoExecutionException("Only Windows version of TIBCO FTL is supported.", new UnsupportedOperationException());
+		}
+	}
+
+	@Override
+	protected void addCommandLineArguments(CommandLine cmdLine) throws MojoExecutionException {
+		cmdLine.addArgument("/S");
+		cmdLine.addArgument("/D=" + getInstallationRoot().getAbsolutePath());
+	}
 
 }

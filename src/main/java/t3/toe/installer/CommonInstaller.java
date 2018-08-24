@@ -334,7 +334,7 @@ public abstract class CommonInstaller extends CommonMojo {
 		return silentFile;
 	}
 
-	private File getExecutableFile(File directory) {
+	protected File getExecutableFile(File directory) throws MojoExecutionException {
 		if (executableFile != null) {
 			return executableFile;
 		}
@@ -554,8 +554,8 @@ public abstract class CommonInstaller extends CommonMojo {
 
 		return normalized ? getNormalizedInstallationPackageOs(installationPackageOs) : installationPackageOs;
 	}
-	
-	private File extractInstallationPackage(@NotNull File installationPackage) throws MojoExecutionException {
+
+	protected void extractInstallationPackagePreparation(@NotNull File installationPackage) throws MojoExecutionException {
 		String version = getInstallationPackageVersion();
 		String productName = getProductName();
 
@@ -565,6 +565,10 @@ public abstract class CommonInstaller extends CommonMojo {
 		getLog().info("Version                            : " + version);
 		getLog().info("Package file                       : " + installationPackage.getAbsolutePath());
 		getLog().info("");
+	}
+
+	protected File extractInstallationPackage(@NotNull File installationPackage) throws MojoExecutionException {
+		extractInstallationPackagePreparation(installationPackage);
 
 		File tmpDirectory = Files.createTempDir();
 		File silentFile;
@@ -929,6 +933,12 @@ public abstract class CommonInstaller extends CommonMojo {
 		return result;
 	}
 
+	protected void addCommandLineArguments(CommandLine cmdLine) throws MojoExecutionException {
+		cmdLine.addArgument("-silent");
+		cmdLine.addArgument("-V");
+		cmdLine.addArgument("responseFile=" + silentFile.getAbsolutePath(), false);
+	}
+
 	private void executeInstallationPackage(File extractedInstallationPackage) throws MojoExecutionException {
 		if (extractedInstallationPackage == null || !extractedInstallationPackage.exists() || !extractedInstallationPackage.isDirectory()) {
 			return;
@@ -943,16 +953,15 @@ public abstract class CommonInstaller extends CommonMojo {
 		getLog().info("");
 		getLog().info("-> Installing " + getProductName() + "...");
 		getLog().info("");
-		getLog().info("Using silent file                  : " + silentFile.getAbsolutePath());
+		if (silentFile != null && silentFile.exists()) {
+			getLog().info("Using silent file                  : " + silentFile.getAbsolutePath());
+		}
 		getLog().info("Creating a new environment         : " + (getCreateNewEnvironment() ? "yes" : "no"));
 		getLog().info("Environment name                   : " + environmentName.toString());
 		getLog().info("Installation root (TIBCO_HOME)     : " + getInstallationRoot().getAbsolutePath());
 
 		CommandLine cmdLine = new CommandLine(executableFile);
-
-		cmdLine.addArgument("-silent");
-		cmdLine.addArgument("-V");
-		cmdLine.addArgument("responseFile=" + silentFile.getAbsolutePath(), false);
+		addCommandLineArguments(cmdLine);
 
 		getLog().debug("install command line : " + cmdLine.toString());
 		getLog().debug("working dir : " + extractedInstallationPackage);

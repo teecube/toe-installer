@@ -120,8 +120,6 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String remoteInstallationPackageClassifier = "tibco.rv.installation.remotePackage.classifier";
 		public static final String remoteInstallationPackageClassifier_description = "tibco.rv.installation.remotePackage.classifier";
-
-		public static final String configDirectoryRoot = "tibco.rv.configDirectoryRoot";
 	}
 
 	public static class TRA {
@@ -166,7 +164,8 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String remoteInstallationPackageClassifier = "tibco.tra.installation.remotePackage.classifier";
 		public static final String remoteInstallationPackageClassifier_description = "tibco.tra.installation.remotePackage.classifier";
 
-		public static final String configDirectory = "tibco.tra.configDirectory";
+		public static final String configDirectory = "tibco.tra.installation.configDirectory";
+		public static final String configDirectory_default = "${tibco.installation.root}/config/tra";
 	}
 
 	public static class EMS {
@@ -399,7 +398,52 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String javaHomeDirectory = "tibco.tea.installation.javaHomeDirectory";
 		public static final String teaWindowsServiceType = "tibco.tea.installation.teaWindowsServiceType";
-		public static final String configDirectoryRoot = "tibco.tea.installation.configDirectoryRoot";
+
+		public static final String configDirectory = "tibco.tea.installation.configDirectory";
+		public static final String configDirectory_default = "${tibco.installation.root}/config/tea";
+	}
+
+	public static class FTL {
+		public static final String category = "TIBCO FTL";
+		public static final String category_description = "Properties concerning " + category + " binaries & environment";
+
+		public static final String installationPackage = "tibco.ftl.installation.package";
+		public static final String installationPackage_description = "tibco.ftl.installation.package";
+
+		public static final String installationPackageRegex = "tibco.ftl.installation.package.regex";
+		public static final String installationPackageRegex_default = "TIB_ftl_(\\d+.\\d+.\\d+)_([^_]*)_(.*).(zip|exe)";
+
+		public static final String installationPackageRegexVersionGroupIndex = "tibco.ftl.installation.package.regex.versionGroupIndex";
+		public static final String installationPackageRegexVersionGroupIndex_default = "1";
+
+		public static final String installationPackageRegexOsGroupIndex = "tibco.ftl.installation.package.regex.osGroupIndex";
+		public static final String installationPackageRegexOsGroupIndex_default = "2";
+
+		public static final String installationPackageRegexArchGroupIndex = "tibco.ftl.installation.package.regex.archGroupIndex";
+		public static final String installationPackageRegexArchGroupIndex_default = "3";
+
+		public static final String installationPackageVersion = "tibco.ftl.installation.package.version";
+		public static final String installationPackageVersionMajorMinor = "tibco.ftl.installation.package.versionMajorMinor";
+		public static final String installationPackageArch = "tibco.ftl.installation.package.arch";
+		public static final String installationPackageOs = "tibco.ftl.installation.package.os";
+
+		public static final String remoteInstallationPackageGroupId = "tibco.ftl.installation.remotePackage.groupId";
+		public static final String remoteInstallationPackageGroupId_description = "tibco.ftl.installation.remotePackage.groupId";
+		public static final String remoteInstallationPackageGroupId_default = "com.tibco.ftl";
+
+		public static final String remoteInstallationPackageArtifactId = "tibco.ftl.installation.remotePackage.artifactId";
+		public static final String remoteInstallationPackageArtifactId_description = "tibco.ftl.installation.remotePackage.artifactId";
+		public static final String remoteInstallationPackageArtifactId_default = "ftl-installer";
+
+		public static final String remoteInstallationPackageVersion = "tibco.ftl.installation.remotePackage.version";
+		public static final String remoteInstallationPackageVersion_description = "tibco.ftl.installation.remotePackage.version";
+
+		public static final String remoteInstallationPackagePackaging = "tibco.ftl.installation.remotePackage.packaging";
+		public static final String remoteInstallationPackagePackaging_description = "tibco.ftl.installation.remotePackage.packaging";
+		public static final String remoteInstallationPackagePackaging_default = "zip";
+
+		public static final String remoteInstallationPackageClassifier = "tibco.ftl.installation.remotePackage.classifier";
+		public static final String remoteInstallationPackageClassifier_description = "tibco.ftl.installation.remotePackage.classifier";
 	}
 
 	public static class Packages {

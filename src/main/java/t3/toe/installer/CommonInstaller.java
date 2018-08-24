@@ -308,11 +308,7 @@ public abstract class CommonInstaller extends CommonMojo {
 	private boolean firstDependency = true;
 	public static boolean firstGoal = true;
 
-	private File getSilentFile(File directory) {
-		if (silentFile != null) {
-			return silentFile;
-		}
-
+	public static File getSilentFile(File directory) {
 		FilenameFilter filter = new FilenameFilter() {
 
 			@Override
@@ -324,14 +320,12 @@ public abstract class CommonInstaller extends CommonMojo {
 		File[] silentFiles = directory.listFiles(filter);
 		if (silentFiles.length > 1) {
 			// TODO: warn
-			silentFile = silentFiles[0];
+			return silentFiles[0];
 		} else if (silentFiles.length == 1) {
-			silentFile = silentFiles[0];
+			return silentFiles[0];
 		} else {
-			silentFile = null;
+			return null;
 		}
-
-		return silentFile;
 	}
 
 	protected File getExecutableFile(File directory) throws MojoExecutionException {
@@ -571,7 +565,6 @@ public abstract class CommonInstaller extends CommonMojo {
 		extractInstallationPackagePreparation(installationPackage);
 
 		File tmpDirectory = Files.createTempDir();
-		File silentFile;
 
 		try {
 			UnArchiver unArchiver = archiverManager.getUnArchiver(installationPackage);
@@ -733,7 +726,8 @@ public abstract class CommonInstaller extends CommonMojo {
 	public <T> void initStandalonePOM() throws MojoExecutionException {
 		super.initStandalonePOM();
 
-		if (getInstallationPackage(false).exists()) {
+		File resolvedInstallationPackage = getInstallationPackage(false);
+		if (resolvedInstallationPackage != null && resolvedInstallationPackage.exists()) {
 			installationPackageWasAlreadyResolved = true;
 		}
 
@@ -1062,5 +1056,26 @@ public abstract class CommonInstaller extends CommonMojo {
 
 	public boolean installationPackageWasAlreadyResolved() {
 		return installationPackageWasAlreadyResolved;
+	}
+
+	protected class CommonHotfixInstaller {
+		/**
+		 * <p>
+		 * This method tries to find hotfix installation packages.
+		 * These packages can be in the {@code installationPacakgeDirectory} following the regular expression retrieved
+		 * with {@code getInstallationPackageRegex()} or "remotely" from a Maven repository (can be also the local
+		 * repository) based on {@code getRemotePackageGroupId()}, {@code getRemotePackageArtifactId()} and
+		 * {@code getRemotePackageVersion()} methods to retrieve the coordinates of artefact to use as the installation
+		 * package.
+		 * </p>
+		 *
+		 * @return the list of hotfix installation packages found, an empty list otherwise
+		 * @throws MojoExecutionException
+		 */
+		protected List<File> findHotfixInstallationPackages() throws MojoExecutionException {
+			List<File> result = new ArrayList<File>();
+
+			return result;
+		}
 	}
 }

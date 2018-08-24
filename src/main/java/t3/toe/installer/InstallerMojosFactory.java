@@ -23,6 +23,8 @@ import t3.toe.installer.envinfo.ListEnvInfoMojo;
 import t3.toe.installer.envinfo.RemoveEnvInfoMojo;
 import t3.toe.installer.environments.EnvironmentInstallerMojo;
 import t3.toe.installer.installers.*;
+import t3.toe.installer.installers.hotfix.BW6HotfixInstallerMojo;
+import t3.toe.installer.installers.hotfix.TEAHotfixInstallerMojo;
 import t3.toe.installer.packages.DeployPackagesMojo;
 import t3.toe.installer.packages.DisplayPackagesMojo;
 import t3.toe.installer.packages.InstallPackagesMojo;
@@ -50,12 +52,16 @@ public class InstallerMojosFactory extends MojosFactory {
 			return (T) new BW5InstallerMojo();
 		case "BW6InstallerMojo":
 			return (T) new BW6InstallerMojo();
+		case "BW6HotfixInstallerMojo":
+			return (T) new BW6HotfixInstallerMojo();
 		case "EMSInstallerMojo":
 			return (T) new EMSInstallerMojo();
 		case "RVInstallerMojo":
 			return (T) new RVInstallerMojo();
 		case "TEAInstallerMojo":
 			return (T) new TEAInstallerMojo();
+		case "TEAHotfixInstallerMojo":
+			return (T) new TEAHotfixInstallerMojo();
 		case "TRAInstallerMojo":
 			return (T) new TRAInstallerMojo();
 
@@ -94,12 +100,16 @@ public class InstallerMojosFactory extends MojosFactory {
 			return (T) new BW5InstallerMojo();
 		case InstallerMojosInformation.pluginPrefix + "install-bw6":
 			return (T) new BW6InstallerMojo();
+		case InstallerMojosInformation.pluginPrefix + "install-bw6-hotfix":
+			return (T) new BW6HotfixInstallerMojo();
 		case InstallerMojosInformation.pluginPrefix + "install-ems":
 			return (T) new EMSInstallerMojo();
 		case InstallerMojosInformation.pluginPrefix + "install-rv":
 			return (T) new RVInstallerMojo();
 		case InstallerMojosInformation.pluginPrefix + "install-tea":
 			return (T) new TEAInstallerMojo();
+		case InstallerMojosInformation.pluginPrefix + "install-tea-hotfix":
+			return (T) new TEAHotfixInstallerMojo();
 		case InstallerMojosInformation.pluginPrefix + "install-tra":
 			return (T) new TRAInstallerMojo();
 		case InstallerMojosInformation.pluginPrefix + "env-install":

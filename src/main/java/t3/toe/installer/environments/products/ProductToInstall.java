@@ -24,6 +24,7 @@ import org.apache.maven.project.MavenProject;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
 import t3.CommonMojo;
 import t3.toe.installer.environments.*;
+import t3.toe.installer.environments.Package;
 import t3.toe.installer.environments.commands.*;
 
 import java.io.File;
@@ -49,7 +50,7 @@ public abstract class ProductToInstall<P extends Product> {
     private String id;
     private IfProductExistsBehaviour ifExists;
     private String name;
-    private Product.Package _package;
+    private Package _package;
     private Commands postInstallCommands;
     private Commands preInstallCommands;
     private Product.Properties properties;
@@ -205,11 +206,11 @@ public abstract class ProductToInstall<P extends Product> {
         return name;
     }
 
-    public void setPackage(Product.Package _package) {
+    public void setPackage(Package _package) {
         this._package = _package;
     }
 
-    public Product.Package getPackage() {
+    public Package getPackage() {
         return _package;
     }
 
@@ -288,7 +289,20 @@ public abstract class ProductToInstall<P extends Product> {
                 return this.getResolvedInstallationPackage() == null;
             } else {
                 try {
-                    return (this.getResolvedInstallationPackage() != null) && resolvedInstallationPackage.getCanonicalPath().equals(this.getResolvedInstallationPackage().getCanonicalPath());
+                    boolean resolvedPackagesAreTheSame = (this.getResolvedInstallationPackage() != null) && resolvedInstallationPackage.getCanonicalPath().equals(this.getResolvedInstallationPackage().getCanonicalPath());
+                    boolean hotfixesAreTheSame = true;
+                    if (o instanceof TIBCOProductToInstall && this instanceof TIBCOProductToInstall) {
+                        TIBCOProduct.Hotfixes hotFixesRight = ((TIBCOProductToInstall) o).getHotfixes();
+                        TIBCOProduct.Hotfixes hotFixesLeft = ((TIBCOProductToInstall) this).getHotfixes();
+                        if (hotFixesLeft.getHotfix() == null ||
+                            hotFixesRight.getHotfix() == null ||
+                            hotFixesLeft.getHotfix().size() != hotFixesRight.getHotfix().size()) {
+                            hotfixesAreTheSame = false;
+
+                            // TODO : implement comparison of hotfix packages
+                        }
+                    }
+                    return resolvedPackagesAreTheSame && hotfixesAreTheSame;
                 } catch (IOException e) {
                     return false;
                 }

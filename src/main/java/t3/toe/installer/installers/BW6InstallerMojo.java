@@ -256,4 +256,5 @@ public class BW6InstallerMojo extends CommonInstaller {
 	}
 
 
+	}
 }

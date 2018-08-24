@@ -25,6 +25,8 @@ import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosFactory;
 import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.*;
+import t3.toe.installer.environments.Package;
+import t3.toe.installer.installers.hotfix.CommonHotfixInstaller;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
 
 public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
@@ -151,15 +154,15 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 		return product != null && product.getPackage() != null && (product.getPackage().getHttpRemote() != null || product.getPackage().getMavenArtifact() != null);
 	}
 
-	private Product.Package cachedPackage = null;
+	private Package cachedPackage = null;
 
 	@Override
-	public Product.Package getPackage() {
+	public Package getPackage() {
 		if (cachedPackage != null) {
 			return cachedPackage;
 		}
 
-		Product.Package superPackage = super.getPackage();
+		Package superPackage = super.getPackage();
 
 		MavenTIBCOArtifactPackage mavenTIBCOArtifact = superPackage.getMavenTIBCOArtifact();
 		if (mavenTIBCOArtifact != null) {
@@ -421,6 +424,43 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 		logger.info("");
 		logger.info("<<< " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " <<<");
+
+		if (this.getHotfixes() != null && this.getHotfixes().getHotfix() != null) {
+            goal = goal + "-hotfix";
+            CommonHotfixInstaller installer = InstallerMojosFactory.getInstallerMojo("toe:" + goal);
+
+            for (Package hotfix : this.getHotfixes().getHotfix()) {
+                configuration.clear();
+
+                ArrayList<Element> ignoredParameters = new ArrayList<Element>();
+
+                addProperty(configuration, ignoredParameters, "installationRoot", environment.getTibcoRoot(), CommonInstaller.class);
+                addProperty(configuration, ignoredParameters, "environmentName", environment.getName(), CommonInstaller.class);
+                addProperty(configuration, ignoredParameters, "installationPackage", hotfix.getLocal().getFileWithVersion().getFile(), installer.getClass());
+
+                configuration.add(element("ignoredParameters", ignoredParameters.toArray(new Element[0])));
+
+                logger.info("");
+                logger.info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
+                logger.info("");
+
+                executeMojo(
+                        plugin(
+                            groupId(pluginDescriptor.getGroupId()),
+                            artifactId(pluginDescriptor.getArtifactId()),
+                            version(pluginDescriptor.getVersion())
+                        ),
+                        goal(goal),
+                        configuration(
+                             configuration.toArray(new Element[0])
+                        ),
+                        executionEnvironment
+                );
+
+                logger.info("");
+                logger.info("<<< " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " <<<");
+            }
+        }
 	}
 
 	@Override

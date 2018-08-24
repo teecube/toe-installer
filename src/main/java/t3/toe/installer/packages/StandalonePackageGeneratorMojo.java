@@ -28,6 +28,7 @@ import org.apache.maven.artifact.manager.WagonManager;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.Authentication;
 import org.apache.maven.artifact.repository.MavenArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
@@ -49,6 +50,7 @@ import org.codehaus.mojo.versions.api.DefaultVersionsHelper;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.RepositoryPolicy;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.util.repository.AuthenticationBuilder;
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
@@ -63,8 +65,10 @@ import t3.plugin.annotations.Parameter;
 import t3.toe.installer.InstallerLifecycleParticipant;
 import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.*;
+import t3.toe.installer.environments.Package;
 import t3.toe.installer.environments.products.ProductToInstall;
 import t3.toe.installer.environments.products.ProductsToInstall;
+import t3.toe.installer.environments.products.TIBCOProductToInstall;
 import t3.utils.MavenRunner;
 import t3.utils.POMManager;
 import t3.utils.Utils;
@@ -281,48 +285,34 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 			for (ProductToInstall<?> productToInstall : uniqueProductsList) {
 				if (productToInstall.getPackage().getMavenArtifact() != null || productToInstall.getPackage().getMavenTIBCOArtifact() != null) {
 					// product package was defined as a Maven artifact in topology template, hence deploy this artifact in standalone Maven repository
-					String groupId = "";
-					String artifactId = "";
-					String version = "";
-					String packaging = "";
-					String classifier = "";
-					if (productToInstall.getPackage().getMavenArtifact() != null) {
-						MavenArtifactPackage mavenRemote = productToInstall.getPackage().getMavenArtifact();
-						groupId = mavenRemote.getGroupId();
-						artifactId = mavenRemote.getArtifactId();
-						version = mavenRemote.getVersion();
-						packaging = mavenRemote.getPackaging();
-						if (StringUtils.isNotEmpty(mavenRemote.getClassifier())) {
-							classifier = mavenRemote.getClassifier();
-						}
-					} else if (productToInstall.getPackage().getMavenTIBCOArtifact() != null) {
-						MavenTIBCOArtifactPackage mavenRemoteTIBCO = productToInstall.getPackage().getMavenTIBCOArtifact();
-						groupId = mavenRemoteTIBCO.getGroupId();
-						artifactId = mavenRemoteTIBCO.getArtifactId();
-						version = mavenRemoteTIBCO.getVersion();
-						packaging = mavenRemoteTIBCO.getPackaging();
-						if (StringUtils.isNotEmpty(mavenRemoteTIBCO.getClassifier())) {
-							classifier = mavenRemoteTIBCO.getClassifier();
+					installPackageArtifactToStandaloneRepository(productToInstall.getPackage(), productToInstall.getResolvedInstallationPackage());
+
+					if (productToInstall instanceof TIBCOProductToInstall) {
+						for (Package hotfix : ((TIBCOProductToInstall) productToInstall).getHotfixes().getHotfix()) {
+							File hotfixFile = null;
+							if (hotfix.getMavenArtifact() != null || hotfix.getMavenTIBCOArtifact() != null) {
+								// hotfix package was defined as a Maven artifact in topology template, hence deploy this artifact in standalone Maven repository
+								try {
+									hotfixFile = (hotfix.getMavenArtifact() != null) ? getPackageFileFromMaven(hotfix.getMavenArtifact()) : getPackageFileFromMaven(hotfix.getMavenTIBCOArtifact());
+								} catch (ArtifactNotFoundException | ArtifactResolutionException e) {
+									throw new MojoExecutionException(e.getLocalizedMessage(), e);
+								}
+								installPackageArtifactToStandaloneRepository(hotfix, hotfixFile);
+							} else {
+								hotfixFile = (hotfix.getLocal() != null) ? getPackageFileFromLocal(hotfix.getLocal()) : getPackageFileFromHTTP(hotfix.getHttpRemote());
+								try {
+									hotfixFile = hotfixFile.getCanonicalFile();
+								} catch (IOException e) {
+									throw new MojoExecutionException(e.getLocalizedMessage(), e);
+								}
+
+								copyPackageFileToLocalPackagesDirectory(hotfixFile.getName(), hotfixFile);
+							}
 						}
 					}
-					String coords = groupId + ":" + artifactId + (StringUtils.isNotEmpty(packaging) ? ":" + packaging : "") + (StringUtils.isNotEmpty(classifier) ? ":" + classifier : "") + ":" + version;
-					org.eclipse.aether.artifact.Artifact artifact = new org.eclipse.aether.artifact.DefaultArtifact(coords);
-					artifact = artifact.setFile(productToInstall.getResolvedInstallationPackage());
-
-					getLog().info("Adding '" + coords + "' to standalone local repository directory");
-					installArtifact(project, standaloneLocalRepository, artifact);
 				} else {
 					// copy product package in separate packages directory
-					if (!standaloneLocalPackages.exists()) {
-						standaloneLocalPackages.mkdirs();
-					}
-					try {
-						getLog().info("Adding '" + productToInstall.getResolvedInstallationPackage() + "' to standalone local packages directory");
-
-						FileUtils.copyFileToDirectory(productToInstall.getResolvedInstallationPackage(), new File(standaloneLocalPackages + "/" + productToInstall.getName()));
-					} catch (IOException e) {
-						throw new MojoExecutionException(e.getLocalizedMessage(), e);
-					}
+					copyPackageFileToLocalPackagesDirectory(productToInstall.getName(), productToInstall.getResolvedInstallationPackage());
 				}
 			}
 		}
@@ -399,6 +389,73 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 		if (generateStandaloneArchive) {
 			getLog().info("Standalone package archive is: '" + standaloneArchive.getAbsolutePath() + "'");
 		}
+	}
+
+	private void copyPackageFileToLocalPackagesDirectory(String packageName, File packageFile) throws MojoExecutionException {
+		if (!standaloneLocalPackages.exists()) {
+			standaloneLocalPackages.mkdirs();
+		}
+		try {
+			getLog().info("Adding '" + packageFile + "' to standalone local packages directory");
+
+			FileUtils.copyFileToDirectory(packageFile, new File(standaloneLocalPackages + "/" + packageName));
+		} catch (IOException e) {
+			throw new MojoExecutionException(e.getLocalizedMessage(), e);
+		}
+	}
+
+	private File getPackageFileFromMaven(MavenArtifactPackage mavenArtifact) throws ArtifactNotFoundException, ArtifactResolutionException {
+		return getDependency(mavenArtifact.getGroupId(), mavenArtifact.getArtifactId(), mavenArtifact.getVersion(), mavenArtifact.getPackaging(), mavenArtifact.getClassifier(), true);
+	}
+
+	private File getPackageFileFromMaven(MavenTIBCOArtifactPackage mavenTIBCOArtifactPackage) throws ArtifactNotFoundException, ArtifactResolutionException {
+		return getDependency(mavenTIBCOArtifactPackage.getGroupId(), mavenTIBCOArtifactPackage.getArtifactId(), mavenTIBCOArtifactPackage.getVersion(), mavenTIBCOArtifactPackage.getPackaging(), mavenTIBCOArtifactPackage.getClassifier(), true);
+	}
+
+	private File getPackageFileFromLocal(LocalPackage local) throws MojoExecutionException {
+		if (local.getFileWithVersion() != null) {
+			return new File(local.getFileWithVersion().getFile());
+		} else {
+			throw new MojoExecutionException("'directoryWithPattern' element is not supported for hotfix packages.", new UnsupportedOperationException());
+		}
+	}
+
+	private File getPackageFileFromHTTP(HttpRemotePackage httpRemote) throws MojoExecutionException {
+
+		throw new MojoExecutionException("'httpRemote' element is not supported for hotfix packages.", new UnsupportedOperationException());
+	}
+
+	private void installPackageArtifactToStandaloneRepository(Package _package, File packageFile) throws MojoExecutionException {
+		String groupId = "";
+		String artifactId = "";
+		String version = "";
+		String packaging = "";
+		String classifier = "";
+		if (_package.getMavenArtifact() != null) {
+			MavenArtifactPackage mavenRemote = _package.getMavenArtifact();
+			groupId = mavenRemote.getGroupId();
+			artifactId = mavenRemote.getArtifactId();
+			version = mavenRemote.getVersion();
+			packaging = mavenRemote.getPackaging();
+			if (StringUtils.isNotEmpty(mavenRemote.getClassifier())) {
+				classifier = mavenRemote.getClassifier();
+			}
+		} else if (_package.getMavenTIBCOArtifact() != null) {
+			MavenTIBCOArtifactPackage mavenRemoteTIBCO = _package.getMavenTIBCOArtifact();
+			groupId = mavenRemoteTIBCO.getGroupId();
+			artifactId = mavenRemoteTIBCO.getArtifactId();
+			version = mavenRemoteTIBCO.getVersion();
+			packaging = mavenRemoteTIBCO.getPackaging();
+			if (StringUtils.isNotEmpty(mavenRemoteTIBCO.getClassifier())) {
+				classifier = mavenRemoteTIBCO.getClassifier();
+			}
+		}
+		String coords = groupId + ":" + artifactId + (StringUtils.isNotEmpty(packaging) ? ":" + packaging : "") + (StringUtils.isNotEmpty(classifier) ? ":" + classifier : "") + ":" + version;
+		org.eclipse.aether.artifact.Artifact artifact = new org.eclipse.aether.artifact.DefaultArtifact(coords);
+		artifact = artifact.setFile(packageFile);
+
+		getLog().info("Adding '" + coords + "' to standalone local repository directory");
+		installArtifact(project, standaloneLocalRepository, artifact);
 	}
 
 	protected List<File> getPOMsFromProject(MavenProject project, File tmpDirectory) throws MojoExecutionException {

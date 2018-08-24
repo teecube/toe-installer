@@ -270,7 +270,7 @@ public class FTLInstallerMojo extends CommonInstaller {
 	@Override
 	protected void addCommandLineArguments(CommandLine cmdLine) throws MojoExecutionException {
 		cmdLine.addArgument("/S");
-		cmdLine.addArgument("/D=" + getInstallationRoot().getAbsolutePath());
+		cmdLine.addArgument("/D=" + getInstallationRoot().getAbsolutePath() + "/ftl/" + getInstallationPackageVersionMajorMinor());
 	}
 
 }

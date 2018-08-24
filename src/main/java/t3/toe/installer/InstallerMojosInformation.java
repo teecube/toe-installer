@@ -309,6 +309,11 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String pluginArtifactId_default = "tic-bw6";
 		public static final String bootstrapClass = "tibco.bw6.plugin.bootstrapClass";
 		public static final String bootstrapClass_default = "t3.tic.bw6.BW6LifecycleParticipant";
+
+		public static class Hotfix {
+			public static final String installationPackage = "tibco.tea.hotfix.installation.package";
+			public static final String installationPackage_description = "tibco.tea.hotfix.installation.package";
+		}
 	}
 
 	public static class Administrator {
@@ -401,6 +406,11 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 		public static final String configDirectory = "tibco.tea.installation.configDirectory";
 		public static final String configDirectory_default = "${tibco.installation.root}/config/tea";
+
+		public static class Hotfix {
+			public static final String installationPackage = "tibco.tea.hotfix.installation.package";
+			public static final String installationPackage_description = "tibco.tea.hotfix.installation.package";
+		}
 	}
 
 	public static class FTL {

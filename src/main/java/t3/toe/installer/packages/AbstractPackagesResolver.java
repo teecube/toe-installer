@@ -34,6 +34,7 @@ import t3.toe.installer.InstallerMojosFactory;
 import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.*;
 import t3.toe.installer.environments.Environment.Products;
+import t3.toe.installer.environments.Package;
 import t3.toe.installer.environments.products.TIBCOProductToInstall;
 
 import javax.xml.bind.JAXBException;
@@ -190,7 +191,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 							getLog().info("-> " + installer.getProductName() + " version " + installer.getInstallationPackageVersion() + " @ " + installer.getInstallationPackage());
 							TIBCOProduct tibcoProduct = new TIBCOProduct();
 							tibcoProduct.setType(installer.getProductType());
-							Product.Package tibcoProductPackage = new Product.Package();
+							Package tibcoProductPackage = new Package();
 							LocalPackage localPackage = new LocalPackage();
 							LocalFileWithVersion localFileWithVersion = new LocalFileWithVersion();
 							localFileWithVersion.setFile(installer.getInstallationPackage().getAbsolutePath());
@@ -257,17 +258,25 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 					tibcoProduct.getPackage().setLocal(null);
 				}
 
+				for (Package hotfix : tibcoProduct.getHotfixes().getHotfix()) {
+					if (hotfix.getLocal() != null) {
+						if (hotfix.getLocal().getFileWithVersion() != null) {
+							File localFile = new File(hotfix.getLocal().getFileWithVersion().getFile());
+							hotfix.getLocal().getFileWithVersion().setFile("./packages/" + localFile.getName() + "/" + localFile.getName()); // WARN: will not work if StandalonePackageGeneratorMojo.standaloneLocalPackages does not have its default value
+						}
+					}
+				}
+
 				products.getTibcoProductOrCustomProduct().add(tibcoProduct.getProduct());
 			}
 
 			for (CustomProduct nonTIBCOProduct : environment.getNonTIBCOProducts()) {
-				if (topologyType.equals(TopologyType.REMOTE) && nonTIBCOProduct.getPackage().getLocal() != null) {
+				if (nonTIBCOProduct.getPackage().getLocal() != null) {
 					if (nonTIBCOProduct.getPackage().getLocal().getFileWithVersion() != null) {
 						File localFile = new File(nonTIBCOProduct.getPackage().getLocal().getFileWithVersion().getFile());
-						nonTIBCOProduct.getPackage().getLocal().getFileWithVersion().setFile("./packages/" + nonTIBCOProduct.getName() + "/" + localFile.getName());
+						nonTIBCOProduct.getPackage().getLocal().getFileWithVersion().setFile("./packages/" + nonTIBCOProduct.getName() + "/" + localFile.getName()); // WARN: will not work if StandalonePackageGeneratorMojo.standaloneLocalPackages does not have its default value
 					}
 				}
-
 			}
 
             environment.setProducts(products);

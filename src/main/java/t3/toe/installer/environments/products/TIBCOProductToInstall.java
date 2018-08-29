@@ -138,8 +138,8 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 	 * @return
 	 */
 	private String getInstallationPackagesDirectory(EnvironmentToInstall environment, TIBCOProductToInstall product) {
-		if (productIsLocal(product) && product.getPackage().getLocal().getDirectoryWithPattern() != null && product.getPackage().getLocal().getDirectoryWithPattern().getDirectory() != null) {
-			return product.getPackage().getLocal().getDirectoryWithPattern().getDirectory();
+		if (productIsLocal(product) && product.getPackage().getDirectoryWithPattern() != null && product.getPackage().getDirectoryWithPattern().getDirectory() != null) {
+			return product.getPackage().getDirectoryWithPattern().getDirectory();
 		} else if (environment != null && environment.getPackagesDirectory() != null) {
 			return environment.getPackagesDirectory();
 		}
@@ -147,7 +147,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 	}
 
 	private boolean productIsLocal(TIBCOProductToInstall product) {
-		return product != null && product.getPackage() != null && product.getPackage().getLocal() != null;
+		return product != null && product.getPackage() != null && (product.getPackage().getFileWithVersion() != null || product.getPackage().getDirectoryWithPattern() != null);
 	}
 
 	private boolean productIsRemote(TIBCOProductToInstall product) {
@@ -249,6 +249,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 			}
 			firstDependency = false;
 		}
+        addProperty(configuration, ignoredParameters, "createNewEnvironment", "false", CommonInstaller.class); // TMP!!!
 
 		addProperty(configuration, ignoredParameters, "ignoreDependencies", "true", CommonInstaller.class); // disable resolution of dependencies in the product goal since dependency are managed here
 		installer.setIgnoreDependencies(true);
@@ -291,28 +292,25 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 					addProperty(configuration, ignoredParameters, "remoteInstallationPackageArtifactId", mavenRemotePackage.getArtifactId(), installer.getClass());
 					installer.setRemoteInstallationPackageArtifactId(mavenRemotePackage.getArtifactId());
 				}
-			} else if (this.getPackage().getLocal() != null) { // use local package
-				LocalPackage localPackage = this.getPackage().getLocal();
-				if (localPackage.getDirectoryWithPattern() != null) {
-					if (org.apache.commons.lang3.StringUtils.isNotBlank(localPackage.getDirectoryWithPattern().getDirectory())) {
-						addProperty(configuration, ignoredParameters, "installationPackageDirectory", localPackage.getDirectoryWithPattern().getDirectory(), CommonInstaller.class);
-						installer.setInstallationPackageDirectory(new File(localPackage.getDirectoryWithPattern().getDirectory()));
-					}
-					if (org.apache.commons.lang3.StringUtils.isNotBlank(localPackage.getDirectoryWithPattern().getPattern())) {
-						addProperty(configuration, ignoredParameters, "installationPackageRegex", localPackage.getDirectoryWithPattern().getPattern(), installer.getClass());
-						installer.setInstallationPackageRegex(localPackage.getDirectoryWithPattern().getPattern());
-					}
-					if (localPackage.getDirectoryWithPattern().getVersionGroupIndex() != null) {
-						addProperty(configuration, ignoredParameters, "installationPackageRegexVersionGroupIndex", localPackage.getDirectoryWithPattern().getVersionGroupIndex().toString(), installer.getClass());
-						installer.setInstallationPackageRegexVersionGroupIndex(localPackage.getDirectoryWithPattern().getVersionGroupIndex());
-					}
-				} else if (localPackage.getFileWithVersion() != null) {
-					addProperty(configuration, ignoredParameters, "installationPackage", localPackage.getFileWithVersion().getFile(), installer.getClass());
-					installer.setInstallationPackage(new File(localPackage.getFileWithVersion().getFile()));
-
-					addProperty(configuration, ignoredParameters, "installationPackageVersion", localPackage.getFileWithVersion().getVersion(), installer.getClass());
-					installer.setInstallationPackageVersion(localPackage.getFileWithVersion().getVersion());
+			} else if (this.getPackage().getDirectoryWithPattern() != null) {
+				if (org.apache.commons.lang3.StringUtils.isNotBlank(this.getPackage().getDirectoryWithPattern().getDirectory())) {
+					addProperty(configuration, ignoredParameters, "installationPackageDirectory", this.getPackage().getDirectoryWithPattern().getDirectory(), CommonInstaller.class);
+					installer.setInstallationPackageDirectory(new File(this.getPackage().getDirectoryWithPattern().getDirectory()));
 				}
+				if (org.apache.commons.lang3.StringUtils.isNotBlank(this.getPackage().getDirectoryWithPattern().getPattern())) {
+					addProperty(configuration, ignoredParameters, "installationPackageRegex", this.getPackage().getDirectoryWithPattern().getPattern(), installer.getClass());
+					installer.setInstallationPackageRegex(this.getPackage().getDirectoryWithPattern().getPattern());
+				}
+				if (this.getPackage().getDirectoryWithPattern().getVersionGroupIndex() != null) {
+					addProperty(configuration, ignoredParameters, "installationPackageRegexVersionGroupIndex", this.getPackage().getDirectoryWithPattern().getVersionGroupIndex().toString(), installer.getClass());
+					installer.setInstallationPackageRegexVersionGroupIndex(this.getPackage().getDirectoryWithPattern().getVersionGroupIndex());
+				}
+			} else if (this.getPackage().getFileWithVersion() != null) {
+				addProperty(configuration, ignoredParameters, "installationPackage", this.getPackage().getFileWithVersion().getFile(), installer.getClass());
+				installer.setInstallationPackage(new File(this.getPackage().getFileWithVersion().getFile()));
+
+				addProperty(configuration, ignoredParameters, "installationPackageVersion", this.getPackage().getFileWithVersion().getVersion(), installer.getClass());
+				installer.setInstallationPackageVersion(this.getPackage().getFileWithVersion().getVersion());
 			}
 		} else { // no remote or local package defined -> create a local package with default values
 			String installationPackagesDirectory = getInstallationPackagesDirectory(environment, this);
@@ -402,7 +400,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 	}
 
 	@Override
-	public void doInstall(EnvironmentToInstall environment, int productIndex) throws MojoExecutionException {
+	public void installMainProduct(EnvironmentToInstall environment, int productIndex) throws MojoExecutionException {
 		String goal = this.getTibcoProductGoalAndPriority().goal();
 
 		logger.info("");
@@ -424,43 +422,63 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 		logger.info("");
 		logger.info("<<< " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " <<<");
+	}
 
-		if (this.getHotfixes() != null && this.getHotfixes().getHotfix() != null) {
-            goal = goal + "-hotfix";
-            CommonHotfixInstaller installer = InstallerMojosFactory.getInstallerMojo("toe:" + goal);
+	@Override
+	public void installProductHotfixes(EnvironmentToInstall environment, int productIndex, boolean mainProductWasSkipped) throws MojoExecutionException {
+		if (this.getHotfixes() != null && this.getHotfixes().getMavenArtifactOrMavenTIBCOArtifactOrFileWithVersion() != null) {
+			if (mainProductWasSkipped) {
+				if (!this.getHotfixes().isInstallWhenProductIsSkipped()) {
+					return;
+				} else {
+					logger.info("");
+					logger.info("Product installation was skipped but product hotfixes will be installed nevertheless as specified by 'installWhenProductIsSkipped' attribute.");
+				}
+			}
 
-            for (Package hotfix : this.getHotfixes().getHotfix()) {
-                configuration.clear();
+			String goal = this.getTibcoProductGoalAndPriority().goal();
+			goal = goal + "-hotfix";
+			CommonHotfixInstaller installer = InstallerMojosFactory.getInstallerMojo("toe:" + goal);
 
-                ArrayList<Element> ignoredParameters = new ArrayList<Element>();
+			for (AbstractPackage hotfix : this.getHotfixes().getMavenArtifactOrMavenTIBCOArtifactOrFileWithVersion()) {
+				if (hotfix instanceof LocalFileWithVersion) { // TODO : support Maven artifacts
+					configuration.clear();
 
-                addProperty(configuration, ignoredParameters, "installationRoot", environment.getTibcoRoot(), CommonInstaller.class);
-                addProperty(configuration, ignoredParameters, "environmentName", environment.getName(), CommonInstaller.class);
-                addProperty(configuration, ignoredParameters, "installationPackage", hotfix.getLocal().getFileWithVersion().getFile(), installer.getClass());
+					ArrayList<Element> ignoredParameters = new ArrayList<Element>();
 
-                configuration.add(element("ignoredParameters", ignoredParameters.toArray(new Element[0])));
+					addProperty(configuration, ignoredParameters, "installationRoot", environment.getTibcoRoot(), CommonInstaller.class);
+					addProperty(configuration, ignoredParameters, "environmentName", environment.getName(), CommonInstaller.class);
+					try {
+						addProperty(configuration, ignoredParameters, "installationPackage", new File(((LocalFileWithVersion) hotfix).getFile()).getCanonicalPath(), installer.getClass());
+					} catch (IOException e) {
+						throw new MojoExecutionException(e.getLocalizedMessage(), e);
+					}
+					addProperty(configuration, ignoredParameters, "installationPackageVersion", ((LocalFileWithVersion) hotfix).getVersion(), installer.getClass());
 
-                logger.info("");
-                logger.info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
-                logger.info("");
+					configuration.add(element("ignoredParameters", ignoredParameters.toArray(new Element[0])));
 
-                executeMojo(
-                        plugin(
-                            groupId(pluginDescriptor.getGroupId()),
-                            artifactId(pluginDescriptor.getArtifactId()),
-                            version(pluginDescriptor.getVersion())
-                        ),
-                        goal(goal),
-                        configuration(
-                             configuration.toArray(new Element[0])
-                        ),
-                        executionEnvironment
-                );
+					logger.info("");
+					logger.info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
+					logger.info("");
 
-                logger.info("");
-                logger.info("<<< " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " <<<");
-            }
-        }
+					executeMojo(
+							plugin(
+									groupId(pluginDescriptor.getGroupId()),
+									artifactId(pluginDescriptor.getArtifactId()),
+									version(pluginDescriptor.getVersion())
+							),
+							goal(goal),
+							configuration(
+									configuration.toArray(new Element[0])
+							),
+							executionEnvironment
+					);
+
+					logger.info("");
+					logger.info("<<< " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " <<<");
+				}
+			}
+		}
 	}
 
 	@Override

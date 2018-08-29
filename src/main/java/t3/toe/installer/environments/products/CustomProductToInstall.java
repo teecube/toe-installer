@@ -56,18 +56,21 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
     }
 
     @Override
+    public void addPostInstallCommands() {
+        // nothing to do
+    }
+
+    @Override
     public void init(int productIndex) throws MojoExecutionException {
-        if (customProduct.getPackage().getLocal() != null) {
-            if (customProduct.getPackage().getLocal().getFileWithVersion() != null) {
-                try {
-                    setResolvedInstallationPackage(new File(customProduct.getPackage().getLocal().getFileWithVersion().getFile()));
-                } catch (IOException e) {
-                    throw new MojoExecutionException(e.getLocalizedMessage(), e);
-                }
-                setVersion(customProduct.getPackage().getLocal().getFileWithVersion().getVersion());
-            } else if (customProduct.getPackage().getLocal().getDirectoryWithPattern() != null) {
-                logger.warn("directory with pattern is not supported for custom products");
+        if (customProduct.getPackage().getFileWithVersion() != null) {
+            try {
+                setResolvedInstallationPackage(new File(customProduct.getPackage().getFileWithVersion().getFile()));
+            } catch (IOException e) {
+                throw new MojoExecutionException(e.getLocalizedMessage(), e);
             }
+            setVersion(customProduct.getPackage().getFileWithVersion().getVersion());
+        } else if (customProduct.getPackage().getDirectoryWithPattern() != null) {
+            logger.warn("directory with pattern is not supported for custom products");
         } else if (customProduct.getPackage().getHttpRemote() != null) {
             String url = customProduct.getPackage().getHttpRemote().getUrl();
             // TODO : fetch URL
@@ -90,7 +93,7 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
     }
 
     @Override
-    public void doInstall(EnvironmentToInstall environment, int productIndex) throws MojoExecutionException {
+    public void installMainProduct(EnvironmentToInstall environment, int productIndex) throws MojoExecutionException {
         int i = 1;
         commandsToExecute = new ArrayList<CommandToExecute>();
 
@@ -107,7 +110,8 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
         }
     }
 
-    public void addPostInstallCommands() {
-
+    @Override
+    public void installProductHotfixes(EnvironmentToInstall environment, int productIndex, boolean mainProductWasSkipped) throws MojoExecutionException {
+        // nothing to do
     }
 }

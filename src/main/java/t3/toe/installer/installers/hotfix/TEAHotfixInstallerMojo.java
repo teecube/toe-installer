@@ -46,15 +46,39 @@ public class TEAHotfixInstallerMojo extends CommonHotfixInstaller {
 	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.Hotfix.installationPackage, defaultValue = "")
 	private File installationPackage;
 
+	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.Hotfix.installationPackageVersion, defaultValue = "")
+	private String installationPackageVersion;
+
+	@Override
+	public void execute() throws MojoExecutionException, MojoFailureException {
+		// empty but will be modified at compile-time
+		super.execute();
+	}
+
+	@Override
+	public boolean dependenciesExist() throws MojoExecutionException {
+//		return getInstallationRoot() != null && getInstallationRoot().exists() && new File(getInstallationRoot(), "tea/" + getInstallationPackageVersionMajorMinor()).exists();
+		return getInstallationRoot() != null && getInstallationRoot().exists() && new File(getInstallationRoot(), "tea").exists();
+	}
+
 	@Override
 	public File getInstallationPackage() {
 		return installationPackage;
 	}
 
 	@Override
-	public void execute() throws MojoExecutionException, MojoFailureException {
-		// empty but will be modified at compile-time
-		super.execute();
+	public String getProductName() {
+		return "TIBCO Enterprise Administrator (TEA) hotfix";
+	}
+
+	@Override
+	public String getRemoteInstallationPackageVersion() {
+		return installationPackageVersion;
+	}
+
+	@Override
+	public void setInstallationPackage(File installationPackage) {
+		this.installationPackage = installationPackage;
 	}
 
 }

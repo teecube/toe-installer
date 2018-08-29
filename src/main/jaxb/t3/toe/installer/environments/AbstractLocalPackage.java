@@ -15,12 +15,12 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for AbstractRemotePackage complex type.
+ * <p>Java class for AbstractLocalPackage complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="AbstractRemotePackage"&gt;
+ * &lt;complexType name="AbstractLocalPackage"&gt;
  *   &lt;complexContent&gt;
  *     &lt;extension base="{http://teecu.be/toe-installer/environments}AbstractPackage"&gt;
  *     &lt;/extension&gt;
@@ -31,13 +31,12 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "AbstractRemotePackage")
+@XmlType(name = "AbstractLocalPackage")
 @XmlSeeAlso({
-    HttpRemotePackage.class,
-    MavenArtifactPackage.class,
-    MavenTIBCOArtifactPackage.class
+    LocalFileWithVersion.class,
+    LocalPackagePattern.class
 })
-public abstract class AbstractRemotePackage
+public abstract class AbstractLocalPackage
     extends AbstractPackage
 {
 

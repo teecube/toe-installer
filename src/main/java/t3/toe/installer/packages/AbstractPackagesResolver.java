@@ -192,12 +192,10 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 							TIBCOProduct tibcoProduct = new TIBCOProduct();
 							tibcoProduct.setType(installer.getProductType());
 							Package tibcoProductPackage = new Package();
-							LocalPackage localPackage = new LocalPackage();
 							LocalFileWithVersion localFileWithVersion = new LocalFileWithVersion();
 							localFileWithVersion.setFile(installer.getInstallationPackage().getAbsolutePath());
 							localFileWithVersion.setVersion(installer.getInstallationPackageVersion());
-							localPackage.setFileWithVersion(localFileWithVersion);
-							tibcoProductPackage.setLocal(localPackage);
+							tibcoProductPackage.setFileWithVersion(localFileWithVersion);
 							tibcoProduct.setPackage(tibcoProductPackage);
 							TIBCOProductToInstall tibcoProductToInstall = new TIBCOProductToInstall(tibcoProduct, environment, this);
 
@@ -242,7 +240,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 				CommonInstaller installer = tibcoProduct.getInstaller();
 				if (!osEnvironment.startsWith(installer.getInstallationPackageOs(true))) continue;
 
-				if (topologyType.equals(TopologyType.REMOTE) && tibcoProduct.getPackage().getLocal() != null) {
+				if (topologyType.equals(TopologyType.REMOTE) && (tibcoProduct.getPackage().getFileWithVersion() != null || tibcoProduct.getPackage().getDirectoryWithPattern() != null)) {
 					// translate LocalPackage to MavenArtifactPackage
 					MavenArtifactPackage mavenArtifactPackage = new MavenArtifactPackage();
 					mavenArtifactPackage.setGroupId(installer.getRemoteInstallationPackageGroupId());
@@ -255,15 +253,17 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 					}
 
 					tibcoProduct.getPackage().setMavenArtifact(mavenArtifactPackage);
-					tibcoProduct.getPackage().setLocal(null);
+					tibcoProduct.getPackage().setFileWithVersion(null);
+					tibcoProduct.getPackage().setDirectoryWithPattern(null);
 				}
 
-				for (Package hotfix : tibcoProduct.getHotfixes().getHotfix()) {
-					if (hotfix.getLocal() != null) {
-						if (hotfix.getLocal().getFileWithVersion() != null) {
-							File localFile = new File(hotfix.getLocal().getFileWithVersion().getFile());
-							hotfix.getLocal().getFileWithVersion().setFile("./packages/" + localFile.getName() + "/" + localFile.getName()); // WARN: will not work if StandalonePackageGeneratorMojo.standaloneLocalPackages does not have its default value
+				if (tibcoProduct.getHotfixes() != null) {
+					for (AbstractPackage hotfix : tibcoProduct.getHotfixes().getMavenArtifactOrMavenTIBCOArtifactOrFileWithVersion()) {
+						if (hotfix instanceof LocalFileWithVersion) {
+							File localFile = new File(((LocalFileWithVersion) hotfix).getFile());
+							((LocalFileWithVersion) hotfix).setFile("./packages/" + localFile.getName() + "/" + localFile.getName()); // WARN: will not work if StandalonePackageGeneratorMojo.standaloneLocalPackages does not have its default value
 						}
+						// TODO : support Maven artifacts
 					}
 				}
 
@@ -271,11 +271,9 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 			}
 
 			for (CustomProduct nonTIBCOProduct : environment.getNonTIBCOProducts()) {
-				if (nonTIBCOProduct.getPackage().getLocal() != null) {
-					if (nonTIBCOProduct.getPackage().getLocal().getFileWithVersion() != null) {
-						File localFile = new File(nonTIBCOProduct.getPackage().getLocal().getFileWithVersion().getFile());
-						nonTIBCOProduct.getPackage().getLocal().getFileWithVersion().setFile("./packages/" + nonTIBCOProduct.getName() + "/" + localFile.getName()); // WARN: will not work if StandalonePackageGeneratorMojo.standaloneLocalPackages does not have its default value
-					}
+				if (nonTIBCOProduct.getPackage().getFileWithVersion() != null) {
+					File localFile = new File(nonTIBCOProduct.getPackage().getFileWithVersion().getFile());
+					nonTIBCOProduct.getPackage().getFileWithVersion().setFile("./packages/" + nonTIBCOProduct.getName() + "/" + localFile.getName()); // WARN: will not work if StandalonePackageGeneratorMojo.standaloneLocalPackages does not have its default value
 				}
 			}
 

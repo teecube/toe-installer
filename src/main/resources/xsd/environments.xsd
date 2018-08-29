@@ -45,49 +45,45 @@
 	</xs:complexType>
 
 	<!-- Packages -->
-	<xs:complexType name="AbstractPackage" abstract="true">
-		<xs:sequence>
-			<xs:choice>
-				<xs:element name="local" type="LocalPackage"/>
-				<xs:element name="remote" type="AbstractRemotePackage"/>
-			</xs:choice>
-		</xs:sequence>
-	</xs:complexType>
+	<xs:complexType name="AbstractPackage" abstract="true"/>
 
-	<xs:complexType name="LocalPackage">
-		<xs:sequence>
-			<xs:choice>
-				<xs:element name="fileWithVersion" type="LocalFileWithVersion"/>
-				<xs:element name="directoryWithPattern" type="LocalPackagePattern"/>
-			</xs:choice>
-		</xs:sequence>
+	<xs:complexType name="AbstractLocalPackage" abstract="true">
+		<xs:complexContent>
+			<xs:extension base="AbstractPackage"/>
+		</xs:complexContent>
 	</xs:complexType>
 
 	<xs:complexType name="LocalFileWithVersion">
-		<xs:sequence>
-			<xs:element name="file" type="xs:string" />
-			<xs:element name="version" type="xs:string" />
-		</xs:sequence>
+		<xs:complexContent>
+			<xs:extension base="AbstractLocalPackage">
+				<xs:attribute name="file" type="xs:string" use="required" />
+				<xs:attribute name="version" type="xs:string" use="required" />
+			</xs:extension>
+		</xs:complexContent>
 	</xs:complexType>
 
 	<xs:complexType name="LocalPackagePattern">
-		<xs:sequence>
-			<xs:element name="directory" type="xs:string" minOccurs="0" /> <!-- minOccurs=0 because the /environment/packagesDirectory can be used instead  -->
-			<xs:element name="pattern" type="xs:string" minOccurs="0" />
-			<xs:element name="versionGroupIndex" type="xs:int" minOccurs="0" />
-			<xs:element name="archGroupIndex" type="xs:int" minOccurs="0" />
-			<xs:element name="osGroupIndex" type="xs:int" minOccurs="0" />
-		</xs:sequence>
+		<xs:complexContent>
+			<xs:extension base="AbstractLocalPackage">
+				<xs:attribute name="directory" type="xs:string" use="optional" />
+				<xs:attribute name="pattern" type="xs:string" use="optional" />
+				<xs:attribute name="versionGroupIndex" type="xs:int" use="optional" />
+				<xs:attribute name="archGroupIndex" type="xs:int" use="optional" />
+				<xs:attribute name="osGroupIndex" type="xs:int" use="optional" />
+			</xs:extension>
+		</xs:complexContent>
 	</xs:complexType>
 
-	<xs:complexType name="AbstractRemotePackage" abstract="true"/>
+	<xs:complexType name="AbstractRemotePackage" abstract="true">
+		<xs:complexContent>
+			<xs:extension base="AbstractPackage"/>
+		</xs:complexContent>
+	</xs:complexType>
 
 	<xs:complexType name="HttpRemotePackage">
 		<xs:complexContent>
 			<xs:extension base="AbstractRemotePackage">
-				<xs:sequence>
-					<xs:element name="url" type="xs:string"/>
-				</xs:sequence>
+				<xs:attribute name="url" type="xs:string" use="required" />
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -95,13 +91,11 @@
 	<xs:complexType name="MavenArtifactPackage">
 		<xs:complexContent>
 			<xs:extension base="AbstractRemotePackage">
-				<xs:sequence>
-					<xs:element name="groupId" type="xs:string"/>
-					<xs:element name="artifactId" type="xs:string"/>
-					<xs:element name="version" type="xs:string"/>
-					<xs:element name="packaging" type="xs:string"/>
-					<xs:element name="classifier" type="xs:string" minOccurs="0"/>
-				</xs:sequence>
+				<xs:attribute name="groupId" type="xs:string" use="required" />
+				<xs:attribute name="artifactId" type="xs:string" use="required" />
+				<xs:attribute name="version" type="xs:string" use="required" />
+				<xs:attribute name="packaging" type="xs:string" use="required" />
+				<xs:attribute name="classifier" type="xs:string" use="optional" />
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -109,13 +103,11 @@
 	<xs:complexType name="MavenTIBCOArtifactPackage">
 		<xs:complexContent>
 			<xs:extension base="AbstractRemotePackage">
-				<xs:sequence>
-					<xs:element name="groupId" type="xs:string" minOccurs="0"/>
-					<xs:element name="artifactId" type="xs:string" minOccurs="0"/>
-					<xs:element name="version" type="xs:string"/>
-					<xs:element name="packaging" type="xs:string" minOccurs="0"/>
-					<xs:element name="classifier" type="xs:string"/>
-				</xs:sequence>
+				<xs:attribute name="groupId" type="xs:string" use="optional" />
+				<xs:attribute name="artifactId" type="xs:string" use="optional" />
+				<xs:attribute name="version" type="xs:string" use="required" />
+				<xs:attribute name="packaging" type="xs:string" use="optional" />
+				<xs:attribute name="classifier" type="xs:string" use="required" />
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -133,7 +125,8 @@
 			<xs:element name="httpRemote" type="HttpRemotePackage"/>
 			<xs:element name="mavenArtifact" type="MavenArtifactPackage"/>
 			<xs:element name="mavenTIBCOArtifact" type="MavenTIBCOArtifactPackage"/>
-			<xs:element name="local" type="LocalPackage"/>
+			<xs:element name="fileWithVersion" type="LocalFileWithVersion"/>
+			<xs:element name="directoryWithPattern" type="LocalPackagePattern"/>
 		</xs:choice>
 	</xs:complexType>
 
@@ -171,8 +164,13 @@
 					<xs:element name="hotfixes" minOccurs="0">
 						<xs:complexType>
 							<xs:sequence>
-								<xs:element name="hotfix" type="Package" minOccurs="1" maxOccurs="unbounded"/>
+								<xs:choice minOccurs="1" maxOccurs="unbounded">
+									<xs:element name="mavenArtifact" type="MavenArtifactPackage"/>
+									<xs:element name="mavenTIBCOArtifact" type="MavenTIBCOArtifactPackage"/>
+									<xs:element name="fileWithVersion" type="LocalFileWithVersion"/>
+								</xs:choice>
 							</xs:sequence>
+							<xs:attribute name="installWhenProductIsSkipped" type="xs:boolean" default="false" use="optional"/>
 						</xs:complexType>
 					</xs:element>
 				</xs:sequence>

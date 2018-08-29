@@ -687,7 +687,9 @@ public abstract class CommonInstaller extends CommonMojo {
 
 		File installationPackage = getInstallationPackage();
 		if (installationPackage != null && installationPackage.exists()) {
-			session.getCurrentProject().getProperties().put(getInstallationPackagePropertyName(), installationPackage.getAbsolutePath().replace("\\", "/"));
+			if (StringUtils.isNotEmpty(getInstallationPackagePropertyName())) {
+				session.getCurrentProject().getProperties().put(getInstallationPackagePropertyName(), installationPackage.getAbsolutePath().replace("\\", "/"));
+			}
 		}
 	}
 
@@ -695,7 +697,9 @@ public abstract class CommonInstaller extends CommonMojo {
         String packageVersion = getInstallationPackageVersion();
         if (packageVersion != null) {
 			this.setInstallationPackageVersion(packageVersion);
-			session.getCurrentProject().getProperties().put(getInstallationPackageVersionPropertyName(), packageVersion);
+			if (StringUtils.isNotEmpty(getInstallationPackageVersionPropertyName())) {
+				session.getCurrentProject().getProperties().put(getInstallationPackageVersionPropertyName(), packageVersion);
+			}
             Pattern p = Pattern.compile("(\\d+.\\d+).*", Pattern.CASE_INSENSITIVE);
             Matcher m = p.matcher(packageVersion);
 
@@ -705,15 +709,17 @@ public abstract class CommonInstaller extends CommonMojo {
             }
 
             this.setInstallationPackageVersionMajorMinor(packageVersionMajorMinor);
-            session.getCurrentProject().getProperties().put(getInstallationPackageVersionMajorMinorPropertyName(), packageVersionMajorMinor);
+            if (StringUtils.isNotEmpty(getInstallationPackageVersionMajorMinorPropertyName())) {
+				session.getCurrentProject().getProperties().put(getInstallationPackageVersionMajorMinorPropertyName(), packageVersionMajorMinor);
+			}
         }
 
         String packageArch = getInstallationPackageArch(true);
-        if (packageArch != null) {
-			session.getCurrentProject().getProperties().put(getInstallationPackageArchPropertyName(), packageArch);
+        if (packageArch != null && StringUtils.isNotEmpty(getInstallationPackageArchPropertyName())) {
+        	session.getCurrentProject().getProperties().put(getInstallationPackageArchPropertyName(), packageArch);
         }
         String packageOs = getInstallationPackageOs(true);
-        if (packageOs != null) {
+        if (packageOs != null && StringUtils.isNotEmpty(getInstallationPackageOsPropertyName())) {
             session.getCurrentProject().getProperties().put(getInstallationPackageOsPropertyName(), packageOs);
         }
     }
@@ -724,6 +730,10 @@ public abstract class CommonInstaller extends CommonMojo {
 
 	@Override
 	public <T> void initStandalonePOM() throws MojoExecutionException {
+		if (installationRoot != null) {
+			session.getCurrentProject().getProperties().put(InstallerMojosInformation.installationRoot, installationRoot.getAbsolutePath().replace("\\", "/"));
+		}
+
 		super.initStandalonePOM();
 
 		File resolvedInstallationPackage = getInstallationPackage(false);
@@ -933,7 +943,7 @@ public abstract class CommonInstaller extends CommonMojo {
 		cmdLine.addArgument("responseFile=" + silentFile.getAbsolutePath(), false);
 	}
 
-	private void executeInstallationPackage(File extractedInstallationPackage) throws MojoExecutionException {
+	protected void executeInstallationPackage(File extractedInstallationPackage) throws MojoExecutionException {
 		if (extractedInstallationPackage == null || !extractedInstallationPackage.exists() || !extractedInstallationPackage.isDirectory()) {
 			return;
 		}
@@ -983,7 +993,7 @@ public abstract class CommonInstaller extends CommonMojo {
 			getLog().debug(cmdLine.toString());
 			result = executor.execute(cmdLine);
 		} catch (IOException e) {
-			if (e.getCause().getMessage().contains("=740")) { // Windows and not admin
+			if (e.getCause() != null && e.getCause().getMessage() != null && e.getCause().getMessage().contains("=740")) { // Windows and not admin
 				windowsNeedElevation();
 				//return;
 			}
@@ -1058,24 +1068,4 @@ public abstract class CommonInstaller extends CommonMojo {
 		return installationPackageWasAlreadyResolved;
 	}
 
-	protected class CommonHotfixInstaller {
-		/**
-		 * <p>
-		 * This method tries to find hotfix installation packages.
-		 * These packages can be in the {@code installationPacakgeDirectory} following the regular expression retrieved
-		 * with {@code getInstallationPackageRegex()} or "remotely" from a Maven repository (can be also the local
-		 * repository) based on {@code getRemotePackageGroupId()}, {@code getRemotePackageArtifactId()} and
-		 * {@code getRemotePackageVersion()} methods to retrieve the coordinates of artefact to use as the installation
-		 * package.
-		 * </p>
-		 *
-		 * @return the list of hotfix installation packages found, an empty list otherwise
-		 * @throws MojoExecutionException
-		 */
-		protected List<File> findHotfixInstallationPackages() throws MojoExecutionException {
-			List<File> result = new ArrayList<File>();
-
-			return result;
-		}
-	}
 }

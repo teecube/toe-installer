@@ -65,7 +65,6 @@ import t3.plugin.annotations.Parameter;
 import t3.toe.installer.InstallerLifecycleParticipant;
 import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.*;
-import t3.toe.installer.environments.Package;
 import t3.toe.installer.environments.products.ProductToInstall;
 import t3.toe.installer.environments.products.ProductsToInstall;
 import t3.toe.installer.environments.products.TIBCOProductToInstall;
@@ -285,21 +284,31 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 			for (ProductToInstall<?> productToInstall : uniqueProductsList) {
 				if (productToInstall.getPackage().getMavenArtifact() != null || productToInstall.getPackage().getMavenTIBCOArtifact() != null) {
 					// product package was defined as a Maven artifact in topology template, hence deploy this artifact in standalone Maven repository
-					installPackageArtifactToStandaloneRepository(productToInstall.getPackage(), productToInstall.getResolvedInstallationPackage());
+					AbstractPackage abstractPackage = null;
+					if (productToInstall.getPackage().getMavenArtifact() != null) {
+						abstractPackage = productToInstall.getPackage().getMavenArtifact();
+					} else if (productToInstall.getPackage().getMavenTIBCOArtifact() != null) {
+						abstractPackage = productToInstall.getPackage().getMavenTIBCOArtifact();
+					}
+					installPackageArtifactToStandaloneRepository(abstractPackage, productToInstall.getResolvedInstallationPackage());
 
-					if (productToInstall instanceof TIBCOProductToInstall) {
-						for (Package hotfix : ((TIBCOProductToInstall) productToInstall).getHotfixes().getHotfix()) {
+					if (productToInstall instanceof TIBCOProductToInstall && ((TIBCOProductToInstall) productToInstall).getHotfixes() != null) {
+						for (AbstractPackage hotfix : ((TIBCOProductToInstall) productToInstall).getHotfixes().getMavenArtifactOrMavenTIBCOArtifactOrFileWithVersion()) {
 							File hotfixFile = null;
-							if (hotfix.getMavenArtifact() != null || hotfix.getMavenTIBCOArtifact() != null) {
+							if (hotfix instanceof MavenArtifactPackage || hotfix instanceof MavenTIBCOArtifactPackage) {
 								// hotfix package was defined as a Maven artifact in topology template, hence deploy this artifact in standalone Maven repository
 								try {
-									hotfixFile = (hotfix.getMavenArtifact() != null) ? getPackageFileFromMaven(hotfix.getMavenArtifact()) : getPackageFileFromMaven(hotfix.getMavenTIBCOArtifact());
+									if (hotfix instanceof MavenArtifactPackage) {
+										hotfixFile = getPackageFileFromMaven((MavenArtifactPackage) hotfix);
+									} else if (hotfix instanceof MavenTIBCOArtifactPackage) {
+										hotfixFile = getPackageFileFromMaven((MavenTIBCOArtifactPackage) hotfix);
+									}
 								} catch (ArtifactNotFoundException | ArtifactResolutionException e) {
 									throw new MojoExecutionException(e.getLocalizedMessage(), e);
 								}
 								installPackageArtifactToStandaloneRepository(hotfix, hotfixFile);
-							} else {
-								hotfixFile = (hotfix.getLocal() != null) ? getPackageFileFromLocal(hotfix.getLocal()) : getPackageFileFromHTTP(hotfix.getHttpRemote());
+							} else if (hotfix instanceof LocalFileWithVersion) {
+								hotfixFile = new File(((LocalFileWithVersion) hotfix).getFile());
 								try {
 									hotfixFile = hotfixFile.getCanonicalFile();
 								} catch (IOException e) {
@@ -391,7 +400,7 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 		}
 	}
 
-	private void copyPackageFileToLocalPackagesDirectory(String packageName, File packageFile) throws MojoExecutionException {
+    private void copyPackageFileToLocalPackagesDirectory(String packageName, File packageFile) throws MojoExecutionException {
 		if (!standaloneLocalPackages.exists()) {
 			standaloneLocalPackages.mkdirs();
 		}
@@ -412,27 +421,14 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 		return getDependency(mavenTIBCOArtifactPackage.getGroupId(), mavenTIBCOArtifactPackage.getArtifactId(), mavenTIBCOArtifactPackage.getVersion(), mavenTIBCOArtifactPackage.getPackaging(), mavenTIBCOArtifactPackage.getClassifier(), true);
 	}
 
-	private File getPackageFileFromLocal(LocalPackage local) throws MojoExecutionException {
-		if (local.getFileWithVersion() != null) {
-			return new File(local.getFileWithVersion().getFile());
-		} else {
-			throw new MojoExecutionException("'directoryWithPattern' element is not supported for hotfix packages.", new UnsupportedOperationException());
-		}
-	}
-
-	private File getPackageFileFromHTTP(HttpRemotePackage httpRemote) throws MojoExecutionException {
-
-		throw new MojoExecutionException("'httpRemote' element is not supported for hotfix packages.", new UnsupportedOperationException());
-	}
-
-	private void installPackageArtifactToStandaloneRepository(Package _package, File packageFile) throws MojoExecutionException {
+	private void installPackageArtifactToStandaloneRepository(AbstractPackage abstractPackage, File packageFile) throws MojoExecutionException {
 		String groupId = "";
 		String artifactId = "";
 		String version = "";
 		String packaging = "";
 		String classifier = "";
-		if (_package.getMavenArtifact() != null) {
-			MavenArtifactPackage mavenRemote = _package.getMavenArtifact();
+		if (abstractPackage instanceof MavenArtifactPackage) {
+			MavenArtifactPackage mavenRemote = (MavenArtifactPackage) abstractPackage;
 			groupId = mavenRemote.getGroupId();
 			artifactId = mavenRemote.getArtifactId();
 			version = mavenRemote.getVersion();
@@ -440,8 +436,8 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 			if (StringUtils.isNotEmpty(mavenRemote.getClassifier())) {
 				classifier = mavenRemote.getClassifier();
 			}
-		} else if (_package.getMavenTIBCOArtifact() != null) {
-			MavenTIBCOArtifactPackage mavenRemoteTIBCO = _package.getMavenTIBCOArtifact();
+		} else if (abstractPackage instanceof MavenTIBCOArtifactPackage) {
+			MavenTIBCOArtifactPackage mavenRemoteTIBCO = (MavenTIBCOArtifactPackage) abstractPackage;
 			groupId = mavenRemoteTIBCO.getGroupId();
 			artifactId = mavenRemoteTIBCO.getArtifactId();
 			version = mavenRemoteTIBCO.getVersion();

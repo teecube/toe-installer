@@ -101,7 +101,8 @@ public abstract class ProductToInstall<P extends Product> {
         this.executionEnvironment = new MojoExecutor.ExecutionEnvironment(this.project, this.session, this.commonMojo.getPluginManager());
     }
 
-    public abstract void doInstall(EnvironmentToInstall environment, int productIndex) throws MojoExecutionException;
+    public abstract void installMainProduct(EnvironmentToInstall environment, int productIndex) throws MojoExecutionException;
+    public abstract void installProductHotfixes(EnvironmentToInstall environment, int productIndex, boolean mainProductWasSkipped) throws MojoExecutionException;
     public abstract void addPostInstallCommands() throws MojoExecutionException;
     public abstract String fullProductName();
     public abstract void init(int productIndex) throws MojoExecutionException;
@@ -159,8 +160,10 @@ public abstract class ProductToInstall<P extends Product> {
         }
 
         if (!skip) {
-            doInstall(environment, productIndex);
+            installMainProduct(environment, productIndex);
         }
+        installProductHotfixes(environment, productIndex, skip);
+
         addPostInstallCommands();
 
         if (!skip || executePostInstallCommandsWhenSkipped) {
@@ -294,9 +297,11 @@ public abstract class ProductToInstall<P extends Product> {
                     if (o instanceof TIBCOProductToInstall && this instanceof TIBCOProductToInstall) {
                         TIBCOProduct.Hotfixes hotFixesRight = ((TIBCOProductToInstall) o).getHotfixes();
                         TIBCOProduct.Hotfixes hotFixesLeft = ((TIBCOProductToInstall) this).getHotfixes();
-                        if (hotFixesLeft.getHotfix() == null ||
-                            hotFixesRight.getHotfix() == null ||
-                            hotFixesLeft.getHotfix().size() != hotFixesRight.getHotfix().size()) {
+                        if (hotFixesLeft == null ||
+                            hotFixesLeft.getMavenArtifactOrMavenTIBCOArtifactOrFileWithVersion() == null ||
+                            hotFixesRight == null ||
+                            hotFixesRight.getMavenArtifactOrMavenTIBCOArtifactOrFileWithVersion() == null ||
+                            hotFixesLeft.getMavenArtifactOrMavenTIBCOArtifactOrFileWithVersion().size() != hotFixesRight.getMavenArtifactOrMavenTIBCOArtifactOrFileWithVersion().size()) {
                             hotfixesAreTheSame = false;
 
                             // TODO : implement comparison of hotfix packages

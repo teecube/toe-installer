@@ -311,8 +311,11 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static final String bootstrapClass_default = "t3.tic.bw6.BW6LifecycleParticipant";
 
 		public static class Hotfix {
-			public static final String installationPackage = "tibco.tea.hotfix.installation.package";
-			public static final String installationPackage_description = "tibco.tea.hotfix.installation.package";
+			public static final String installationPackage = "tibco.bw6.hotfix.installation.package";
+			public static final String installationPackage_description = "tibco.bw6.hotfix.installation.package";
+
+			public static final String installationPackageVersion = "tibco.bw6.hotfix.installation.package.version";
+			public static final String installationPackageVersion_description = "tibco.bw6.hotfix.installation.package.version";
 		}
 	}
 
@@ -410,6 +413,9 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 		public static class Hotfix {
 			public static final String installationPackage = "tibco.tea.hotfix.installation.package";
 			public static final String installationPackage_description = "tibco.tea.hotfix.installation.package";
+
+			public static final String installationPackageVersion = "tibco.tea.hotfix.installation.package.version";
+			public static final String installationPackageVersion_description = "tibco.tea.hotfix.installation.package.version";
 		}
 	}
 

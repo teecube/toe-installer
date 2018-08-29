@@ -44,9 +44,6 @@ public abstract class CommonHotfixInstaller extends AbstractCommonHotfixInstalle
 
 	private File silentFile;
 
-	@Component
-	protected ArchiverManager archiverManager;
-
 	@Override
 	public File getInstallationPackage(boolean resolve) throws MojoExecutionException {
 		return getInstallationPackage();
@@ -63,40 +60,15 @@ public abstract class CommonHotfixInstaller extends AbstractCommonHotfixInstalle
 			throw new MojoExecutionException("Hotfix installation package was not found.", new FileNotFoundException());
 		}
 
-		extractInstallationPackage(installationPackage);
-
-		File tmpDirectory = Files.createTempDir();
+        File extractedInstallationPackage = extractInstallationPackage(installationPackage);
 
 		try {
-			UnArchiver unArchiver = archiverManager.getUnArchiver(installationPackage);
-
-			unArchiver.setSourceFile(installationPackage);
-			unArchiver.setDestDirectory(tmpDirectory);
-
-			getLog().info("-> Package extraction");
-			getLog().info("");
-			getLog().info("Extracting installation package to : " + tmpDirectory.getAbsolutePath());
-
-			unArchiver.extract();
-
-			silentFile = CommonInstaller.getSilentFile(tmpDirectory);
-
-			Properties props = new Properties();
-			props.loadFromXML(new FileInputStream(silentFile));
-
-			props.setProperty("acceptLicense", "true"); // always true
-			props.setProperty("environmentName", environmentName.toString());
-			props.setProperty("installationRoot", installationRoot.getAbsolutePath());
-
-			props.storeToXML(new FileOutputStream(silentFile), "Automatic install");
-
-			FileUtils.copyFileToDirectory(universalInstaller, tmpDirectory); // copy Universal Installer in temp directory
-
-			getLog().info(tmpDirectory.getAbsolutePath());
-		} catch (NoSuchArchiverException | IOException e) {
+			FileUtils.copyFileToDirectory(universalInstaller, extractedInstallationPackage);
+		} catch (IOException e) {
 			throw new MojoExecutionException(e.getLocalizedMessage(), e);
 		}
 
+		executeInstallationPackage(extractedInstallationPackage);
 	}
 
 	private File getUniversalInstaller() throws MojoExecutionException {
@@ -117,7 +89,6 @@ public abstract class CommonHotfixInstaller extends AbstractCommonHotfixInstalle
 			throw new MojoExecutionException("TIBCO universal installer was not found.", new FileNotFoundException());
 		}
 
-		getLog().info(universalInstaller.getAbsolutePath());
 		return universalInstaller;
 	}
 

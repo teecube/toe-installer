@@ -50,18 +50,13 @@ public abstract class AbstractCommonHotfixInstaller extends CommonInstaller {
 	}
 
 	@Override
-	public String getProductName() {
-		return null;
-	}
-
-	@Override
 	public ProductType getProductType() {
 		return null;
 	}
 
 	@Override
 	public String getInstallationPackageRegex() {
-		return null;
+		return "";
 	}
 
 	@Override
@@ -120,22 +115,12 @@ public abstract class AbstractCommonHotfixInstaller extends CommonInstaller {
 	}
 
 	@Override
-	public void setInstallationPackage(File installationPackage) {
-
-	}
-
-	@Override
 	public String getRemoteInstallationPackageGroupId() {
 		return null;
 	}
 
 	@Override
 	public String getRemoteInstallationPackageArtifactId() {
-		return null;
-	}
-
-	@Override
-	public String getRemoteInstallationPackageVersion() {
 		return null;
 	}
 
@@ -176,11 +161,6 @@ public abstract class AbstractCommonHotfixInstaller extends CommonInstaller {
 
 	@Override
 	public boolean hasDependencies() {
-		return false;
-	}
-
-	@Override
-	public boolean dependenciesExist() throws MojoExecutionException {
 		return false;
 	}
 

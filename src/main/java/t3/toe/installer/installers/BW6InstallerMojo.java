@@ -255,6 +255,4 @@ public class BW6InstallerMojo extends CommonInstaller {
 		return ProductType.BW_6;
 	}
 
-
-	}
 }

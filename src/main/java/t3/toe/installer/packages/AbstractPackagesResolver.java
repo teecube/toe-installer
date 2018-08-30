@@ -36,6 +36,7 @@ import t3.toe.installer.environments.*;
 import t3.toe.installer.environments.Environment.Products;
 import t3.toe.installer.environments.Package;
 import t3.toe.installer.environments.products.TIBCOProductToInstall;
+import t3.utils.Utils;
 
 import javax.xml.bind.JAXBException;
 import java.io.*;
@@ -64,6 +65,12 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 
 	@Parameter (property = InstallerMojosInformation.FullEnvironment.topologyFile, defaultValue = InstallerMojosInformation.FullEnvironment.topologyFile_default)
 	protected File topologyTemplateFile;
+
+	@Parameter (property = InstallerMojosInformation.Packages.Standalone.directory, defaultValue = InstallerMojosInformation.Packages.Standalone.directory_default)
+	protected File standaloneDirectory;
+
+	@Parameter (property = InstallerMojosInformation.Packages.Standalone.localPackages, defaultValue = InstallerMojosInformation.Packages.Standalone.localPackages_default)
+	protected File standaloneLocalPackages;
 
 	protected List<CommonInstaller> installers;
 
@@ -180,6 +187,31 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 
 						resolvedInstallers.add(tibcoProductToInstall.getInstaller());
 						resolvedProducts.add(tibcoProductToInstall);
+
+						if (tibcoProductToInstall.getDependencies() != null && tibcoProductToInstall.getDependencies().getHttpRemoteOrMavenArtifactOrMavenTIBCOArtifact().size() > 0) {
+							int i = 0;
+							for (ListIterator<AbstractPackage> it = tibcoProductToInstall.getDependencies().getHttpRemoteOrMavenArtifactOrMavenTIBCOArtifact().listIterator(); it.hasNext(); i++) {
+								AbstractPackage abstractPackage = it.next();
+
+								if (abstractPackage instanceof LocalFileWithVersion) {
+									((LocalFileWithVersion) abstractPackage).setFile("replaced");
+								} else {
+									LocalFileWithVersion localFileWithVersion = new LocalFileWithVersion();
+									File resolvedDependency = tibcoProductToInstall.getResolvedDependencies().get(i);
+									File copiedDependency = copyPackageFileToLocalPackagesDirectory(resolvedDependency.getName(), resolvedDependency);
+									String relativePath = "";
+									try {
+										relativePath = Utils.getRelativePath(copiedDependency.getCanonicalPath(), standaloneDirectory.getCanonicalPath(), File.separator);
+									} catch (IOException e) {
+										throw new MojoExecutionException(e.getLocalizedMessage(), e);
+									}
+									relativePath = "./" + relativePath.replaceAll("\\\\", "/");
+									localFileWithVersion.setFile(relativePath);
+									localFileWithVersion.setVersion("");
+									it.set(localFileWithVersion);
+								}
+							}
+						}
 					}
 				}
 
@@ -288,6 +320,21 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 		environmentMarshaller.getObject().getEnvironment().addAll(environments);
 
 		environmentMarshaller.save();
+	}
+
+	protected File copyPackageFileToLocalPackagesDirectory(String packageName, File packageFile) throws MojoExecutionException {
+		if (!standaloneLocalPackages.exists()) {
+			standaloneLocalPackages.mkdirs();
+		}
+		try {
+			getLog().info("Adding '" + packageFile + "' to standalone local packages directory");
+
+			FileUtils.copyFileToDirectory(packageFile, new File(standaloneLocalPackages + "/" + packageName));
+
+			return new File(standaloneLocalPackages + "/" + packageName, packageFile.getName());
+		} catch (IOException e) {
+			throw new MojoExecutionException(e.getLocalizedMessage(), e);
+		}
 	}
 
 	protected boolean installPackagesToLocalRepository(File localRepositoryPath) throws MojoExecutionException {

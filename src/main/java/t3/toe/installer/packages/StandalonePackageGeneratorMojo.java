@@ -133,14 +133,8 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 	@Parameter (property = InstallerMojosInformation.Packages.Standalone.includeTopologyInstallationPackages, defaultValue = InstallerMojosInformation.Packages.Standalone.includeTopologyInstallationPackages_default)
 	protected Boolean includeTopologyInstallationPackages;
 
-	@Parameter (property = InstallerMojosInformation.Packages.Standalone.directory, defaultValue = InstallerMojosInformation.Packages.Standalone.directory_default)
-	protected File standaloneDirectory;
-
 	@Parameter (property = InstallerMojosInformation.Packages.Standalone.localRepository, defaultValue = InstallerMojosInformation.Packages.Standalone.localRepository_default)
 	protected File standaloneLocalRepository;
-
-	@Parameter (property = InstallerMojosInformation.Packages.Standalone.localPackages, defaultValue = InstallerMojosInformation.Packages.Standalone.localPackages_default)
-	protected File standaloneLocalPackages;
 
 	@Parameter (property = InstallerMojosInformation.Packages.Standalone.topologyGeneratedFile, defaultValue = InstallerMojosInformation.Packages.Standalone.topologyGeneratedFile_default)
 	protected File standaloneTopologyGeneratedFile;
@@ -301,7 +295,8 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 									if (hotfix instanceof MavenArtifactPackage) {
 										hotfixFile = getPackageFileFromMaven((MavenArtifactPackage) hotfix);
 									} else if (hotfix instanceof MavenTIBCOArtifactPackage) {
-										hotfixFile = getPackageFileFromMaven((MavenTIBCOArtifactPackage) hotfix);
+										MavenTIBCOArtifactPackage normalizedMavenTIBCOArtifact = ((TIBCOProductToInstall) productToInstall).normalizeMavenTIBCOArtifact((MavenTIBCOArtifactPackage) hotfix, true);
+										hotfixFile = getPackageFileFromMaven(normalizedMavenTIBCOArtifact);
 									}
 								} catch (ArtifactNotFoundException | ArtifactResolutionException e) {
 									throw new MojoExecutionException(e.getLocalizedMessage(), e);
@@ -397,19 +392,6 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 		getLog().info("Standalone package was generated in directory: '" + standaloneDirectory.getAbsolutePath() + "'");
 		if (generateStandaloneArchive) {
 			getLog().info("Standalone package archive is: '" + standaloneArchive.getAbsolutePath() + "'");
-		}
-	}
-
-    private void copyPackageFileToLocalPackagesDirectory(String packageName, File packageFile) throws MojoExecutionException {
-		if (!standaloneLocalPackages.exists()) {
-			standaloneLocalPackages.mkdirs();
-		}
-		try {
-			getLog().info("Adding '" + packageFile + "' to standalone local packages directory");
-
-			FileUtils.copyFileToDirectory(packageFile, new File(standaloneLocalPackages + "/" + packageName));
-		} catch (IOException e) {
-			throw new MojoExecutionException(e.getLocalizedMessage(), e);
 		}
 	}
 

@@ -127,15 +127,9 @@ public abstract class ProductToInstall<P extends Product> {
         if (this.isSkip()) {
             logger.info(productIndex + ". Skipping '" + this.fullProductName() + "'");
             skip = true;
-            if (!executePostInstallCommandsWhenSkipped) {
-                return;
-            }
         } else if (this.isAlreadyInstalled() && !environment.isToBeDeleted()) {
             logger.info(productIndex + ". Skipping '" + this.fullProductName() + "' (already installed)");
             skip = true;
-            if (!executePostInstallCommandsWhenSkipped) {
-                return;
-            }
         } else {
             logger.info(productIndex + ". Installing '" + this.fullProductName() + "'");
 
@@ -156,9 +150,9 @@ public abstract class ProductToInstall<P extends Product> {
             }
         }
 
-        //if (!skip) {
+        if (!skip) {
             installMainProduct(environment, productIndex);
-        //}
+        }
         installProductHotfixes(environment, productIndex, skip);
 
         addPostInstallCommands();

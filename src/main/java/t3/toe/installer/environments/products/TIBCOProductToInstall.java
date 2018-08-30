@@ -19,7 +19,9 @@ package t3.toe.installer.environments.products;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
 import t3.CommonMojo;
 import t3.Messages;
 import t3.log.PrefixedLogger;
@@ -45,6 +47,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 	public static boolean firstDependency = true;
 
 	private CommonInstaller installer;
+	private ArrayList<File> resolvedDependencies;
 
 	public enum TIBCOProductGoalAndPriority {
 		ADMIN ("install-admin", "Administrator", 30),
@@ -178,65 +181,80 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 		MavenTIBCOArtifactPackage mavenTIBCOArtifact = superPackage.getMavenTIBCOArtifact();
 		if (mavenTIBCOArtifact != null) {
-			if (StringUtils.isEmpty(mavenTIBCOArtifact.getGroupId())) {
-				switch (type) {
-					case ADMIN:
-						mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.Administrator.remoteInstallationPackageGroupId_default);
-						break;
-					case BW_5:
-						mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.BW5.remoteInstallationPackageGroupId_default);
-						break;
-					case BW_6:
-						mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.BW6.remoteInstallationPackageGroupId_default);
-						break;
-					case EMS:
-						mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.EMS.remoteInstallationPackageGroupId_default);
-						break;
-					case TEA:
-						mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageGroupId_default);
-						break;
-					case TRA:
-						mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.TRA.remoteInstallationPackageGroupId_default);
-						break;
-					case RV:
-						mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.RV.remoteInstallationPackageGroupId_default);
-						break;
-				}
-			}
-			if (StringUtils.isEmpty(mavenTIBCOArtifact.getArtifactId())) {
-				switch (type) {
-					case ADMIN:
-						mavenTIBCOArtifact.setArtifactId(InstallerMojosInformation.Administrator.remoteInstallationPackageArtifactId_default);
-						break;
-					case BW_5:
-						mavenTIBCOArtifact.setArtifactId(InstallerMojosInformation.BW5.remoteInstallationPackageArtifactId_default);
-						break;
-					case BW_6:
-						mavenTIBCOArtifact.setArtifactId(InstallerMojosInformation.BW6.remoteInstallationPackageArtifactId_default);
-						break;
-					case EMS:
-						mavenTIBCOArtifact.setArtifactId(InstallerMojosInformation.EMS.remoteInstallationPackageArtifactId_default);
-						break;
-					case TEA:
-						mavenTIBCOArtifact.setArtifactId(InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageArtifactId_default);
-						break;
-					case TRA:
-						mavenTIBCOArtifact.setArtifactId(InstallerMojosInformation.TRA.remoteInstallationPackageArtifactId_default);
-						break;
-					case RV:
-						mavenTIBCOArtifact.setArtifactId(InstallerMojosInformation.RV.remoteInstallationPackageArtifactId_default);
-						break;
-				}
-			}
-			if (StringUtils.isEmpty(mavenTIBCOArtifact.getPackaging())) {
-				mavenTIBCOArtifact.setPackaging("zip");
-			}
+			normalizeMavenTIBCOArtifact(mavenTIBCOArtifact);
 			superPackage.setMavenTIBCOArtifact(mavenTIBCOArtifact);
 		}
 
 		cachedPackage = superPackage;
 
 		return superPackage;
+	}
+
+	private MavenTIBCOArtifactPackage normalizeMavenTIBCOArtifact(MavenTIBCOArtifactPackage mavenTIBCOArtifact) {
+		return normalizeMavenTIBCOArtifact(mavenTIBCOArtifact, false);
+	}
+
+	public MavenTIBCOArtifactPackage normalizeMavenTIBCOArtifact(MavenTIBCOArtifactPackage mavenTIBCOArtifact, boolean isHotfix) {
+		if (StringUtils.isEmpty(mavenTIBCOArtifact.getGroupId())) {
+			switch (type) {
+				case ADMIN:
+					mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.Administrator.remoteInstallationPackageGroupId_default);
+					break;
+				case BW_5:
+					mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.BW5.remoteInstallationPackageGroupId_default);
+					break;
+				case BW_6:
+					mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.BW6.remoteInstallationPackageGroupId_default);
+					break;
+				case EMS:
+					mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.EMS.remoteInstallationPackageGroupId_default);
+					break;
+				case TEA:
+					mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageGroupId_default);
+					break;
+				case TRA:
+					mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.TRA.remoteInstallationPackageGroupId_default);
+					break;
+				case RV:
+					mavenTIBCOArtifact.setGroupId(InstallerMojosInformation.RV.remoteInstallationPackageGroupId_default);
+					break;
+			}
+		}
+		if (StringUtils.isEmpty(mavenTIBCOArtifact.getArtifactId())) {
+			String artifactId = "";
+			switch (type) {
+				case ADMIN:
+					artifactId = InstallerMojosInformation.Administrator.remoteInstallationPackageArtifactId_default;
+					break;
+				case BW_5:
+					artifactId = InstallerMojosInformation.BW5.remoteInstallationPackageArtifactId_default;
+					break;
+				case BW_6:
+					artifactId = InstallerMojosInformation.BW6.remoteInstallationPackageArtifactId_default;
+					break;
+				case EMS:
+					artifactId = InstallerMojosInformation.EMS.remoteInstallationPackageArtifactId_default;
+					break;
+				case TEA:
+					artifactId = InstallerMojosInformation.EnterpriseAdministrator.remoteInstallationPackageArtifactId_default;
+					break;
+				case TRA:
+					artifactId = InstallerMojosInformation.TRA.remoteInstallationPackageArtifactId_default;
+					break;
+				case RV:
+					artifactId = InstallerMojosInformation.RV.remoteInstallationPackageArtifactId_default;
+					break;
+			}
+			if (isHotfix) {
+				artifactId = artifactId + "-hotfix";
+			}
+			mavenTIBCOArtifact.setArtifactId(artifactId);
+		}
+		if (StringUtils.isEmpty(mavenTIBCOArtifact.getPackaging())) {
+			mavenTIBCOArtifact.setPackaging("zip");
+		}
+
+		return mavenTIBCOArtifact;
 	}
 
 	@Override
@@ -346,7 +364,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 		}
 
 		if (this.getDependencies() != null) {
-			List<File> dependencies = new ArrayList<File>();
+			resolvedDependencies = new ArrayList<File>();
 
 			for (AbstractPackage abstractPackage : getDependencies().getHttpRemoteOrMavenArtifactOrMavenTIBCOArtifact()) {
 				if (abstractPackage instanceof HttpRemotePackage) {
@@ -358,13 +376,15 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 						String fileName = new File(urlToDownload.getFile()).getName();
 						File destinationFile = new File(tmpDirectory, fileName);
 						FileUtils.copyURLToFile(urlToDownload, destinationFile);
-						dependencies.add(destinationFile);
+						resolvedDependencies.add(destinationFile);
 					} catch (IOException e) {
 						throw new MojoExecutionException(e.getLocalizedMessage(), e);
 					}
+				} else if (abstractPackage instanceof LocalFileWithVersion) {
+					resolvedDependencies.add(new File(((LocalFileWithVersion) abstractPackage).getFile()));
 				}
 			}
-			addProperty(configuration, ignoredParameters, "additionalDependencies", StringUtils.join(dependencies, ","), CommonInstaller.class);
+			addProperty(configuration, ignoredParameters, "additionalDependencies", StringUtils.join(resolvedDependencies, ","), CommonInstaller.class);
 		}
 
 		configuration.add(element("ignoredParameters", ignoredParameters.toArray(new Element[0])));
@@ -425,6 +445,13 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 		}
 	}
 
+	public ArrayList<File> getResolvedDependencies() {
+		if (resolvedDependencies == null) {
+			resolvedDependencies = new ArrayList<File>();
+		}
+		return resolvedDependencies;
+	}
+
 	public CommonInstaller getInstaller() {
 		return installer;
 	}
@@ -475,43 +502,63 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 			CommonHotfixInstaller installer = InstallerMojosFactory.getInstallerMojo("toe:" + goal);
 
 			for (AbstractPackage hotfix : this.getHotfixes().getMavenArtifactOrMavenTIBCOArtifactOrFileWithVersion()) {
-				if (hotfix instanceof LocalFileWithVersion) { // TODO : support Maven artifacts
-					configuration.clear();
+				configuration.clear();
 
-					ArrayList<Element> ignoredParameters = new ArrayList<Element>();
+				ArrayList<Element> ignoredParameters = new ArrayList<Element>();
 
-					addProperty(configuration, ignoredParameters, "createNewEnvironment", "false", CommonInstaller.class);
-					addProperty(configuration, ignoredParameters, "installationRoot", environment.getTibcoRoot(), CommonInstaller.class);
-					addProperty(configuration, ignoredParameters, "environmentName", environment.getName(), CommonInstaller.class);
+				addProperty(configuration, ignoredParameters, "createNewEnvironment", "false", CommonInstaller.class);
+				addProperty(configuration, ignoredParameters, "installationRoot", environment.getTibcoRoot(), CommonInstaller.class);
+				addProperty(configuration, ignoredParameters, "environmentName", environment.getName(), CommonInstaller.class);
+
+				File installationPackage = null;
+				String version = null;
+				try {
+					if (hotfix instanceof LocalFileWithVersion) {
+						installationPackage = new File(((LocalFileWithVersion) hotfix).getFile());
+						version = ((LocalFileWithVersion) hotfix).getVersion();
+					} else if (hotfix instanceof MavenArtifactPackage) {
+						MavenArtifactPackage mavenArtifact = (MavenArtifactPackage) hotfix;
+						version = mavenArtifact.getVersion();
+						installationPackage = commonMojo.getDependency(mavenArtifact.getGroupId(), mavenArtifact.getArtifactId(), mavenArtifact.getVersion(), mavenArtifact.getPackaging(), mavenArtifact.getClassifier(), true);
+					} else if (hotfix instanceof MavenTIBCOArtifactPackage) {
+						MavenTIBCOArtifactPackage mavenTIBCOArtifactPackage = (MavenTIBCOArtifactPackage) hotfix;
+						mavenTIBCOArtifactPackage = normalizeMavenTIBCOArtifact(mavenTIBCOArtifactPackage, true);
+						version = mavenTIBCOArtifactPackage.getVersion();
+						installationPackage = commonMojo.getDependency(mavenTIBCOArtifactPackage.getGroupId(), mavenTIBCOArtifactPackage.getArtifactId(), mavenTIBCOArtifactPackage.getVersion(), mavenTIBCOArtifactPackage.getPackaging(), mavenTIBCOArtifactPackage.getClassifier(), true);
+					}
+				} catch (ArtifactNotFoundException | ArtifactResolutionException e) {
+					throw new MojoExecutionException(e.getLocalizedMessage(), e);
+				}
+				if (installationPackage != null && version != null) {
 					try {
-						addProperty(configuration, ignoredParameters, "installationPackage", new File(((LocalFileWithVersion) hotfix).getFile()).getCanonicalPath(), installer.getClass());
+						addProperty(configuration, ignoredParameters, "installationPackage", installationPackage.getCanonicalPath(), installer.getClass());
 					} catch (IOException e) {
 						throw new MojoExecutionException(e.getLocalizedMessage(), e);
 					}
-					addProperty(configuration, ignoredParameters, "installationPackageVersion", ((LocalFileWithVersion) hotfix).getVersion(), installer.getClass());
-
-					configuration.add(element("ignoredParameters", ignoredParameters.toArray(new Element[0])));
-
-					logger.info("");
-					logger.info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
-					logger.info("");
-
-					executeMojo(
-							plugin(
-									groupId(pluginDescriptor.getGroupId()),
-									artifactId(pluginDescriptor.getArtifactId()),
-									version(pluginDescriptor.getVersion())
-							),
-							goal(goal),
-							configuration(
-									configuration.toArray(new Element[0])
-							),
-							executionEnvironment
-					);
-
-					logger.info("");
-					logger.info("<<< " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " <<<");
+					addProperty(configuration, ignoredParameters, "installationPackageVersion", version, installer.getClass());
 				}
+
+				configuration.add(element("ignoredParameters", ignoredParameters.toArray(new Element[0])));
+
+				logger.info("");
+				logger.info(">>> " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " >>>");
+				logger.info("");
+
+				executeMojo(
+						plugin(
+								groupId(pluginDescriptor.getGroupId()),
+								artifactId(pluginDescriptor.getArtifactId()),
+								version(pluginDescriptor.getVersion())
+						),
+						goal(goal),
+						configuration(
+								configuration.toArray(new Element[0])
+						),
+						executionEnvironment
+				);
+
+				logger.info("");
+				logger.info("<<< " + pluginDescriptor.getArtifactId() + ":" + pluginDescriptor.getVersion() + ":" + goal + " (" + "default-cli" + ") @ " + project.getArtifactId() + " <<<");
 			}
 		}
 	}

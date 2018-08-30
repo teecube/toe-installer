@@ -70,7 +70,10 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 	public static final String ignoreDependencies = "tibco.installation.ignoreDependencies";
 	public static final String ignoreDependencies_default = "false";
 	public static final String ignoreDependencies_description = "tibco.installation.ignoreDependencies";
-	
+
+	public static final String additionalDependencies = "tibco.installation.additionalDependencies";
+	public static final String additionalDependencies_description = "tibco.installation.additionalDependencies";
+
 	public static final String installationPackageDirectory = "tibco.installation.packages.directory";
 	public static final String installationPackageDirectory_default = "${basedir}";
 	public static final String installationPackageDirectory_description = "tibco.installation.packages.directory";
@@ -545,9 +548,6 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 	public static class FullEnvironment {
 		public static final String topologyFile = "tibco.environments.topology";
 		public static final String topologyFile_default = "${basedir}/tibco-environments.xml";
-
-		public static final String executePostInstallCommandsWhenSkipped = "tibco.environments.executePostInstallCommandsWhenSkipped";
-		public static final String executePostInstallCommandsWhenSkipped_default = "false";
 
 		public static final String topologyGenerate = "tibco.environments.topology.generate";
 		public static final String topologyGenerate_default = "false";

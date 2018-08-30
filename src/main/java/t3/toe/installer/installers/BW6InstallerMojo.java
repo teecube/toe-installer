@@ -237,7 +237,10 @@ public class BW6InstallerMojo extends CommonInstaller {
 			}
 		};
 
-		File[] sunec = installationPackageDirectory.listFiles(filter);
+		File[] sunec = installationPackageDirectory.listFiles(filter); // when goal is executed in standalone mode : look in directory of TIBCO product installation package
+        if (sunec.length == 0 && silentFile != null && silentFile.exists()) { // otherwise : look in directory of silent file (where TIBCO product installation package was extracted)
+            sunec = silentFile.getParentFile().listFiles(filter);
+        }
 
 		if (sunec.length > 0) {
 			props.setProperty("LGPLAssemblyDownload", "false");

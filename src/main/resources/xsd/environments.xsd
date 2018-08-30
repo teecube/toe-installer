@@ -155,13 +155,26 @@
 		<xs:attribute name="priority" type="xs:int" use="optional"/>
 		<xs:attribute name="skip" type="xs:boolean" use="optional" default="false"/>
 		<xs:attribute name="ifExists" type="IfProductExistsBehaviour" default="keep" />
+		<xs:attribute name="executePostInstallCommandsWhenSkipped" type="xs:boolean" use="optional" default="false"/>
 	</xs:complexType>
 
 	<xs:complexType name="TIBCOProduct">
 		<xs:complexContent>
 			<xs:extension base="Product">
 				<xs:sequence>
-					<xs:element name="hotfixes" minOccurs="0">
+                    <xs:element name="dependencies" minOccurs="0">
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:choice minOccurs="1" maxOccurs="unbounded">
+                                    <xs:element name="httpRemote" type="HttpRemotePackage"/>
+                                    <xs:element name="mavenArtifact" type="MavenArtifactPackage"/>
+                                    <xs:element name="mavenTIBCOArtifact" type="MavenTIBCOArtifactPackage"/>
+                                    <xs:element name="fileWithVersion" type="LocalFileWithVersion"/>
+                                </xs:choice>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                    <xs:element name="hotfixes" minOccurs="0">
 						<xs:complexType>
 							<xs:sequence>
 								<xs:choice minOccurs="1" maxOccurs="unbounded">

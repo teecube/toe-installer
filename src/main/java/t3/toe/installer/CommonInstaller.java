@@ -80,6 +80,9 @@ public abstract class CommonInstaller extends CommonMojo {
 	@Parameter(property = InstallerMojosInformation.ignoreDependencies, defaultValue = InstallerMojosInformation.ignoreDependencies_default)
 	protected Boolean ignoreDependencies;
 
+	@org.apache.maven.plugins.annotations.Parameter(property = InstallerMojosInformation.additionalDependencies)
+	protected List<File> additionalDependencies;
+
 	private List<File> ignoredInstallationPackages;
 
 	protected String currentGoalName;
@@ -302,7 +305,7 @@ public abstract class CommonInstaller extends CommonMojo {
 	protected ArchiverManager archiverManager;
 
 	private File executableFile;
-	private File silentFile;
+	protected File silentFile;
 	private List<File> logDirectories;
 
 	private boolean firstDependency = true;
@@ -577,6 +580,12 @@ public abstract class CommonInstaller extends CommonMojo {
 			getLog().info("Extracting installation package to : " + tmpDirectory.getAbsolutePath());
 
 			unArchiver.extract();
+
+			if (additionalDependencies != null && additionalDependencies.size() > 0) {
+				for (File additionalDependency : additionalDependencies) {
+					FileUtils.copyFileToDirectory(additionalDependency, tmpDirectory);
+				}
+			}
 
 			silentFile = getSilentFile(tmpDirectory);
 

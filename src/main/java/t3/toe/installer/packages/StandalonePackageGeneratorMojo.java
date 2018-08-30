@@ -264,7 +264,7 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 
 			boolean atLeastOneMavenArtifactResolved = false;
 			for (EnvironmentToInstall environment : environmentsToInstall) {
-				ProductsToInstall productsToInstall = new ProductsToInstall(environment, this, false);
+				ProductsToInstall productsToInstall = new ProductsToInstall(environment, this);
 
 				for (ProductToInstall product : productsToInstall) {
 					if (!uniqueProductsList.contains(product)) {

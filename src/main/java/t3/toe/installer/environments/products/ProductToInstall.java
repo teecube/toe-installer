@@ -58,10 +58,6 @@ public abstract class ProductToInstall<P extends Product> {
     private boolean skip;
     private boolean executePostInstallCommandsWhenSkipped;
 
-    public void setexecutePostInstallCommandsWhenSkipped(boolean executePostInstallCommandsWhenSkipped) {
-        this.executePostInstallCommandsWhenSkipped = executePostInstallCommandsWhenSkipped;
-    }
-
     public File getResolvedInstallationPackage() {
         return resolvedInstallationPackage;
     }
@@ -90,6 +86,7 @@ public abstract class ProductToInstall<P extends Product> {
         this.setPriority(product.getPriority());
         this.setProperties(product.getProperties());
         this.setSkip(product.isSkip());
+        this.setExecutePostInstallCommandsWhenSkipped(product.isExecutePostInstallCommandsWhenSkipped());
 
         this.environment = environment;
 
@@ -159,9 +156,9 @@ public abstract class ProductToInstall<P extends Product> {
             }
         }
 
-        if (!skip) {
+        //if (!skip) {
             installMainProduct(environment, productIndex);
-        }
+        //}
         installProductHotfixes(environment, productIndex, skip);
 
         addPostInstallCommands();
@@ -255,6 +252,10 @@ public abstract class ProductToInstall<P extends Product> {
 
     public boolean isSkip() {
         return skip;
+    }
+
+    public void setExecutePostInstallCommandsWhenSkipped(boolean executePostInstallCommandsWhenSkipped) {
+        this.executePostInstallCommandsWhenSkipped = executePostInstallCommandsWhenSkipped;
     }
 
     public boolean isAlreadyInstalled() {

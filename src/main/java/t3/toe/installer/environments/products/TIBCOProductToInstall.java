@@ -16,6 +16,8 @@
  */
 package t3.toe.installer.environments.products;
 
+import com.google.common.io.Files;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import t3.CommonMojo;
@@ -30,13 +32,13 @@ import t3.toe.installer.installers.hotfix.CommonHotfixInstaller;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
 
 public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
@@ -72,6 +74,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 	private ArrayList<Element> configuration;
 	private TIBCOProduct.Hotfixes hotfixes;
+	private TIBCOProduct.Dependencies dependencies;
 	private ProductType type;
 	private boolean configure;
 
@@ -82,11 +85,20 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 		super(tibcoProduct, environment, commonMojo);
 
 		this.setHotfixes(tibcoProduct.getHotfixes());
+		this.setDependencies(tibcoProduct.getDependencies());
 		this.setName(tibcoProduct.getName());
 		this.setType(tibcoProduct.getType());
 		this.setConfigure(tibcoProduct.isConfigure());
 
 		this.setTibcoProductGoalAndPriority(TIBCOProductGoalAndPriority.valueOf(tibcoProduct.getType().value().toUpperCase()));
+	}
+
+	public void setDependencies(TIBCOProduct.Dependencies dependencies) {
+		this.dependencies = dependencies;
+	}
+
+	public TIBCOProduct.Dependencies getDependencies() {
+		return dependencies;
 	}
 
 	public void setHotfixes(TIBCOProduct.Hotfixes hotfixes) {
@@ -249,7 +261,6 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 			}
 			firstDependency = false;
 		}
-        addProperty(configuration, ignoredParameters, "createNewEnvironment", "false", CommonInstaller.class); // TMP!!!
 
 		addProperty(configuration, ignoredParameters, "ignoreDependencies", "true", CommonInstaller.class); // disable resolution of dependencies in the product goal since dependency are managed here
 		installer.setIgnoreDependencies(true);
@@ -333,6 +344,29 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 				}
 			}
 		}
+
+		if (this.getDependencies() != null) {
+			List<File> dependencies = new ArrayList<File>();
+
+			for (AbstractPackage abstractPackage : getDependencies().getHttpRemoteOrMavenArtifactOrMavenTIBCOArtifact()) {
+				if (abstractPackage instanceof HttpRemotePackage) {
+					URL urlToDownload = null;
+					File tmpDirectory = Files.createTempDir();
+
+					try {
+						urlToDownload = new URL(((HttpRemotePackage) abstractPackage).getUrl());
+						String fileName = new File(urlToDownload.getFile()).getName();
+						File destinationFile = new File(tmpDirectory, fileName);
+						FileUtils.copyURLToFile(urlToDownload, destinationFile);
+						dependencies.add(destinationFile);
+					} catch (IOException e) {
+						throw new MojoExecutionException(e.getLocalizedMessage(), e);
+					}
+				}
+			}
+			addProperty(configuration, ignoredParameters, "additionalDependencies", StringUtils.join(dependencies, ","), CommonInstaller.class);
+		}
+
 		configuration.add(element("ignoredParameters", ignoredParameters.toArray(new Element[0])));
 
 		// init the Mojo to check if installation already exists
@@ -446,6 +480,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 					ArrayList<Element> ignoredParameters = new ArrayList<Element>();
 
+					addProperty(configuration, ignoredParameters, "createNewEnvironment", "false", CommonInstaller.class);
 					addProperty(configuration, ignoredParameters, "installationRoot", environment.getTibcoRoot(), CommonInstaller.class);
 					addProperty(configuration, ignoredParameters, "environmentName", environment.getName(), CommonInstaller.class);
 					try {

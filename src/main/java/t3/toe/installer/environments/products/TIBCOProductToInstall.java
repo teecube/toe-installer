@@ -98,6 +98,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 	public void setDependencies(TIBCOProduct.Dependencies dependencies) {
 		this.dependencies = dependencies;
+		this.getProduct().setDependencies(this.dependencies);
 	}
 
 	public TIBCOProduct.Dependencies getDependencies() {

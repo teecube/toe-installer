@@ -32,10 +32,7 @@ import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
-import org.apache.maven.model.Build;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.Plugin;
-import org.apache.maven.model.PluginExecution;
+import org.apache.maven.model.*;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.version.PluginVersionNotFoundException;
@@ -52,6 +49,7 @@ import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.RepositoryPolicy;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.util.repository.AuthenticationBuilder;
+import org.jboss.shrinkwrap.resolver.api.NoResolvedResultException;
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenResolvedArtifact;
@@ -521,6 +519,7 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 		for (Plugin plugin : getPluginArtifacts()) {
 			build.addPlugin(plugin);
 		}
+		result.getDependencies().addAll(getDependenciesArtifacts());
 
 		result.setBuild(build);
 
@@ -606,6 +605,23 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
         }
 		project.getBuild().getPlugins().addAll(plugins);
 
+		for (Dependency dependency : project.getDependencies()) {
+			try {
+				MavenResolvedArtifact mra = mavenResolver.resolve(dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + dependency.getType() + ":" + dependency.getVersion()).withoutTransitivity().asSingle(MavenResolvedArtifact.class);
+
+				org.eclipse.aether.artifact.Artifact artifact = getArtifactFromDependency(dependency);
+				artifact = artifact.setFile(mra.asFile());
+				installArtifact(project, localRepositoryPath, artifact);
+			} catch (NoResolvedResultException e) {
+				File artifactFile = new File(localRepository.getBasedir(), dependency.getGroupId().replaceAll("\\.", "/") + "/" + dependency.getArtifactId() + "/" + dependency.getVersion() + "/" + dependency.getArtifactId() + "-" + dependency.getVersion() + "." + dependency.getType());
+				if (artifactFile.exists()) {
+					org.eclipse.aether.artifact.Artifact artifact = getArtifactFromDependency(dependency);
+					artifact = artifact.setFile(artifactFile);
+					installArtifact(project, localRepositoryPath, artifact);
+				}
+			}
+		}
+
 		// create one POM per plugin with an execution in project/model/build
 		poms.addAll(getPOMsFromProject(project, tmpDirectory));
 
@@ -672,16 +688,17 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 			throw new MojoExecutionException(e.getLocalizedMessage(), e);
 		}
 
-		for (MavenArtifactRepository remoteArtifactRepository : this.remoteArtifactRepositories) {
-			try {
+		try {
+//			addRemoteRepo(mavenResolver, localRepository);
+			for (MavenArtifactRepository remoteArtifactRepository : this.remoteArtifactRepositories) {
 				addRemoteRepo(mavenResolver, remoteArtifactRepository);
-			} catch (NoSuchFieldException | IllegalAccessException e) {
-				throw new MojoExecutionException(e.getLocalizedMessage(), e);
 			}
+		} catch (NoSuchFieldException | IllegalAccessException e) {
+			throw new MojoExecutionException(e.getLocalizedMessage(), e);
 		}
 	}
 
-	private void addRemoteRepo(ConfigurableMavenResolverSystem mavenResolver, MavenArtifactRepository remoteArtifactRepository) throws NoSuchFieldException, IllegalAccessException {
+	private void addRemoteRepo(ConfigurableMavenResolverSystem mavenResolver, ArtifactRepository remoteArtifactRepository) throws NoSuchFieldException, IllegalAccessException {
 		// add the repo classically
 		mavenResolver.withRemoteRepo(remoteArtifactRepository.getId(), remoteArtifactRepository.getUrl(), remoteArtifactRepository.getLayout().toString());
 
@@ -733,32 +750,35 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 	}
 
 	private void addIndirectPlugins(MavenResolvedArtifact initialPlugin, MavenResolvedArtifact[] pluginDependencies, List<Plugin> plugins, List<File> poms, File tmpDirectory) throws IOException, MojoExecutionException {
-		BufferedReader pluginsConfigurationReader = getReaderOfPluginsConfiguration(initialPlugin.asFile());
 		File plexusComponents = getPlexusComponents(initialPlugin.asFile(), tmpDirectory);
 
-		try {
-			List<String> lifecylePlugins = new ArrayList<String>();
-			List<LifecyclesUtils.Lifecycle<LifecyclesUtils.Phase>> lifecyles = LifecyclesUtils.parse(plexusComponents, project, session);
-			for (LifecyclesUtils.Lifecycle<LifecyclesUtils.Phase> lifecyle : lifecyles) {
-				for (LifecyclesUtils.Phase phase : lifecyle.getPhases()) {
-					for (String goal : phase.getGoals()) {
-						Matcher matcher = indirectPluginPattern.matcher(goal);
-						if (matcher.matches()) {
-							String groupId = matcher.group(1);
-							String artifactId = matcher.group(2);
-							String pluginKey = groupId + ":" + artifactId;
+		if (plexusComponents != null) {
+			try {
+				List<String> lifecylePlugins = new ArrayList<String>();
+				List<LifecyclesUtils.Lifecycle<LifecyclesUtils.Phase>> lifecyles = LifecyclesUtils.parse(plexusComponents, project, session);
+				for (LifecyclesUtils.Lifecycle<LifecyclesUtils.Phase> lifecyle : lifecyles) {
+					for (LifecyclesUtils.Phase phase : lifecyle.getPhases()) {
+						for (String goal : phase.getGoals()) {
+							Matcher matcher = indirectPluginPattern.matcher(goal);
+							if (matcher.matches()) {
+								String groupId = matcher.group(1);
+								String artifactId = matcher.group(2);
+								String pluginKey = groupId + ":" + artifactId;
 
-							if (!goal.startsWith("io.teecube") && !lifecylePlugins.contains(pluginKey)) {
-								lifecylePlugins.add(pluginKey);
-								addIndirectPlugin(goal, initialPlugin, pluginDependencies, plugins, poms, tmpDirectory);
+								if (!goal.startsWith("io.teecube") && !lifecylePlugins.contains(pluginKey)) {
+									lifecylePlugins.add(pluginKey);
+									addIndirectPlugin(goal, initialPlugin, pluginDependencies, plugins, poms, tmpDirectory);
+								}
 							}
 						}
 					}
 				}
+			} catch (SAXException e) {
+				throw new MojoExecutionException(e.getLocalizedMessage(), e);
 			}
-		} catch (SAXException e) {
-			throw new MojoExecutionException(e.getLocalizedMessage(), e);
 		}
+
+		BufferedReader pluginsConfigurationReader = getReaderOfPluginsConfiguration(initialPlugin.asFile());
 
 		if (pluginsConfigurationReader != null) {
 			String line = null;
@@ -1009,6 +1029,13 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 		return artifact;
 	}
 
+	private org.eclipse.aether.artifact.Artifact getArtifactFromDependency(Dependency dependency) {
+		String coords = dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + dependency.getType() + ":" + dependency.getVersion();
+		org.eclipse.aether.artifact.Artifact artifact = new org.eclipse.aether.artifact.DefaultArtifact(coords);
+
+		return artifact;
+	}
+
 	private org.eclipse.aether.artifact.Artifact getArtifactFromPlugin(Plugin plugin) {
 		String coords = plugin.getGroupId() + ":" + plugin.getArtifactId() + ":maven-plugin:" + plugin.getVersion();
 		org.eclipse.aether.artifact.Artifact artifact = new org.eclipse.aether.artifact.DefaultArtifact(coords);
@@ -1086,7 +1113,8 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 		return getMavenPlugin("org.apache.maven.plugins", artifactId, version, "help");
 	}
 
-	private Plugin getTacArchetypes(DefaultVersionsHelper helper, String tacArchetypesVersion) throws MojoExecutionException {
+	private List<Plugin> getTacArchetypes(DefaultVersionsHelper helper, String tacArchetypesVersion) throws MojoExecutionException {
+		List<Plugin> result = new ArrayList<Plugin>();
 		// generate one execution of maven-archetype-plugin per achetype
 		Plugin plugin = new Plugin();
 		plugin.setGroupId("org.apache.maven.plugins");
@@ -1107,25 +1135,64 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 			execution.setGoals(generateGoal);
 
 			Xpp3Dom configuration = new Xpp3Dom("configuration");
+
 			Xpp3Dom archetypeGroupId = new Xpp3Dom("archetypeGroupId");
 			archetypeGroupId.setValue("io.teecube.tac.archetypes");
+            configuration.addChild(archetypeGroupId);
+
 			Xpp3Dom archetypeArtifactId = new Xpp3Dom("archetypeArtifactId");
 			archetypeArtifactId.setValue(currentArtifactId);
+            configuration.addChild(archetypeArtifactId);
+
+			if (StringUtils.isNotEmpty(tacArchetypesVersion)) {
+                Xpp3Dom archetypeVersion = new Xpp3Dom("archetypeVersion");
+                archetypeVersion.setValue(tacArchetypesVersion);
+                configuration.addChild(archetypeVersion);
+            }
+
 			Xpp3Dom interactiveMode = new Xpp3Dom("interactiveMode");
 			interactiveMode.setValue("false");
-
-			configuration.addChild(archetypeGroupId);
-			configuration.addChild(archetypeArtifactId);
 			configuration.addChild(interactiveMode);
 
 			execution.setConfiguration(configuration);
 
 			executions.add(execution);
+
+			Plugin archetypeAsPlugin = new Plugin(); // add the archetype as a plugin so it gets installed with its metadata
+			archetypeAsPlugin.setGroupId("io.teecube.tac.archetypes");
+			archetypeAsPlugin.setArtifactId(currentArtifactId);
+			archetypeAsPlugin.setVersion(tacArchetypesVersion);
+
+			result.add(archetypeAsPlugin);
 		}
 
 		plugin.setExecutions(executions);
 
-		return plugin;
+		result.add(plugin);
+
+		return result;
+	}
+
+	private List<Dependency> getDependenciesArtifacts() throws MojoExecutionException {
+		List<Dependency> result = new ArrayList<Dependency>();
+
+		if (plugins.contains(T3Plugins.TAC_ARCHETYPES)) {
+			Dependency tacParentPom = new Dependency(); // add the tac parent POM as a dependency so it gets installed with its metadata
+			tacParentPom.setGroupId("io.teecube.tac");
+			tacParentPom.setArtifactId("tac");
+			tacParentPom.setVersion(tacArchetypesVersion);
+			tacParentPom.setType("pom");
+			result.add(tacParentPom);
+
+			Dependency archetypesParentPom = new Dependency(); // add the archetypes parent POM as a dependency so it gets installed with its metadata
+			archetypesParentPom.setGroupId("io.teecube.tac");
+			archetypesParentPom.setArtifactId("archetypes");
+			archetypesParentPom.setVersion(tacArchetypesVersion);
+			archetypesParentPom.setType("pom");
+			result.add(archetypesParentPom);
+		}
+
+		return result;
 	}
 
 	private List<Plugin> getPluginArtifacts() throws MojoExecutionException {
@@ -1146,7 +1213,7 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 			result.add(getTicBW6Plugin(helper, ticBW6Version));
 		}
 		if (plugins.contains(T3Plugins.TAC_ARCHETYPES)) {
-			result.add(getTacArchetypes(helper, tacArchetypesVersion)); // this include maven-archetype-plugin
+			result.addAll(getTacArchetypes(helper, tacArchetypesVersion)); // this include maven-archetype-plugin
 		} else {
 			// required to create project from Maven archetypes
 			result.add(getMavenPlugin("maven-archetype-plugin", "3.0.1"));

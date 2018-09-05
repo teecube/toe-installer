@@ -97,7 +97,7 @@ public class MavenCommandToExecute extends CommandToExecute<MavenCommand> {
         mavenRunner.setGlobalSettingsFile(settingsFile);
         mavenRunner.setUserSettingsFile(settingsFile);
         mavenRunner.setLocalRepositoryDirectory(new File(this.session.getSettings().getLocalRepository()));
-        mavenRunner.setMavenVersion("3.3.9");
+        mavenRunner.setMavenVersion("3.5.0");
         mavenRunner.setGoals(this.mavenCommand.getGoals().getGoal());
         if (this.mavenCommand.getProfiles() != null) {
             mavenRunner.setProfiles(this.mavenCommand.getProfiles().getProfile());

@@ -31,6 +31,7 @@ import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.*;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -39,11 +40,16 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.repository.Proxy;
+import org.apache.maven.settings.Profile;
+import org.apache.maven.settings.Repository;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.io.DefaultSettingsWriter;
+import org.apache.maven.settings.io.xpp3.SettingsXpp3Reader;
+import org.apache.maven.settings.io.xpp3.SettingsXpp3Writer;
 import org.codehaus.mojo.versions.api.ArtifactVersions;
 import org.codehaus.mojo.versions.api.DefaultVersionsHelper;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.RepositoryPolicy;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
@@ -249,7 +255,27 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 
 			boolean atLeastOneMavenArtifactResolved = false;
 			for (EnvironmentToInstall environment : environmentsToInstall) {
-				ProductsToInstall productsToInstall = new ProductsToInstall(environment, this);
+				ProductsToInstall productsToInstall;
+
+				if (session.isOffline()) {
+					project.getRemoteArtifactRepositories().add(localRepository);
+					project.getPluginArtifactRepositories().add(localRepository);
+					MavenSession notOfflineSession = session.clone();
+
+					try {
+						Field offlineField = session.getProjectBuildingRequest().getRepositorySession().getClass().getDeclaredField("offline");
+						offlineField.setAccessible(true);
+						offlineField.set(session.getProjectBuildingRequest().getRepositorySession(), false);
+
+						productsToInstall = new ProductsToInstall(environment, this);
+					} catch (NoSuchFieldException | IllegalAccessException e) {
+						throw new MojoExecutionException(e.getLocalizedMessage(), e);
+					} finally {
+						session = notOfflineSession;
+					}
+				} else {
+					productsToInstall = new ProductsToInstall(environment, this);
+				}
 
 				for (ProductToInstall product : productsToInstall) {
 					if (!uniqueProductsList.contains(product)) {
@@ -338,7 +364,7 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 			logTransferListener.setLevel(Level.OFF);
 			getLog().info("This might take some minutes...");
 
-			goOffline(goOfflineProject, standaloneLocalRepository, "3.3.9");
+			goOffline(goOfflineProject, standaloneLocalRepository, "3.5.0");
 		}
 
 		if (generateSettings) {
@@ -552,6 +578,32 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 		// create a settings.xml with <pluginGroups>
 		File defaultSettingsFile = new File(tmpDirectory, "settings.xml");
 		copyResourceToFile("/maven/default-t3-settings.xml", defaultSettingsFile);
+		if (session.isOffline()) {
+			SettingsXpp3Reader reader = new SettingsXpp3Reader();
+			try  {
+				Settings settings = reader.read(new FileInputStream(defaultSettingsFile));
+
+				Profile localRepositoryProfile = new Profile();
+				localRepositoryProfile.setId("toe-local-offline");
+
+				Repository localRepo = new Repository();
+				localRepo.setId("toe-local-offline");
+				localRepo.setName("toe-local-offline");
+				localRepo.setUrl(localRepository.getUrl());
+				localRepositoryProfile.addRepository(localRepo);
+				localRepositoryProfile.addPluginRepository(localRepo);
+
+				settings.addProfile(localRepositoryProfile);
+
+				settings.addActiveProfile("toe-local-offline");
+
+				SettingsXpp3Writer writer = new SettingsXpp3Writer();
+				writer.write(new FileOutputStream(defaultSettingsFile), settings);
+			} catch (IOException | XmlPullParserException e) {
+				throw new MojoExecutionException(e.getLocalizedMessage(), e);
+			}
+
+		}
 
 		if (providedSettingsFile == null || !providedSettingsFile.exists()) {
 			providedSettingsFile = defaultSettingsFile;
@@ -684,10 +736,12 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 		}
 
 		try {
-//			addRemoteRepo(mavenResolver, localRepository);
-			for (MavenArtifactRepository remoteArtifactRepository : this.remoteArtifactRepositories) {
-				addRemoteRepo(mavenResolver, remoteArtifactRepository);
-			}
+			addRemoteRepo(mavenResolver, localRepository);
+			if (!session.isOffline()) {
+                for (MavenArtifactRepository remoteArtifactRepository : this.remoteArtifactRepositories) {
+                    addRemoteRepo(mavenResolver, remoteArtifactRepository);
+                }
+            }
 		} catch (NoSuchFieldException | IllegalAccessException e) {
 			throw new MojoExecutionException(e.getLocalizedMessage(), e);
 		}

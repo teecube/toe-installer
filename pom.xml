@@ -256,7 +256,7 @@
 
 		<dependency>
 			<groupId>org.apache.maven</groupId>
-			<artifactId>maven-aether-provider</artifactId>
+			<artifactId>maven-resolver-provider</artifactId>
 			<version>${maven.version}</version>
 		</dependency>
 
@@ -278,27 +278,19 @@
                 </exclusion>
             </exclusions>
         </dependency>
-		<dependency>
-			<groupId>org.eclipse.aether</groupId>
-			<artifactId>aether-api</artifactId>
-			<version>1.0.2.v20150114</version>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.aether</groupId>
-			<artifactId>aether-util</artifactId>
-			<version>1.0.2.v20150114</version>
-		</dependency>
 
 		<!-- Plexus dependencies -->
 		<dependency>
 			<groupId>org.codehaus.plexus</groupId>
-			<artifactId>plexus-interpolation</artifactId>
-			<version>1.22</version>
+			<artifactId>plexus-archiver</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.plexus</groupId>
-			<artifactId>plexus-archiver</artifactId>
-			<version>3.0.1</version>
+			<artifactId>plexus-interpolation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.plexus</groupId>
+			<artifactId>plexus-container-default</artifactId>
 		</dependency>
 
 		<!-- Apache commons -->
@@ -315,6 +307,13 @@
 			<artifactId>commons-collections4</artifactId>
 		</dependency>
 
+		<!-- Other -->
+		<dependency>
+			<groupId>org.apache.ant</groupId>
+			<artifactId>ant-swing</artifactId>
+			<version>${apache.plugin.ant}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.codehaus.mojo</groupId>
 			<artifactId>versions-maven-plugin</artifactId>
@@ -328,24 +327,16 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.codehaus.plexus</groupId>
-			<artifactId>plexus-container-default</artifactId>
-			<version>1.0-alpha-30</version>
-		</dependency>
-
-		<dependency>
 		    <groupId>org.kohsuke</groupId>
 		    <artifactId>wordnet-random-name</artifactId>
 		</dependency>
-
-		<dependency>
-			<groupId>org.apache.ant</groupId>
-			<artifactId>ant-swing</artifactId>
-			<version>1.9.4</version>
-		</dependency>
 	</dependencies>
 
-	<scm>
+    <prerequisites>
+        <maven>3.5.0</maven>
+    </prerequisites>
+
+    <scm>
 		<connection>scm:git:https://git.teecu.be/teecube/toe-installer.git</connection>
 		<developerConnection>scm:git:https://git.teecu.be/teecube/toe-installer.git</developerConnection>
 		<url>https://git.teecu.be/teecube/toe-installer</url>

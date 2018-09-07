@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project xmlns="http://maven.apache.org/DECORATION/1.3.0"
+<project xmlns="http://maven.apache.org/DECORATION/1.8.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/DECORATION/1.3.0 http://maven.apache.org/xsd/decoration-1.3.0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/DECORATION/1.3.0 http://maven.apache.org/xsd/decoration-1.8.0.xsd">
 
 	<body>
 		<menu name="${toeName} - ${toeInstallerName}">
@@ -29,7 +29,7 @@
 			<protocolRelativeURLs>false</protocolRelativeURLs>
 			<absoluteResourceURL>${siteURL}</absoluteResourceURL>
 
-			<slogan><![CDATA[${toeSlogan}]]></slogan>
+			<slogan><![CDATA[${this.toeSlogan}]]></slogan>
 
 			<bottomNav maxSpan="9">
 				<column>${toeName} - ${toeInstallerName}</column>
@@ -39,7 +39,7 @@
 
 			<bottomDescription>
 				<![CDATA[
-				${ecosystemSumUp}
+				${this.ecosystemSumUp}
 				]]>
 			</bottomDescription>
 
@@ -69,7 +69,7 @@
 	<bannerLeft>
 		<name>
           <![CDATA[
-          ${toeDisplayedName} - ${toeDisplayedInstallerName}
+          ${this.toeDisplayedName} - ${this.toeDisplayedInstallerName}
           ]]>
 		</name>
 		<href>./index.html</href>

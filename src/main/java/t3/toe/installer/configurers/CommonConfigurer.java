@@ -18,9 +18,9 @@ package t3.toe.installer.configurers;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.tibco.envinfo.TIBCOEnvironment;
 import com.tibco.envinfo.TIBCOEnvironment.Environment;
-import lombok.ast.libs.com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Plugin;

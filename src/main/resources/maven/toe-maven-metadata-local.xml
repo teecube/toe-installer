@@ -17,18 +17,17 @@
     limitations under the License.
 
 -->
-<plugin>
-	<version>1.4.1</version>
-	<configuration>
-		<rules combine.children="append">
-			<requireProperty>
-				<property>tibco.installation.environmentName</property>
-				<message>The "tibco.installation.environmentName" property must be a valid TIBCO environment.</message>
-				<regexMessage>The "tibco.installation.environmentName" property must be a valid TIBCO environment.</regexMessage>
-				<regex>.+</regex>
-			</requireProperty>
-		</rules>
-		<fail>true</fail>
-		<failFast>true</failFast> <!-- Fail on the first rule that doesn't pass -->
-	</configuration>
-</plugin>
+<metadata>
+  <plugins>
+    <plugin>
+      <name>T³ - TOE - Products Installer</name>
+      <prefix>toe</prefix>
+      <artifactId>toe-installer-plugin</artifactId>
+    </plugin>
+    <plugin>
+      <name>T³ - TOE - Domains Manager</name>
+      <prefix>toe-domains</prefix>
+      <artifactId>toe-domains-plugin</artifactId>
+    </plugin>
+  </plugins>
+</metadata>

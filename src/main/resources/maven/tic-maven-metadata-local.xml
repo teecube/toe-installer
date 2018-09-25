@@ -17,18 +17,22 @@
     limitations under the License.
 
 -->
-<plugin>
-	<version>1.4.1</version>
-	<configuration>
-		<rules combine.children="append">
-			<requireProperty>
-				<property>tibco.installation.environmentName</property>
-				<message>The "tibco.installation.environmentName" property must be a valid TIBCO environment.</message>
-				<regexMessage>The "tibco.installation.environmentName" property must be a valid TIBCO environment.</regexMessage>
-				<regex>.+</regex>
-			</requireProperty>
-		</rules>
-		<fail>true</fail>
-		<failFast>true</failFast> <!-- Fail on the first rule that doesn't pass -->
-	</configuration>
-</plugin>
+<metadata>
+  <plugins>
+    <plugin>
+      <name>T³ - TIC - BW5 Maven plugin</name>
+      <prefix>bw5</prefix>
+      <artifactId>tic-bw5</artifactId>
+    </plugin>
+    <plugin>
+      <name>T³ - TIC - BW6 Maven plugin</name>
+      <prefix>bw6</prefix>
+      <artifactId>tic-bw6</artifactId>
+    </plugin>
+    <plugin>
+      <name>T³ - TIC - BW6 Maven plugin</name>
+      <prefix>tic-bw6</prefix>
+      <artifactId>tic-bw6</artifactId>
+    </plugin>
+  </plugins>
+</metadata>

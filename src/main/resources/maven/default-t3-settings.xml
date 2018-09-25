@@ -17,18 +17,13 @@
     limitations under the License.
 
 -->
-<plugin>
-	<version>1.4.1</version>
-	<configuration>
-		<rules combine.children="append">
-			<requireProperty>
-				<property>tibco.installation.environmentName</property>
-				<message>The "tibco.installation.environmentName" property must be a valid TIBCO environment.</message>
-				<regexMessage>The "tibco.installation.environmentName" property must be a valid TIBCO environment.</regexMessage>
-				<regex>.+</regex>
-			</requireProperty>
-		</rules>
-		<fail>true</fail>
-		<failFast>true</failFast> <!-- Fail on the first rule that doesn't pass -->
-	</configuration>
-</plugin>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+	<pluginGroups>
+		<pluginGroup>io.teecube.tic</pluginGroup>
+		<pluginGroup>io.teecube.toe</pluginGroup>
+	</pluginGroups>
+
+</settings>

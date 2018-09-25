@@ -565,7 +565,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 	}
 
 	@Override
-	public void addPostInstallCommands() {
+	public void configureInstallation() {
 		if (this.isConfigure()) {
 			List<AbstractCommand> commands = new ArrayList<AbstractCommand>();
 

@@ -16,7 +16,6 @@
  */
 package t3.toe.installer.installers;
 
-import com.google.common.io.Files;
 import org.apache.commons.exec.CommandLine;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -27,10 +26,10 @@ import t3.plugin.annotations.Parameter;
 import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.ProductType;
+import t3.toe.installer.environments.products.TIBCOProductToInstall;
 
 import javax.validation.constraints.NotNull;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -81,6 +80,11 @@ public class FTLInstallerMojo extends CommonInstaller {
 
 	@Parameter(property = InstallerMojosInformation.FTL.remoteInstallationPackageClassifier, defaultValue = "", description = InstallerMojosInformation.FTL.remoteInstallationPackageClassifier_description)
 	protected String remoteInstallationPackageClassifier;
+
+	@Override
+	public void configureBuild(TIBCOProductToInstall tibcoProductToInstall, File standaloneLocalRepository) {
+
+	}
 
 	@Override
 	public List<String> getDependenciesGoals() {

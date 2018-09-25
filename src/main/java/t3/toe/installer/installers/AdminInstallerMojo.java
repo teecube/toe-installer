@@ -23,6 +23,7 @@ import t3.plugin.annotations.Parameter;
 import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.ProductType;
+import t3.toe.installer.environments.products.TIBCOProductToInstall;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -92,6 +93,11 @@ public class AdminInstallerMojo extends CommonInstaller {
 		dependenciesGoals.add(InstallerMojosInformation.pluginPrefix + "install-rv");
 		dependenciesGoals.add(InstallerMojosInformation.pluginPrefix + "install-tra");
 		return dependenciesGoals;
+	}
+
+	@Override
+	public void configureBuild(TIBCOProductToInstall tibcoProductToInstall, File standaloneLocalRepository) {
+
 	}
 
 	@Override

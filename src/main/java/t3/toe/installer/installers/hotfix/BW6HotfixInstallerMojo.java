@@ -20,16 +20,10 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
-import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosInformation;
-import t3.toe.installer.environments.ProductType;
-import t3.toe.installer.installers.BW6InstallerMojo;
+import t3.toe.installer.environments.products.TIBCOProductToInstall;
 
 import java.io.File;
-import java.io.FilenameFilter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 
 /**
 * <p>
@@ -52,6 +46,11 @@ public class BW6HotfixInstallerMojo extends CommonHotfixInstaller {
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		// empty but will be modified at compile-time
 		super.execute();
+	}
+
+	@Override
+	public void configureBuild(TIBCOProductToInstall tibcoProductToInstall, File standaloneLocalRepository) {
+
 	}
 
 	@Override

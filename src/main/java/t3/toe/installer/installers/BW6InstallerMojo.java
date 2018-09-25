@@ -16,16 +16,23 @@
  */
 package t3.toe.installer.installers;
 
+import com.google.common.io.Files;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
 import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosInformation;
+import t3.toe.installer.environments.MavenArtifactPackage;
 import t3.toe.installer.environments.ProductType;
+import t3.toe.installer.environments.TIBCOProduct;
+import t3.toe.installer.environments.products.TIBCOProductToInstall;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -78,6 +85,48 @@ public class BW6InstallerMojo extends CommonInstaller {
 	@Override
 	public List<String> getDependenciesGoals() {
 		return new ArrayList<String>();
+	}
+
+	@Override
+	public void configureBuild(TIBCOProductToInstall tibcoProductToInstall, File standaloneLocalRepository) throws MojoExecutionException {
+		// download and copy the TIBCO SunEC LGPL assembly for BW6
+		String tibcoSunECURL = getTIBCOSunECURL(tibcoProductToInstall.getVersion());
+
+		URL urlToDownload = null;
+		File tmpDirectory = Files.createTempDir();
+
+		try {
+			urlToDownload = new URL(tibcoSunECURL);
+			String fileName = new File(urlToDownload.getFile()).getName();
+			File destinationFile = new File(tmpDirectory, fileName);
+			FileUtils.copyURLToFile(urlToDownload, destinationFile);
+
+			String coords = "com.tibco.oss:product_tibco_sunec:zip:" + "win_x86_64" + ":" + "1.8.0.144";
+			org.eclipse.aether.artifact.Artifact artifact = new org.eclipse.aether.artifact.DefaultArtifact(coords);
+			artifact = artifact.setFile(destinationFile);
+
+			installArtifact(project, standaloneLocalRepository, artifact);
+
+			MavenArtifactPackage mavenArtifactPackage = new MavenArtifactPackage();
+			mavenArtifactPackage.setGroupId("com.tibco.oss");
+			mavenArtifactPackage.setArtifactId("product_tibco_sunec");
+			mavenArtifactPackage.setVersion("1.8.0.144");
+			mavenArtifactPackage.setPackaging("zip");
+			mavenArtifactPackage.setClassifier("win_x86_64");
+
+			if (tibcoProductToInstall.getDependencies() == null) {
+				tibcoProductToInstall.setDependencies(new TIBCOProduct.Dependencies());
+			}
+
+			tibcoProductToInstall.getDependencies().getHttpRemoteOrMavenArtifactOrMavenTIBCOArtifact().add(mavenArtifactPackage);
+		} catch (IOException e) {
+			throw new MojoExecutionException(e.getLocalizedMessage(), e);
+		}
+	}
+
+	private String getTIBCOSunECURL(String version) {
+		return "file:///C:/temp/product_tibco_sunec_1.8.0.144_win_x86_64.zip";
+//		return "http://public.tibco.com/pub/tibco_oss/sunec/product_tibco_sunec_1.8.0.144_win_x86_64.zip";
 	}
 
 	@Override

@@ -43,6 +43,7 @@ import t3.plugin.annotations.Parameter;
 import t3.toe.installer.envinfo.EnvInfo;
 import t3.toe.installer.envinfo.RemoveEnvInfoMojo;
 import t3.toe.installer.environments.ProductType;
+import t3.toe.installer.environments.products.TIBCOProductToInstall;
 
 import javax.validation.constraints.NotNull;
 import java.io.*;
@@ -294,6 +295,7 @@ public abstract class CommonInstaller extends CommonMojo {
 	public abstract boolean installationExists() throws MojoExecutionException;
 	public abstract void setProperties(Properties props);
 	public abstract List<String> getDependenciesGoals();
+	public abstract void configureBuild(TIBCOProductToInstall tibcoProductToInstall, File standaloneLocalRepository) throws MojoExecutionException;
 
 	public void buildFailed(File logFile) {
 		getLog().info("");

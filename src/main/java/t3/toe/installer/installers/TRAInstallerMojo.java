@@ -23,6 +23,7 @@ import t3.plugin.annotations.Parameter;
 import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosInformation;
 import t3.toe.installer.environments.ProductType;
+import t3.toe.installer.environments.products.TIBCOProductToInstall;
 
 import java.io.File;
 import java.nio.file.FileAlreadyExistsException;
@@ -105,6 +106,11 @@ public class TRAInstallerMojo extends CommonInstaller {
 	@Override
 	public List<String> getDependenciesGoals() {
 		return new ArrayList<String>();
+	}
+
+	@Override
+	public void configureBuild(TIBCOProductToInstall tibcoProductToInstall, File standaloneLocalRepository) {
+
 	}
 
 	@Override

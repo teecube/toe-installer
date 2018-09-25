@@ -56,7 +56,7 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
     }
 
     @Override
-    public void addPostInstallCommands() {
+    public void configureInstallation() {
         // nothing to do
     }
 

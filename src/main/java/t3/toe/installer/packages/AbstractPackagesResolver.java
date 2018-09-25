@@ -223,39 +223,8 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 							}
 						}
 
-						if (tibcoProductToInstall.isConfigure() && tibcoProductToInstall.getType().equals(ProductType.BW_6)) { // if true, download and copy the TIBCO SunEC LGPL assembly for BW6
-							String tibcoSunECURL = getTIBCOSunECURL(tibcoProductToInstall.getVersion());
-
-							URL urlToDownload = null;
-							File tmpDirectory = Files.createTempDir();
-
-							try {
-								urlToDownload = new URL(tibcoSunECURL);
-								String fileName = new File(urlToDownload.getFile()).getName();
-								File destinationFile = new File(tmpDirectory, fileName);
-								FileUtils.copyURLToFile(urlToDownload, destinationFile);
-
-								String coords = "com.tibco.oss:product_tibco_sunec:zip:" + "win_x86_64" + ":" + "1.8.0.144";
-								org.eclipse.aether.artifact.Artifact artifact = new org.eclipse.aether.artifact.DefaultArtifact(coords);
-								artifact = artifact.setFile(destinationFile);
-
-								installArtifact(project, standaloneLocalRepository, artifact);
-
-								MavenArtifactPackage mavenArtifactPackage = new MavenArtifactPackage();
-								mavenArtifactPackage.setGroupId("com.tibco.oss");
-								mavenArtifactPackage.setArtifactId("product_tibco_sunec");
-								mavenArtifactPackage.setVersion("1.8.0.144");
-								mavenArtifactPackage.setPackaging("zip");
-								mavenArtifactPackage.setClassifier("win_x86_64");
-
-								if (tibcoProductToInstall.getDependencies() == null) {
-									tibcoProductToInstall.setDependencies(new TIBCOProduct.Dependencies());
-								}
-
-								tibcoProductToInstall.getDependencies().getHttpRemoteOrMavenArtifactOrMavenTIBCOArtifact().add(mavenArtifactPackage);
-							} catch (IOException e) {
-								throw new MojoExecutionException(e.getLocalizedMessage(), e);
-							}
+						if (tibcoProductToInstall.isConfigure()) {
+							tibcoProductToInstall.getInstaller().configureBuild(tibcoProductToInstall, standaloneLocalRepository);
 						}
 					}
 				}
@@ -415,110 +384,6 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 		}
 
 		return classifier;
-	}
-
-	protected void installArtifact(MavenProject project, File localRepositoryPath, org.eclipse.aether.artifact.Artifact artifact) throws MojoExecutionException {
-		boolean installPomSeparately = false;
-		List<MojoExecutor.Element> configuration = new ArrayList<MojoExecutor.Element>();
-
-		if (artifact.getArtifactId().equals("velocity") && artifact.getVersion().equals("1.5")) {
-			configuration.add(new MojoExecutor.Element("generatePom", "true"));
-			configuration.add(new MojoExecutor.Element("packaging", "jar"));
-			installPomSeparately = true;
-		}
-
-		configuration.add(new MojoExecutor.Element("localRepositoryPath", localRepositoryPath.getAbsolutePath()));
-		configuration.add(new MojoExecutor.Element("createChecksum", "true"));
-		configuration.add(new MojoExecutor.Element("updateReleaseInfo", "true"));
-		configuration.add(new MojoExecutor.Element("groupId", artifact.getGroupId()));
-		configuration.add(new MojoExecutor.Element("artifactId", artifact.getArtifactId()));
-		configuration.add(new MojoExecutor.Element("version", artifact.getVersion()));
-		configuration.add(new MojoExecutor.Element("file", artifact.getFile().getAbsolutePath()));
-		File pomFile = new File(artifact.getFile().getParentFile(), artifact.getArtifactId() + "-" + artifact.getVersion() + ".pom");
-		if (StringUtils.isNotEmpty(artifact.getExtension())) {
-			configuration.add(new MojoExecutor.Element("packaging", artifact.getExtension()));
-		} else {
-			configuration.add(new MojoExecutor.Element("packaging", "jar"));
-		}
-		if (StringUtils.isNotEmpty(artifact.getClassifier())) {
-			configuration.add(new MojoExecutor.Element("classifier", artifact.getClassifier()));
-			configuration.add(new MojoExecutor.Element("generatePom", "true"));
-			if (pomFile.exists()) {
-				installPomSeparately = true;
-			}
-		} else if (!installPomSeparately) {
-			if (!pomFile.exists()) return;
-			configuration.add(new MojoExecutor.Element("pomFile", pomFile.getAbsolutePath()));
-		}
-
-		executeMojo(
-				plugin(
-						groupId("org.apache.maven.plugins"),
-						artifactId(mavenPluginInstallArtifactId),
-						version(mavenPluginInstallVersion) // version defined in pom.xml of this plugin
-				),
-				goal("install-file"),
-				configuration(
-						configuration.toArray(new Element[0])
-				),
-				getEnvironment(project, session, pluginManager),
-				true
-		);
-
-		File artifactDirectory = new File(localRepositoryPath, artifact.getGroupId().replace(".", "/") + "/" + artifact.getArtifactId() + "/" + artifact.getVersion());
-		Collection<File> bundleFiles = FileUtils.listFiles(artifactDirectory, new String[]{"bundle"}, false);
-		if (!bundleFiles.isEmpty()) {
-			for (File bundleFile : bundleFiles) {
-				String filenameNoExt = FilenameUtils.removeExtension(bundleFile.getAbsolutePath());
-				bundleFile.renameTo(new File(filenameNoExt + ".jar"));
-				File md5File = new File(filenameNoExt + ".bundle.md5");
-				File sha1File = new File(filenameNoExt + ".bundle.sha1");
-				md5File.renameTo(new File(filenameNoExt + ".jar.md5"));
-				sha1File.renameTo(new File(filenameNoExt + ".jar.sha1"));
-			}
-		}
-		Collection<File> archetypeFiles = FileUtils.listFiles(artifactDirectory, new String[]{"maven-archetype"}, false);
-		if (!archetypeFiles.isEmpty()) {
-			for (File archetypeFile : archetypeFiles) {
-				String filenameNoExt = FilenameUtils.removeExtension(archetypeFile.getAbsolutePath());
-				archetypeFile.renameTo(new File(filenameNoExt + ".jar"));
-				File md5File = new File(filenameNoExt + ".maven-archetype.md5");
-				File sha1File = new File(filenameNoExt + ".maven-archetype.sha1");
-				md5File.renameTo(new File(filenameNoExt + ".jar.md5"));
-				sha1File.renameTo(new File(filenameNoExt + ".jar.sha1"));
-			}
-		}
-
-		if (installPomSeparately) {
-			configuration.clear();
-
-			configuration.add(new Element("localRepositoryPath", localRepositoryPath.getAbsolutePath()));
-			configuration.add(new Element("createChecksum", "true"));
-			configuration.add(new Element("updateReleaseInfo", "true"));
-			configuration.add(new Element("groupId", artifact.getGroupId()));
-			configuration.add(new Element("artifactId", artifact.getArtifactId()));
-			configuration.add(new Element("version", artifact.getVersion()));
-			configuration.add(new Element("file", pomFile.getAbsolutePath()));
-			configuration.add(new Element("packaging", "pom"));
-
-			executeMojo(
-					plugin(
-							groupId("org.apache.maven.plugins"),
-							artifactId(mavenPluginInstallArtifactId),
-							version(mavenPluginInstallVersion) // version defined in pom.xml of this plugin
-					),
-					goal("install-file"),
-					configuration(
-							configuration.toArray(new Element[0])
-					),
-					executionEnvironment(project, session, pluginManager),
-					true
-			);
-		}
-	}
-
-	private String getTIBCOSunECURL(String version) {
-		return "http://public.tibco.com/pub/tibco_oss/sunec/product_tibco_sunec_1.8.0.144_win_x86_64.zip";
 	}
 
 }

@@ -18,18 +18,12 @@ package t3.toe.installer.installers.hotfix;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import t3.CommonMojo;
 import t3.plugin.annotations.Mojo;
 import t3.plugin.annotations.Parameter;
-import t3.toe.installer.CommonInstaller;
 import t3.toe.installer.InstallerMojosInformation;
-import t3.toe.installer.environments.ProductType;
-import t3.toe.installer.installers.TEAInstallerMojo;
+import t3.toe.installer.environments.products.TIBCOProductToInstall;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 
 /**
 * <p>
@@ -53,6 +47,11 @@ public class TEAHotfixInstallerMojo extends CommonHotfixInstaller {
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		// empty but will be modified at compile-time
 		super.execute();
+	}
+
+	@Override
+	public void configureBuild(TIBCOProductToInstall tibcoProductToInstall, File standaloneLocalRepository) {
+
 	}
 
 	@Override

@@ -100,7 +100,7 @@ public abstract class ProductToInstall<P extends Product> {
 
     public abstract void installMainProduct(EnvironmentToInstall environment, int productIndex) throws MojoExecutionException;
     public abstract void installProductHotfixes(EnvironmentToInstall environment, int productIndex, boolean mainProductWasSkipped) throws MojoExecutionException;
-    public abstract void addPostInstallCommands() throws MojoExecutionException;
+    public abstract void configureInstallation() throws MojoExecutionException;
     public abstract String fullProductName();
     public abstract void init(int productIndex) throws MojoExecutionException;
 
@@ -123,6 +123,8 @@ public abstract class ProductToInstall<P extends Product> {
         logger.info("");
 
         boolean skip = false;
+
+        configureInstallation(); // for instance to add pre-install or post-install commands
 
         if (this.isSkip()) {
             logger.info(productIndex + ". Skipping '" + this.fullProductName() + "'");
@@ -154,8 +156,6 @@ public abstract class ProductToInstall<P extends Product> {
             installMainProduct(environment, productIndex);
         }
         installProductHotfixes(environment, productIndex, skip);
-
-        addPostInstallCommands();
 
         if (!skip || executePostInstallCommandsWhenSkipped) {
             // execute post-product-install commands

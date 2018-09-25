@@ -19,6 +19,8 @@ package t3.toe.installer.packages;
 import com.google.common.io.Files;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.NameFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -27,7 +29,6 @@ import org.apache.maven.artifact.manager.WagonManager;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.Authentication;
 import org.apache.maven.artifact.repository.MavenArtifactRepository;
-import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
@@ -52,7 +53,6 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.RepositoryPolicy;
-import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.util.repository.AuthenticationBuilder;
 import org.jboss.shrinkwrap.resolver.api.NoResolvedResultException;
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
@@ -81,6 +81,7 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -306,28 +307,14 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 					if (productToInstall instanceof TIBCOProductToInstall) {
 					    if (((TIBCOProductToInstall) productToInstall).getHotfixes() != null) {
                             for (AbstractPackage hotfix : ((TIBCOProductToInstall) productToInstall).getHotfixes().getMavenArtifactOrMavenTIBCOArtifactOrFileWithVersion()) {
-                                File hotfixFile = null;
+                                File hotfixFile = ((TIBCOProductToInstall) productToInstall).resolvePackage(hotfix, this, true);
+                                if (hotfixFile == null || !hotfixFile.exists()) {
+                                	throw new MojoExecutionException("Hotfix not found!", new FileNotFoundException());
+								}
                                 if (hotfix instanceof MavenArtifactPackage || hotfix instanceof MavenTIBCOArtifactPackage) {
                                     // hotfix package was defined as a Maven artifact in topology template, hence deploy this artifact in standalone Maven repository
-                                    try {
-                                        if (hotfix instanceof MavenArtifactPackage) {
-                                            hotfixFile = getPackageFileFromMaven((MavenArtifactPackage) hotfix);
-                                        } else if (hotfix instanceof MavenTIBCOArtifactPackage) {
-                                            MavenTIBCOArtifactPackage normalizedMavenTIBCOArtifact = ((TIBCOProductToInstall) productToInstall).normalizeMavenTIBCOArtifact((MavenTIBCOArtifactPackage) hotfix, true);
-                                            hotfixFile = getPackageFileFromMaven(normalizedMavenTIBCOArtifact);
-                                        }
-                                    } catch (ArtifactNotFoundException | ArtifactResolutionException e) {
-                                        throw new MojoExecutionException(e.getLocalizedMessage(), e);
-                                    }
                                     installPackageArtifactToStandaloneRepository(hotfix, hotfixFile);
                                 } else if (hotfix instanceof LocalFileWithVersion) {
-                                    hotfixFile = new File(((LocalFileWithVersion) hotfix).getFile());
-                                    try {
-                                        hotfixFile = hotfixFile.getCanonicalFile();
-                                    } catch (IOException e) {
-                                        throw new MojoExecutionException(e.getLocalizedMessage(), e);
-                                    }
-
                                     copyPackageFileToLocalPackagesDirectory(hotfixFile.getName(), hotfixFile);
                                 }
                             }
@@ -412,14 +399,6 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 		if (generateStandaloneArchive) {
 			getLog().info("Standalone package archive is: '" + standaloneArchive.getAbsolutePath() + "'");
 		}
-	}
-
-    private File getPackageFileFromMaven(MavenArtifactPackage mavenArtifact) throws ArtifactNotFoundException, ArtifactResolutionException {
-		return getDependency(mavenArtifact.getGroupId(), mavenArtifact.getArtifactId(), mavenArtifact.getVersion(), mavenArtifact.getPackaging(), mavenArtifact.getClassifier(), true);
-	}
-
-	private File getPackageFileFromMaven(MavenTIBCOArtifactPackage mavenTIBCOArtifactPackage) throws ArtifactNotFoundException, ArtifactResolutionException {
-		return getDependency(mavenTIBCOArtifactPackage.getGroupId(), mavenTIBCOArtifactPackage.getArtifactId(), mavenTIBCOArtifactPackage.getVersion(), mavenTIBCOArtifactPackage.getPackaging(), mavenTIBCOArtifactPackage.getClassifier(), true);
 	}
 
 	private void installPackageArtifactToStandaloneRepository(AbstractPackage abstractPackage, File packageFile) throws MojoExecutionException {
@@ -602,7 +581,6 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 			} catch (IOException | XmlPullParserException e) {
 				throw new MojoExecutionException(e.getLocalizedMessage(), e);
 			}
-
 		}
 
 		if (providedSettingsFile == null || !providedSettingsFile.exists()) {
@@ -715,6 +693,12 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 
 				throw new MojoExecutionException("Unable to execute plugins goals to go offline.");
 			}
+		}
+
+		// garbage collect the _remote.repositories files in created Maven local repository
+		Collection<File> remoteRepositoriesFiles = FileUtils.listFiles(localRepositoryPath, new NameFileFilter("_remote.repositories"), TrueFileFilter.INSTANCE);
+		for (File remoteRepositoriesFile : remoteRepositoriesFiles) {
+			remoteRepositoriesFile.delete();
 		}
 	}
 
@@ -1170,7 +1154,7 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 			result.add(getMavenPlugin("maven-archetype-plugin", "3.0.1"));
 		}
 
-		// Maven plugins from Super POM (from Maven 3.3.3 to Maven 3.5.3)
+		// Maven plugins from Super POM (from Maven 3.3.3 to Maven 3.5.4)
 		result.add(getMavenPlugin("maven-antrun-plugin", "1.3"));
 		result.add(getMavenPlugin("maven-assembly-plugin", "2.2-beta-5"));
 		result.add(getMavenPlugin("maven-clean-plugin", "2.5"));

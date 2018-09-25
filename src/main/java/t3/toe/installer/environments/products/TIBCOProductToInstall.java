@@ -258,6 +258,15 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 		return mavenTIBCOArtifact;
 	}
 
+    public File resolvePackage(AbstractPackage abstractPackage, CommonMojo commonMojo, boolean isHotfix) throws MojoExecutionException {
+        if (abstractPackage instanceof MavenTIBCOArtifactPackage) {
+            MavenTIBCOArtifactPackage mavenTIBCOArtifactPackage = (MavenTIBCOArtifactPackage) abstractPackage;
+			abstractPackage = normalizeMavenTIBCOArtifact(mavenTIBCOArtifactPackage, isHotfix);
+        }
+
+        return super.resolvePackage(abstractPackage, commonMojo);
+    }
+
 	@Override
 	public void init(int productIndex) throws MojoExecutionException {
 		CommonInstaller.firstGoal = false; // to ignore rules enforcement
@@ -368,22 +377,10 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 			resolvedDependencies = new ArrayList<File>();
 
 			for (AbstractPackage abstractPackage : getDependencies().getHttpRemoteOrMavenArtifactOrMavenTIBCOArtifact()) {
-				if (abstractPackage instanceof HttpRemotePackage) {
-					URL urlToDownload = null;
-					File tmpDirectory = Files.createTempDir();
-
-					try {
-						urlToDownload = new URL(((HttpRemotePackage) abstractPackage).getUrl());
-						String fileName = new File(urlToDownload.getFile()).getName();
-						File destinationFile = new File(tmpDirectory, fileName);
-						FileUtils.copyURLToFile(urlToDownload, destinationFile);
-						resolvedDependencies.add(destinationFile);
-					} catch (IOException e) {
-						throw new MojoExecutionException(e.getLocalizedMessage(), e);
-					}
-				} else if (abstractPackage instanceof LocalFileWithVersion) {
-					resolvedDependencies.add(new File(((LocalFileWithVersion) abstractPackage).getFile()));
-				}
+			    File resolvedPackage = resolvePackage(abstractPackage, commonMojo, false);
+			    if (resolvedPackage != null && resolvedPackage.exists()) {
+                    resolvedDependencies.add(resolvedPackage);
+                }
 			}
 			addProperty(configuration, ignoredParameters, "additionalDependencies", StringUtils.join(resolvedDependencies, ","), CommonInstaller.class);
 		}
@@ -513,23 +510,17 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 
 				File installationPackage = null;
 				String version = null;
-				try {
-					if (hotfix instanceof LocalFileWithVersion) {
-						installationPackage = new File(((LocalFileWithVersion) hotfix).getFile());
-						version = ((LocalFileWithVersion) hotfix).getVersion();
-					} else if (hotfix instanceof MavenArtifactPackage) {
-						MavenArtifactPackage mavenArtifact = (MavenArtifactPackage) hotfix;
-						version = mavenArtifact.getVersion();
-						installationPackage = commonMojo.getDependency(mavenArtifact.getGroupId(), mavenArtifact.getArtifactId(), mavenArtifact.getVersion(), mavenArtifact.getPackaging(), mavenArtifact.getClassifier(), true);
-					} else if (hotfix instanceof MavenTIBCOArtifactPackage) {
-						MavenTIBCOArtifactPackage mavenTIBCOArtifactPackage = (MavenTIBCOArtifactPackage) hotfix;
-						mavenTIBCOArtifactPackage = normalizeMavenTIBCOArtifact(mavenTIBCOArtifactPackage, true);
-						version = mavenTIBCOArtifactPackage.getVersion();
-						installationPackage = commonMojo.getDependency(mavenTIBCOArtifactPackage.getGroupId(), mavenTIBCOArtifactPackage.getArtifactId(), mavenTIBCOArtifactPackage.getVersion(), mavenTIBCOArtifactPackage.getPackaging(), mavenTIBCOArtifactPackage.getClassifier(), true);
-					}
-				} catch (ArtifactNotFoundException | ArtifactResolutionException e) {
-					throw new MojoExecutionException(e.getLocalizedMessage(), e);
+				installationPackage = resolvePackage(hotfix, commonMojo, true);
+				if (hotfix instanceof LocalFileWithVersion) {
+					version = ((LocalFileWithVersion) hotfix).getVersion();
+				} else if (hotfix instanceof MavenArtifactPackage) {
+					MavenArtifactPackage mavenArtifact = (MavenArtifactPackage) hotfix;
+					version = mavenArtifact.getVersion();
+				} else if (hotfix instanceof MavenTIBCOArtifactPackage) {
+					MavenTIBCOArtifactPackage mavenTIBCOArtifactPackage = (MavenTIBCOArtifactPackage) hotfix;
+					version = mavenTIBCOArtifactPackage.getVersion();
 				}
+
 				if (installationPackage != null && version != null) {
 					try {
 						addProperty(configuration, ignoredParameters, "installationPackage", installationPackage.getCanonicalPath(), installer.getClass());

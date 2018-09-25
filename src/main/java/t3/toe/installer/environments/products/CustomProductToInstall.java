@@ -16,11 +16,10 @@
  */
 package t3.toe.installer.environments.products;
 
-import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.eclipse.aether.resolution.ArtifactResolutionException;
 import t3.CommonMojo;
 import t3.toe.installer.environments.AbstractCommand;
+import t3.toe.installer.environments.AbstractPackage;
 import t3.toe.installer.environments.CustomProduct;
 import t3.toe.installer.environments.EnvironmentToInstall;
 import t3.toe.installer.environments.commands.CommandToExecute;
@@ -62,12 +61,28 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
 
     @Override
     public void init(int productIndex) throws MojoExecutionException {
+        AbstractPackage abstractPackage = customProduct.getPackage().getFileWithVersion();
+        if (abstractPackage == null) {
+            abstractPackage = customProduct.getPackage().getDirectoryWithPattern();
+        }
+        if (abstractPackage == null) {
+            abstractPackage = customProduct.getPackage().getHttpRemote();
+        }
+        if (abstractPackage == null) {
+            abstractPackage = customProduct.getPackage().getMavenArtifact();
+        }
+        if (abstractPackage == null) {
+            abstractPackage = customProduct.getPackage().getMavenTIBCOArtifact();
+        }
+
+        File resolvedInstallationPackage = resolvePackage(abstractPackage, commonMojo);
+        try {
+            this.setResolvedInstallationPackage(resolvedInstallationPackage);
+        } catch (IOException e) {
+            throw new MojoExecutionException(e.getLocalizedMessage(), e);
+        }
+
         if (customProduct.getPackage().getFileWithVersion() != null) {
-            try {
-                setResolvedInstallationPackage(new File(customProduct.getPackage().getFileWithVersion().getFile()));
-            } catch (IOException e) {
-                throw new MojoExecutionException(e.getLocalizedMessage(), e);
-            }
             setVersion(customProduct.getPackage().getFileWithVersion().getVersion());
         } else if (customProduct.getPackage().getDirectoryWithPattern() != null) {
             logger.warn("directory with pattern is not supported for custom products");
@@ -75,20 +90,6 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
             String url = customProduct.getPackage().getHttpRemote().getUrl();
             // TODO : fetch URL
             logger.warn("Fetch URL not supported");
-        } else if (customProduct.getPackage().getMavenArtifact() != null) {
-            String groupId = customProduct.getPackage().getMavenArtifact().getGroupId();
-            String artifactId = customProduct.getPackage().getMavenArtifact().getArtifactId();
-            String version = customProduct.getPackage().getMavenArtifact().getVersion();
-            String packaging = customProduct.getPackage().getMavenArtifact().getPackaging();
-            String classifier = customProduct.getPackage().getMavenArtifact().getClassifier();
-            try {
-                File resolvedDependency = commonMojo.getDependency(groupId, artifactId, version, packaging, classifier, true);
-                if (resolvedDependency != null && resolvedDependency.exists()) {
-                    this.setResolvedInstallationPackage(resolvedDependency);
-                }
-            } catch (ArtifactNotFoundException | ArtifactResolutionException | IOException e) {
-                throw new MojoExecutionException(e.getLocalizedMessage(), e);
-            }
         }
     }
 

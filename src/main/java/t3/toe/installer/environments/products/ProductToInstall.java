@@ -16,11 +16,15 @@
  */
 package t3.toe.installer.environments.products;
 
+import com.google.common.io.Files;
+import org.apache.commons.io.FileUtils;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
 import t3.CommonMojo;
 import t3.toe.installer.environments.*;
@@ -29,6 +33,7 @@ import t3.toe.installer.environments.commands.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 public abstract class ProductToInstall<P extends Product> {
 
@@ -310,5 +315,38 @@ public abstract class ProductToInstall<P extends Product> {
         } else {
             return false;
         }
+    }
+
+    public File resolvePackage(AbstractPackage abstractPackage, CommonMojo commonMojo) throws MojoExecutionException {
+        if (abstractPackage instanceof HttpRemotePackage) {
+            URL urlToDownload = null;
+            File tmpDirectory = Files.createTempDir();
+
+            try {
+                urlToDownload = new URL(((HttpRemotePackage) abstractPackage).getUrl());
+                String fileName = new File(urlToDownload.getFile()).getName();
+                File destinationFile = new File(tmpDirectory, fileName);
+                FileUtils.copyURLToFile(urlToDownload, destinationFile);
+                return destinationFile;
+            } catch (IOException e) {
+                throw new MojoExecutionException(e.getLocalizedMessage(), e);
+            }
+        } else if (abstractPackage instanceof LocalFileWithVersion) {
+            return new File(((LocalFileWithVersion) abstractPackage).getFile());
+        } else {
+            try {
+                if (abstractPackage instanceof MavenArtifactPackage) {
+                    MavenArtifactPackage mavenArtifact = (MavenArtifactPackage) abstractPackage;
+                    return commonMojo.getDependency(mavenArtifact.getGroupId(), mavenArtifact.getArtifactId(), mavenArtifact.getVersion(), mavenArtifact.getPackaging(), mavenArtifact.getClassifier(), true);
+                } else if (abstractPackage instanceof MavenTIBCOArtifactPackage) {
+                    MavenTIBCOArtifactPackage mavenTIBCOArtifactPackage = (MavenTIBCOArtifactPackage) abstractPackage;
+                    return commonMojo.getDependency(mavenTIBCOArtifactPackage.getGroupId(), mavenTIBCOArtifactPackage.getArtifactId(), mavenTIBCOArtifactPackage.getVersion(), mavenTIBCOArtifactPackage.getPackaging(), mavenTIBCOArtifactPackage.getClassifier(), true);
+                }
+            } catch (ArtifactNotFoundException | ArtifactResolutionException e){
+                throw new MojoExecutionException(e.getLocalizedMessage(), e);
+            }
+        }
+
+        return null;
     }
 }

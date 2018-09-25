@@ -89,8 +89,14 @@ public class BW6InstallerMojo extends CommonInstaller {
 
 	@Override
 	public void configureBuild(TIBCOProductToInstall tibcoProductToInstall, File standaloneLocalRepository) throws MojoExecutionException {
+		downloadAndCopySunEC(tibcoProductToInstall, standaloneLocalRepository);
+	}
+
+	private void downloadAndCopySunEC(TIBCOProductToInstall tibcoProductToInstall, File standaloneLocalRepository) throws MojoExecutionException {
 		// download and copy the TIBCO SunEC LGPL assembly for BW6
+		String tibcoSunECVersion = getTIBCOSunECVersion(tibcoProductToInstall.getVersion());
 		String tibcoSunECURL = getTIBCOSunECURL(tibcoProductToInstall.getVersion());
+		String tibcoSunECClassifier = getTIBCOSunECClassifier();
 
 		URL urlToDownload = null;
 		File tmpDirectory = Files.createTempDir();
@@ -99,9 +105,25 @@ public class BW6InstallerMojo extends CommonInstaller {
 			urlToDownload = new URL(tibcoSunECURL);
 			String fileName = new File(urlToDownload.getFile()).getName();
 			File destinationFile = new File(tmpDirectory, fileName);
-			FileUtils.copyURLToFile(urlToDownload, destinationFile);
+			try {
+				FileUtils.copyURLToFile(urlToDownload, destinationFile);
+			} catch (IOException e) {
+				// try default URL
+				switch (getInstallationPackageOs(true)) {
+					case "windows":
+						tibcoSunECURL = "http://public.tibco.com/pub/tibco_oss/sunec/product_tibco_sunec_1.8.0.144_win_x86_64.zip";
+						break;
+					case "unix":
+						tibcoSunECURL = "http://public.tibco.com/pub/tibco_oss/sunec/product_tibco_sunec_1.8.0.144_linux_x86_64.zip";
+						break;
+					case "mac":
+						tibcoSunECURL = "http://public.tibco.com/pub/tibco_oss/sunec/product_tibco_sunec_1.8.0.144_macosx_x86_64.zip";
+						break;
+				}
+				FileUtils.copyURLToFile(urlToDownload, destinationFile);
+			}
 
-			String coords = "com.tibco.oss:product_tibco_sunec:zip:" + "win_x86_64" + ":" + "1.8.0.144";
+			String coords = "com.tibco.oss:product_tibco_sunec:zip:" + tibcoSunECClassifier + ":" + tibcoSunECVersion;
 			org.eclipse.aether.artifact.Artifact artifact = new org.eclipse.aether.artifact.DefaultArtifact(coords);
 			artifact = artifact.setFile(destinationFile);
 
@@ -110,9 +132,9 @@ public class BW6InstallerMojo extends CommonInstaller {
 			MavenArtifactPackage mavenArtifactPackage = new MavenArtifactPackage();
 			mavenArtifactPackage.setGroupId("com.tibco.oss");
 			mavenArtifactPackage.setArtifactId("product_tibco_sunec");
-			mavenArtifactPackage.setVersion("1.8.0.144");
+			mavenArtifactPackage.setVersion(tibcoSunECVersion);
 			mavenArtifactPackage.setPackaging("zip");
-			mavenArtifactPackage.setClassifier("win_x86_64");
+			mavenArtifactPackage.setClassifier(tibcoSunECClassifier);
 
 			if (tibcoProductToInstall.getDependencies() == null) {
 				tibcoProductToInstall.setDependencies(new TIBCOProduct.Dependencies());
@@ -124,9 +146,26 @@ public class BW6InstallerMojo extends CommonInstaller {
 		}
 	}
 
-	private String getTIBCOSunECURL(String version) {
-		return "file:///C:/temp/product_tibco_sunec_1.8.0.144_win_x86_64.zip";
-//		return "http://public.tibco.com/pub/tibco_oss/sunec/product_tibco_sunec_1.8.0.144_win_x86_64.zip";
+	private String getTIBCOSunECClassifier() throws MojoExecutionException {
+		String packageOS = getInstallationPackageOs(false);
+		return (packageOS == "mac" ? "macosx" : packageOS) + "_" + getInstallationPackageArch(false);
+	}
+
+	private String getTIBCOSunECURL(String bw6Version) throws MojoExecutionException {
+		String version = getTIBCOSunECVersion(bw6Version);
+		String classifier = getTIBCOSunECClassifier();
+		return "file:///C:/temp/product_tibco_sunec_" + version + "_" + classifier + ".zip";
+//		return "http://public.tibco.com/pub/tibco_oss/sunec/product_tibco_sunec_" + version + "_win_x86_64.zip";
+	}
+
+	private String getTIBCOSunECVersion(String bw6Version) {
+		// TODO : fill actual version for all BW6 versions
+		switch (bw6Version) {
+			case "6.5.0":
+				return "1.8.0.144";
+			default:
+				return "1.8.0.144";
+		}
 	}
 
 	@Override
@@ -282,7 +321,7 @@ public class BW6InstallerMojo extends CommonInstaller {
 		FilenameFilter filter = new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
-				return dir.isDirectory() && name.startsWith("product_tibco_sunec_");
+				return dir.isDirectory() && name.startsWith("product_tibco_sunec");
 			}
 		};
 

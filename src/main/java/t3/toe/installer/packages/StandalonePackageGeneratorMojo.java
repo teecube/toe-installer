@@ -599,7 +599,7 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 		System.setProperty(MavenSettingsBuilder.ALT_LOCAL_REPOSITORY_LOCATION, session.getLocalRepository().getBasedir().replace("\\", "/"));
 
 		ConfigurableMavenResolverSystem mavenResolver = Maven.configureResolver();
-		addSettingsAndRepositoriesToMavenResolver(mavenResolver);
+		addSettingsAndRepositoriesToMavenResolver(mavenResolver, session.isOffline());
 
 		// actually install plugins (to generate their metadata in order to use them on the command line)
 		List<Plugin> plugins = new ArrayList<Plugin>();
@@ -702,7 +702,7 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 		}
 	}
 
-	private void addSettingsAndRepositoriesToMavenResolver(ConfigurableMavenResolverSystem mavenResolver) throws MojoExecutionException {
+	private void addSettingsAndRepositoriesToMavenResolver(ConfigurableMavenResolverSystem mavenResolver, boolean isOffline) throws MojoExecutionException {
 		try {
 			Field sessionContainerField = mavenResolver.getClass().getSuperclass().getSuperclass().getDeclaredField("sessionContainer");
 			sessionContainerField.setAccessible(true);
@@ -715,6 +715,13 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 			settingsManagerField.setAccessible(true);
 			SettingsManager settingsManager = (SettingsManager) settingsManagerField.get(session);
 			settingsManager.configureSettingsFromFile(this.session.getRequest().getGlobalSettingsFile(), this.session.getRequest().getUserSettingsFile());
+
+			if (isOffline) {
+				Field settingsField = settingsManager.getClass().getDeclaredField("settings");
+				settingsField.setAccessible(true);
+				Settings settings = (Settings) settingsField.get(settingsManager);
+				settings.setOffline(true);
+			}
 		} catch (NoSuchFieldException | IllegalAccessException e) {
 			throw new MojoExecutionException(e.getLocalizedMessage(), e);
 		}

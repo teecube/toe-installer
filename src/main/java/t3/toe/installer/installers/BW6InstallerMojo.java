@@ -154,8 +154,8 @@ public class BW6InstallerMojo extends CommonInstaller {
 	private String getTIBCOSunECURL(String bw6Version) throws MojoExecutionException {
 		String version = getTIBCOSunECVersion(bw6Version);
 		String classifier = getTIBCOSunECClassifier();
-		return "file:///C:/temp/product_tibco_sunec_" + version + "_" + classifier + ".zip";
-//		return "http://public.tibco.com/pub/tibco_oss/sunec/product_tibco_sunec_" + version + "_win_x86_64.zip";
+//		return "file:///C:/temp/product_tibco_sunec_" + version + "_" + classifier + ".zip";
+		return "http://public.tibco.com/pub/tibco_oss/sunec/product_tibco_sunec_" + version + "_" + classifier + ".zip";
 	}
 
 	private String getTIBCOSunECVersion(String bw6Version) {

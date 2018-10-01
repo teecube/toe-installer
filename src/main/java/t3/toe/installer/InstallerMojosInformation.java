@@ -43,6 +43,10 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 	public static final String environmentName_default = "TIBCO-HOME";
 	public static final String environmentName_description = "tibco.installation.environmentName";
 
+	public static final String enableProfile = "tibco.configuration.enableProfile";
+	public static final String enableProfile_default = "true";
+	public static final String enableProfile_description = "tibco.configuration.enableProfile";
+
 	public static final String overriddenSettingsLocation = "tibco.configuration.overriddenSettingsLocation";
 	public static final String overriddenSettingsLocation_default = "";
 	public static final String overriddenSettingsLocation_description = "tibco.configuration.overriddenSettingsLocation";

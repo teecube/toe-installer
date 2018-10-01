@@ -70,6 +70,9 @@ public abstract class CommonConfigurer extends CommonMojo {
 	@Parameter(property = InstallerMojosInformation.environmentName, defaultValue = InstallerMojosInformation.environmentName_default)
 	protected String environmentName;
 
+	@Parameter(property = InstallerMojosInformation.enableProfile, defaultValue = InstallerMojosInformation.enableProfile_default, description = InstallerMojosInformation.enableProfile_description)
+	protected Boolean enableProfile;
+
 	@Parameter(property = InstallerMojosInformation.overwriteExistingProfile, defaultValue = InstallerMojosInformation.overwriteExistingProfile_default, description = InstallerMojosInformation.overwriteExistingProfile_description)
 	protected Boolean overwriteExistingProfile;
 
@@ -79,7 +82,7 @@ public abstract class CommonConfigurer extends CommonMojo {
 	@Parameter(property = InstallerMojosInformation.overriddenSettingsLocation, defaultValue = InstallerMojosInformation.overriddenSettingsLocation_default, description = InstallerMojosInformation.overriddenSettingsLocation_description)
 	protected File overriddenSettingsLocation;
 
-	@Parameter(property = InstallerMojosInformation.writeToSettings, defaultValue = InstallerMojosInformation.writeToSettings_description, description = InstallerMojosInformation.writeToSettings_description)
+	@Parameter(property = InstallerMojosInformation.writeToSettings, defaultValue = InstallerMojosInformation.writeToSettings_default, description = InstallerMojosInformation.writeToSettings_description)
 	protected Boolean writeToSettings;
 	
 	protected abstract String getGroupId();
@@ -205,6 +208,15 @@ public abstract class CommonConfigurer extends CommonMojo {
 						if (!existingProfile) {
 							settings.getProfiles().add(p);
 						}
+
+						if (!settings.getActiveProfiles().contains(p.getId()) && enableProfile) {
+							settings.getActiveProfiles().add(p.getId());
+						}
+
+						// try to fix relative directory of local repository
+                        if (settings.getLocalRepository().startsWith("./") || settings.getLocalRepository().startsWith(".\\")) {
+                            settings.setLocalRepository(new File(settingsXml.getParentFile(), settings.getLocalRepository()).getCanonicalPath());
+                        }
 
 						SettingsXpp3Writer writer = new SettingsXpp3Writer();
 						writer.write(new FileOutputStream(settingsXml), settings);

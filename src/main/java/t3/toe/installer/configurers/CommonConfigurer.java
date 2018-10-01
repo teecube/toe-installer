@@ -135,7 +135,14 @@ public abstract class CommonConfigurer extends CommonMojo {
 			localAsRemoteRepository = new RemoteRepository.Builder("central", "default", session.getLocalRepository().getUrl().replace("\\", "/")).build();
 			project.getRemotePluginRepositories().add(localAsRemoteRepository);
 		}
-		List<ArtifactResult> artifactResults = getPlugin(getGroupId() + ":" + getArtifactId(), version);
+		List<ArtifactResult> artifactResults = null;
+		try {
+			artifactResults = getPlugin(getGroupId() + ":" + getArtifactId(), version);
+		} catch (ArtifactResolutionException | DependencyResolutionException e) {
+			String message = "Unable to resolve plugin '" + getGroupId() + ":" + getArtifactId() + ":" + version + "'";
+			getLog().error(message);
+			throw new MojoExecutionException(message);
+		}
 
 		List<File> files = new ArrayList<File>();
 
@@ -273,7 +280,7 @@ public abstract class CommonConfigurer extends CommonMojo {
 		}
 	}
 
-	protected List<ArtifactResult> getPlugin(String pluginKey, String version) throws MojoExecutionException {
+	protected List<ArtifactResult> getPlugin(String pluginKey, String version) throws ArtifactResolutionException, DependencyResolutionException {
         Artifact artifact = new DefaultArtifact(pluginKey + ":" + version);
 
         DependencyFilter classpathFlter = DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE);
@@ -290,14 +297,8 @@ public abstract class CommonConfigurer extends CommonMojo {
 			artifactResults.add(system.resolveArtifact(systemSession, artifactRequest));
 			artifactResults.addAll(system.resolveDependencies(systemSession, dependencyRequest).getArtifactResults());
 		} catch (DependencyResolutionException e) {
-			try {
-				// same player shoots again (sometimes two resolutions are required)
-				artifactResults.addAll(system.resolveDependencies(systemSession, dependencyRequest).getArtifactResults());
-			} catch (DependencyResolutionException e1) {
-				//
-			}
-		} catch (ArtifactResolutionException e) {
-			throw new MojoExecutionException(e.getLocalizedMessage(), e);
+			// same player shoots again (sometimes two resolutions are required)
+			artifactResults.addAll(system.resolveDependencies(systemSession, dependencyRequest).getArtifactResults());
 		}
 
 		return artifactResults;

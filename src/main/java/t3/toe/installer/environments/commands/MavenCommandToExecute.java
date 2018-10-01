@@ -97,15 +97,17 @@ public class MavenCommandToExecute extends CommandToExecute<MavenCommand> {
         mavenRunner.setGlobalSettingsFile(settingsFile);
         mavenRunner.setUserSettingsFile(settingsFile);
         mavenRunner.setLocalRepositoryDirectory(new File(this.session.getSettings().getLocalRepository()));
-        mavenRunner.setMavenVersion("3.5.0");
+        mavenRunner.setMavenVersion("3.5.4");
         mavenRunner.setGoals(this.mavenCommand.getGoals().getGoal());
         if (this.mavenCommand.getProfiles() != null) {
             mavenRunner.setProfiles(this.mavenCommand.getProfiles().getProfile());
         }
         mavenRunner.setProperties(properties);
 
+        mavenRunner.setQuietForErrors(true);
         mavenRunner.setLog(getLog());
         mavenRunner.setDebug(this.mavenCommand.isEnableDebugOutput());
+        mavenRunner.setIgnoreFailure(true);
 
         if (pomFileInWorkingDirectory.exists()) {
             mavenRunner.setPomFile(pomFileInWorkingDirectory);

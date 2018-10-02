@@ -30,6 +30,8 @@ public class EnvironmentToInstall extends Environment {
 	public EnvironmentToInstall(Environment environment, File environmentsTopology) {
 		this.setName(environment.getName());
 		this.setIfExists(environment.getIfExists());
+		this.setMinRequiredVersion(environment.getMinRequiredVersion());
+		this.setOnError(environment.getOnError());
 		this.setPackagesDirectory(environment.getPackagesDirectory());
 		this.setPreInstallCommands(environment.getPreInstallCommands());
 		this.setProducts(environment.getProducts());

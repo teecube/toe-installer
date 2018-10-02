@@ -17,6 +17,7 @@
 package t3.toe.installer.environments;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.ResolutionScope;
@@ -66,16 +67,46 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 		loadTopology();
 
+		DefaultArtifactVersion actualVersion = new DefaultArtifactVersion(pluginDescriptor.getVersion());
+		DefaultArtifactVersion minRequiredVersion = new DefaultArtifactVersion(environmentsMarshaller.getObject().getMinRequiredVersion());
+		// check whether the topology is supported by this plugin
+		if (minRequiredVersion.compareTo(actualVersion) > 0) {
+			String message = "The topology '" + environmentsTopology.getAbsolutePath() + "' cannot be installed because it requires a newer version ( >= " + minRequiredVersion.toString() + " ) of this plugin.";
+			getLog().error(message);
+			throw new MojoExecutionException(message);
+		}
+
 		EnvironmentsToInstall environmentsToInstall = new EnvironmentsToInstall(environmentsMarshaller.getObject().getEnvironment(), environmentsTopology);
 
 		int environmentsCount = environmentsToInstall.size();
 		int environmentsIndex = 1;
 		for (EnvironmentToInstall environment : environmentsToInstall) {
 			if (environmentsCount > 1) { // multiple environments to install
-				getLog().info("=== " + StringUtils.leftPad(Utils.toRoman(environmentsIndex), 3, " ") + ". Environment: " + environment.getName() + " ===");
+				getLog().info("=== " + StringUtils.leftPad(Utils.toRoman(environmentsIndex++), 3, " ") + ". Environment: " + environment.getName() + " ===");
 				getLog().info(Messages.MESSAGE_SPACE);
 
                 TIBCOProductToInstall.firstDependency = true;
+			}
+
+			getLog().debug("Installing environment: " + environment.getName());
+
+			getLog().debug("Minimal required version: " + environment.getMinRequiredVersion());
+			getLog().debug("Actual version: " + pluginDescriptor.getVersion());
+
+			minRequiredVersion = new DefaultArtifactVersion(environment.getMinRequiredVersion());
+
+			// check whether the environment is supported by this plugin
+			if (minRequiredVersion.compareTo(actualVersion) > 0) {
+				switch (environment.getOnError()) {
+					case FAIL:
+						String message = "The environment '" + environment.getName() + "' cannot be installed because it requires a newer version ( >= " + minRequiredVersion.toString() + " ) of this plugin.";
+						getLog().error(message);
+						throw new MojoExecutionException(message);
+					case CONTINUE:
+						getLog().warn("The environment '" + environment.getName() + "' requires a newer version ( >= " + minRequiredVersion.toString() + " ) of this plugin and will be ignored.");
+						getLog().info("");
+						continue;
+				}
 			}
 
 			// first check if environment exists and if we can continue according to current strategy (keep, fail, delete)
@@ -166,7 +197,6 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 
 			if (environmentsCount > 1 && environmentsIndex < environmentsCount) { // add space between environments
 				getLog().info("");
-				environmentsIndex++;
 			}
 		}
 	}

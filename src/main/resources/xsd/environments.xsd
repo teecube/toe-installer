@@ -120,6 +120,13 @@
 		</xs:restriction>
 	</xs:simpleType>
 
+	<xs:simpleType name="ProductOnErrorBehaviour">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="fail" />
+			<xs:enumeration value="continue" />
+		</xs:restriction>
+	</xs:simpleType>
+
 	<xs:complexType name="Package">
 		<xs:choice>
 			<xs:element name="httpRemote" type="HttpRemotePackage"/>
@@ -155,6 +162,7 @@
 		<xs:attribute name="priority" type="xs:int" use="optional"/>
 		<xs:attribute name="skip" type="xs:boolean" use="optional" default="false"/>
 		<xs:attribute name="ifExists" type="IfProductExistsBehaviour" default="keep" />
+		<xs:attribute name="onError" type="ProductOnErrorBehaviour" default="fail" />
 		<xs:attribute name="executePostInstallCommandsWhenSkipped" type="xs:boolean" use="optional" default="false"/>
 	</xs:complexType>
 
@@ -365,6 +373,8 @@
 		</xs:sequence>
 		<xs:attribute name="name" type="xs:string" use="required" />
 		<xs:attribute name="ifExists" type="IfEnvironmentExistsBehaviour" default="fail" />
+		<xs:attribute name="onError" type="EnvironmentOnErrorBehaviour" default="fail" />
+		<xs:attribute name="minRequiredVersion" type="SemVerMavenVersion" default="0.1.0" />
 	</xs:complexType>
 
 	<xs:simpleType name="IfEnvironmentExistsBehaviour">
@@ -375,11 +385,25 @@
 		</xs:restriction>
 	</xs:simpleType>
 
+	<xs:simpleType name="EnvironmentOnErrorBehaviour">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="fail" />
+			<xs:enumeration value="continue" />
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="SemVerMavenVersion">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="\d+\.\d+\.\d+(-SNAPSHOT)?"/>
+		</xs:restriction>
+	</xs:simpleType>
+
 	<xs:element name="environments">
 		<xs:complexType>
 			<xs:sequence>
 				<xs:element name="environment" minOccurs="1" maxOccurs="unbounded" type="Environment"/>
 			</xs:sequence>
+			<xs:attribute name="minRequiredVersion" type="SemVerMavenVersion" default="0.1.0" />
 		</xs:complexType>
 	</xs:element>
 

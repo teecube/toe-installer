@@ -14,49 +14,31 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for ProductType.
+ * <p>Java class for EnvironmentOnErrorBehaviour.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
- * &lt;simpleType name="ProductType"&gt;
+ * &lt;simpleType name="EnvironmentOnErrorBehaviour"&gt;
  *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string"&gt;
- *     &lt;enumeration value="admin"/&gt;
- *     &lt;enumeration value="bw5"/&gt;
- *     &lt;enumeration value="bw6"/&gt;
- *     &lt;enumeration value="ems"/&gt;
- *     &lt;enumeration value="ftl"/&gt;
- *     &lt;enumeration value="rv"/&gt;
- *     &lt;enumeration value="tea"/&gt;
- *     &lt;enumeration value="tra"/&gt;
+ *     &lt;enumeration value="fail"/&gt;
+ *     &lt;enumeration value="continue"/&gt;
  *   &lt;/restriction&gt;
  * &lt;/simpleType&gt;
  * </pre>
  * 
  */
-@XmlType(name = "ProductType")
+@XmlType(name = "EnvironmentOnErrorBehaviour")
 @XmlEnum
-public enum ProductType {
+public enum EnvironmentOnErrorBehaviour {
 
-    @XmlEnumValue("admin")
-    ADMIN("admin"),
-    @XmlEnumValue("bw5")
-    BW_5("bw5"),
-    @XmlEnumValue("bw6")
-    BW_6("bw6"),
-    @XmlEnumValue("ems")
-    EMS("ems"),
-    @XmlEnumValue("ftl")
-    FTL("ftl"),
-    @XmlEnumValue("rv")
-    RV("rv"),
-    @XmlEnumValue("tea")
-    TEA("tea"),
-    @XmlEnumValue("tra")
-    TRA("tra");
+    @XmlEnumValue("fail")
+    FAIL("fail"),
+    @XmlEnumValue("continue")
+    CONTINUE("continue");
     private final String value;
 
-    ProductType(String v) {
+    EnvironmentOnErrorBehaviour(String v) {
         value = v;
     }
 
@@ -64,8 +46,8 @@ public enum ProductType {
         return value;
     }
 
-    public static ProductType fromValue(String v) {
-        for (ProductType c: ProductType.values()) {
+    public static EnvironmentOnErrorBehaviour fromValue(String v) {
+        for (EnvironmentOnErrorBehaviour c: EnvironmentOnErrorBehaviour.values()) {
             if (c.value.equals(v)) {
                 return c;
             }

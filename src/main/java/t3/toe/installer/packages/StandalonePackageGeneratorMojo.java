@@ -351,7 +351,7 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 			logTransferListener.setLevel(Level.OFF);
 			getLog().info("This might take some minutes...");
 
-			goOffline(goOfflineProject, standaloneLocalRepository, "3.5.0");
+			goOffline(goOfflineProject, standaloneLocalRepository, "3.5.4");
 		}
 
 		if (generateSettings) {

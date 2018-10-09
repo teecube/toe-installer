@@ -36,11 +36,22 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 	public final static String pluginPrefix = "toe:";
 
 	public static final String installationRoot = "tibco.installation.root";
-	public static final String installationRoot_description = "tibco.installation.root";
 	public static final String installationRoot_default = "";
+	/**
+	 * <p>The path to the directory where the TIBCO environment will be installed.</p>
+	 * <p>This is also known as TIBCO_HOME in TIBCO documentation.</p>
+	 */
+	public static final String installationRoot_description = "tibco.installation.root";
 
 	public static final String environmentName = "tibco.installation.environmentName";
 	public static final String environmentName_default = "TIBCO-HOME";
+	/**
+	 * <p>The name the TIBCO environment to be installed.</p>
+	 * <p>
+	 *     This must be unique on current system.<br />
+	 *     Check the existing environments in current system using <a href="./envinfo-list-mojo.html">envinfo-list goal</a>.
+	 * </p>
+	 */
 	public static final String environmentName_description = "tibco.installation.environmentName";
 
 	public static final String enableProfile = "tibco.configuration.enableProfile";

@@ -63,10 +63,10 @@ public abstract class CommonInstaller extends CommonMojo {
 	@Parameter(property = InstallerMojosInformation.installationPackageDirectory, defaultValue = InstallerMojosInformation.installationPackageDirectory_default)
 	protected File installationPackageDirectory;
 
-	@Parameter(property = InstallerMojosInformation.installationRoot, defaultValue = "")
+	@Parameter(property = InstallerMojosInformation.installationRoot, defaultValue = InstallerMojosInformation.installationRoot_default, description = InstallerMojosInformation.installationRoot_description)
 	protected File installationRoot;
 
-	@Parameter(property = InstallerMojosInformation.environmentName, defaultValue = InstallerMojosInformation.environmentName_default, required = true)
+	@Parameter(property = InstallerMojosInformation.environmentName, defaultValue = InstallerMojosInformation.environmentName_default, description = InstallerMojosInformation.environmentName_description, required = true)
 	protected String environmentName;
 
 	@Parameter(property = InstallerMojosInformation.createNewEnvironment, defaultValue = InstallerMojosInformation.createNewEnvironment_default)

@@ -122,26 +122,20 @@
 		&lt;products>
 			&lt;tibcoProduct type=&quot;tea&quot;>
 				&lt;package>
-					&lt;mavenTIBCOArtifact>
-						&lt;version>2.3.0&lt;/version>
-						&lt;classifier>win_x86_64&lt;/classifier>
-					&lt;/mavenTIBCOArtifact>
+					&lt;mavenTIBCOArtifact version=&quot;2.3.0&quot;
+										   classifier=&quot;win_x86_64&quot; />
 				&lt;/package>
 			&lt;/tibcoProduct>
 			&lt;tibcoProduct type=&quot;ems&quot;>
 				&lt;package>
-					&lt;mavenTIBCOArtifact>
-						&lt;version>8.4.0&lt;/version>
-						&lt;classifier>win_x86_64&lt;/classifier>
-					&lt;/mavenTIBCOArtifact>
+					&lt;mavenTIBCOArtifact version=&quot;8.4.0&quot;
+										   classifier=&quot;win_x86_64&quot; />
 				&lt;/package>
 			&lt;/tibcoProduct>
 			&lt;tibcoProduct type=&quot;bw6&quot;>
 				&lt;package>
-					&lt;mavenTIBCOArtifact>
-						&lt;version>6.4.2&lt;/version>
-						&lt;classifier>win_x86_64&lt;/classifier>
-					&lt;/mavenTIBCOArtifact>
+					&lt;mavenTIBCOArtifact version=&quot;6.5.0&quot;
+										   classifier=&quot;win_x86_64&quot; />
 				&lt;/package>
 			&lt;/tibcoProduct>
 		&lt;/products>
@@ -160,26 +154,20 @@
 		&lt;products>
 			&lt;tibcoProduct type=&quot;admin&quot;>
 				&lt;package>
-					&lt;mavenTIBCOArtifact>
-						&lt;version>5.10.0&lt;/version>
-						&lt;classifier>win_x86_64&lt;/classifier>
-					&lt;/mavenTIBCOArtifact>
+					&lt;mavenTIBCOArtifact version=&quot;5.10.0&quot;
+										   classifier=&quot;win_x86_64&quot; />
 				&lt;/package>
 			&lt;/tibcoProduct>
 			&lt;tibcoProduct type=&quot;ems&quot;>
 				&lt;package>
-					&lt;mavenTIBCOArtifact>
-						&lt;version>8.4.0&lt;/version>
-						&lt;classifier>win_x86_64&lt;/classifier>
-					&lt;/mavenTIBCOArtifact>
+					&lt;mavenTIBCOArtifact version=&quot;8.4.0&quot;
+										   classifier=&quot;win_x86_64&quot; />
 				&lt;/package>
 			&lt;/tibcoProduct>
 			&lt;tibcoProduct type=&quot;bw5&quot;>
 				&lt;package>
-					&lt;mavenTIBCOArtifact>
-						&lt;version>5.13.0&lt;/version>
-						&lt;classifier>win_x86_64&lt;/classifier>
-					&lt;/mavenTIBCOArtifact>
+					&lt;mavenTIBCOArtifact version=&quot;5.13.0&quot;
+										   classifier=&quot;win_x86_64&quot; />
 				&lt;/package>
 			&lt;/tibcoProduct>
 		&lt;/products>

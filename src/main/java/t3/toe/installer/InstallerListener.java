@@ -1,5 +1,5 @@
 /**
- * (C) Copyright 2016-2018 teecube
+ * (C) Copyright 2016-2019 teecube
  * (https://teecu.be) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");

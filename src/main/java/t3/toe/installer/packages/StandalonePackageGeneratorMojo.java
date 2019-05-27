@@ -1,5 +1,5 @@
 /**
- * (C) Copyright 2016-2018 teecube
+ * (C) Copyright 2016-2019 teecube
  * (https://teecu.be) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,9 @@
 package t3.toe.installer.packages;
 
 import com.google.common.io.Files;
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.NameFileFilter;
@@ -49,6 +52,7 @@ import org.apache.maven.settings.io.xpp3.SettingsXpp3Reader;
 import org.apache.maven.settings.io.xpp3.SettingsXpp3Writer;
 import org.codehaus.mojo.versions.api.ArtifactVersions;
 import org.codehaus.mojo.versions.api.DefaultVersionsHelper;
+import org.codehaus.plexus.classworlds.realm.ClassRealm;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -80,10 +84,7 @@ import javax.xml.bind.JAXBException;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -598,7 +599,7 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 
 		System.setProperty(MavenSettingsBuilder.ALT_LOCAL_REPOSITORY_LOCATION, session.getLocalRepository().getBasedir().replace("\\", "/"));
 
-		ConfigurableMavenResolverSystem mavenResolver = Maven.configureResolver();
+		ConfigurableMavenResolverSystem mavenResolver = getMavenResolver();
 		addSettingsAndRepositoriesToMavenResolver(mavenResolver, session.isOffline());
 
 		// actually install plugins (to generate their metadata in order to use them on the command line)
@@ -700,6 +701,34 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 		for (File remoteRepositoriesFile : remoteRepositoriesFiles) {
 			remoteRepositoriesFile.delete();
 		}
+	}
+
+	private ConfigurableMavenResolverSystem getMavenResolver() throws MojoExecutionException {
+		String oldClassName = "org.eclipse.aether.internal.impl.DefaultDependencyCollector"; // class name for Maven < 3.6.0
+		String newClassName = "org.eclipse.aether.internal.impl.collect.DefaultDependencyCollector"; // class name for Maven 3.6.0+
+		ClassRealm pluginClassRealm = (ClassRealm) this.getClass().getClassLoader();
+		try {
+			pluginClassRealm.loadClass(oldClassName); // class name for Maven < 3.6.0
+		} catch (ClassNotFoundException classNotFound) { // running Maven 3.6.0+, duplicate the new class with its old name not to break Dependency Injection
+			try {
+				for (ClassRealm realm : pluginClassRealm.getWorld().getRealms()) {
+					Class<?> newClass = realm.loadClass(newClassName);
+
+					DynamicType.Builder<?> builder = new ByteBuddy().subclass(newClass).name(oldClassName);
+					Class<?> oldClass = builder.make().load(realm, ClassLoadingStrategy.Default.INJECTION).getLoaded();
+
+					Field classesField = realm.getClass().getSuperclass().getSuperclass().getSuperclass().getDeclaredField("classes");
+					classesField.setAccessible(true);
+					Vector<Class<?>> classes = (Vector<Class<?>>) classesField.get(realm);
+					classes.add(oldClass);
+					classesField.set(realm, classes);
+				}
+			} catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
+				throw new MojoExecutionException(e.getLocalizedMessage(), e);
+			}
+		}
+
+		return Maven.configureResolver();
 	}
 
 	private void addSettingsAndRepositoriesToMavenResolver(ConfigurableMavenResolverSystem mavenResolver, boolean isOffline) throws MojoExecutionException {

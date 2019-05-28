@@ -16,24 +16,16 @@
  */
 package t3.toe.installer.environments;
 
-import org.apache.maven.plugin.MojoExecutionException;
-import t3.CommonMojo;
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class EnvironmentsToInstall extends ArrayList<EnvironmentToInstall> {
 
-    public EnvironmentsToInstall(EnvironmentToInstall environment, CommonMojo commonMojo) throws MojoExecutionException {
-        super();
-    }
-
-    public EnvironmentsToInstall(List<Environment> environments, File topology) {
+    public EnvironmentsToInstall(List<Environment> environments, Environments parent) {
         super();
 
         for (Environment environment : environments) {
-            this.add(new EnvironmentToInstall(environment, topology));
+            this.add(new EnvironmentToInstall(environment, parent));
         }
     }
 

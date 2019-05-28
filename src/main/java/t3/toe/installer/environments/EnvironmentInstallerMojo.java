@@ -76,7 +76,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			throw new MojoExecutionException(message);
 		}
 
-		EnvironmentsToInstall environmentsToInstall = new EnvironmentsToInstall(environmentsMarshaller.getObject().getEnvironment(), environmentsTopology);
+		EnvironmentsToInstall environmentsToInstall = new EnvironmentsToInstall(environmentsMarshaller.getObject().getEnvironment(), environmentsMarshaller.getObject());
 
 		int environmentsCount = environmentsToInstall.size();
 		int environmentsIndex = 1;

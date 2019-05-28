@@ -17,28 +17,29 @@
 package t3.toe.installer.environments;
 
 import com.google.common.collect.FluentIterable;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 
-import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 
 public class EnvironmentToInstall extends Environment {
 
-	private File environmentsTopology; // file where the environment is defined
+	private final Environments parent;
 	private boolean toBeDeleted;
 
-	public EnvironmentToInstall(Environment environment, File environmentsTopology) {
+	public EnvironmentToInstall(Environment environment, Environments parent) {
 		this.setName(environment.getName());
-		this.setIfExists(environment.getIfExists());
-		this.setMinRequiredVersion(environment.getMinRequiredVersion());
-		this.setOnError(environment.getOnError());
+		if (environment.ifExists != null) this.setIfExists(environment.getIfExists());
+		if (environment.minRequiredVersion != null) this.setMinRequiredVersion(environment.getMinRequiredVersion());
+		if (environment.onError != null) this.setOnError(environment.getOnError());
 		this.setPackagesDirectory(environment.getPackagesDirectory());
 		this.setPreInstallCommands(environment.getPreInstallCommands());
 		this.setProducts(environment.getProducts());
 		this.setPostInstallCommands(environment.getPostInstallCommands());
 		this.setTibcoRoot(environment.getTibcoRoot());
 
-		this.environmentsTopology = environmentsTopology;
+		this.parent = parent;
 		this.toBeDeleted = false;
 	}
 
@@ -57,8 +58,8 @@ public class EnvironmentToInstall extends Environment {
 	 */
 	public List<CustomProduct> getNonTIBCOProducts() {
 		return FluentIterable.from(this.getProducts().getTibcoProductOrCustomProduct())
-							 .filter(CustomProduct.class)
-							 .toList();
+				.filter(CustomProduct.class)
+				.toList();
 	}
 
 	/**
@@ -68,15 +69,26 @@ public class EnvironmentToInstall extends Environment {
 	 */
 	public List<TIBCOProduct> getTIBCOProducts() {
 		return FluentIterable.from(this.getProducts().getTibcoProductOrCustomProduct())
-							 .filter(TIBCOProduct.class)
-							 .toList();
+				.filter(TIBCOProduct.class)
+				.toList();
 	}
 
 	public void clearTIBCOProducts() {
-		for (Iterator<Product> iterator = this.getProducts().getTibcoProductOrCustomProduct().iterator(); iterator.hasNext();) {
-			if (iterator.next() instanceof  TIBCOProduct) {
+		for (Iterator<Product> iterator = this.getProducts().getTibcoProductOrCustomProduct().iterator(); iterator.hasNext(); ) {
+			if (iterator.next() instanceof TIBCOProduct) {
 				iterator.remove();
 			}
 		}
 	}
- }
+
+	@Override
+	public String getMinRequiredVersion() {
+		if (this.parent.minRequiredVersion == null && this.minRequiredVersion != null) return this.minRequiredVersion;
+		if (this.parent.minRequiredVersion != null && this.minRequiredVersion == null) return this.parent.minRequiredVersion;
+
+		DefaultArtifactVersion parentMinRequiredVersion = new DefaultArtifactVersion(this.parent.getMinRequiredVersion());
+		DefaultArtifactVersion minRequiredVersion = new DefaultArtifactVersion(super.getMinRequiredVersion());
+
+		return ObjectUtils.max(parentMinRequiredVersion, minRequiredVersion).toString();
+	}
+}

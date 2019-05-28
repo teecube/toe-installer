@@ -175,7 +175,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 		EnvironmentsMarshaller environmentMarshaller = new EnvironmentsMarshaller(topologyGeneratedFile);
 		RandomNameGenerator randomNameGenerator = new RandomNameGenerator(new Random().nextInt());
 
-		EnvironmentsToInstall environments = new EnvironmentsToInstall(environmentMarshaller.getObject().getEnvironment(), topologyGeneratedFile);
+		EnvironmentsToInstall environments = new EnvironmentsToInstall(environmentMarshaller.getObject().getEnvironment(), environmentMarshaller.getObject());
 
 		// determine how many environments must be created according to installers OS or use the ones provided by the template
 		Map<String, Pair<EnvironmentToInstall, List<TIBCOProductToInstall>>> environmentsToCreate = new HashMap<String, Pair<EnvironmentToInstall, List<TIBCOProductToInstall>>>();
@@ -267,7 +267,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 						environment.setTibcoRoot("/opt/tibco/" + environmentName);
 					}
 
-					environmentsToCreate.put(os, new MutablePair<EnvironmentToInstall, List<TIBCOProductToInstall>>(new EnvironmentToInstall(environment, topologyGeneratedFile), new ArrayList<TIBCOProductToInstall>()));
+					environmentsToCreate.put(os, new MutablePair<EnvironmentToInstall, List<TIBCOProductToInstall>>(new EnvironmentToInstall(environment, new Environments()), new ArrayList<TIBCOProductToInstall>())); // WARN: parent is empty
 				}
 			}
 		}

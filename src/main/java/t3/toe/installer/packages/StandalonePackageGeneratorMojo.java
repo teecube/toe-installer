@@ -248,7 +248,6 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 			getLog().info("");
 
 			getLog().info("Using topology file '" + topologyTemplateFile.getAbsolutePath() + "'");
-			getLog().info("");
 
 			EnvironmentsMarshaller environmentsMarshaller = EnvironmentsMarshaller.getEnvironmentMarshaller(topologyTemplateFile);
 			EnvironmentsToInstall environmentsToInstall = new EnvironmentsToInstall(environmentsMarshaller.getObject().getEnvironment(), topologyTemplateFile);

@@ -117,29 +117,29 @@
 							<content><![CDATA[
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?>
 &lt;environments xmlns=&quot;http://teecu.be/toe-installer/environments&quot;>
-	&lt;environment name=&quot;BW640-test&quot;>
-		&lt;tibcoRoot>C:/tibco/BW640-test&lt;/tibcoRoot>
-		&lt;products>
-			&lt;tibcoProduct type=&quot;tea&quot;>
-				&lt;package>
-					&lt;mavenTIBCOArtifact version=&quot;2.3.0&quot;
-					                    classifier=&quot;win_x86_64&quot; />
-				&lt;/package>
-			&lt;/tibcoProduct>
-			&lt;tibcoProduct type=&quot;ems&quot;>
-				&lt;package>
-					&lt;mavenTIBCOArtifact version=&quot;8.4.0&quot;
-					                    classifier=&quot;win_x86_64&quot; />
-				&lt;/package>
-			&lt;/tibcoProduct>
-			&lt;tibcoProduct type=&quot;bw6&quot;>
-				&lt;package>
-					&lt;mavenTIBCOArtifact version=&quot;6.5.0&quot;
-					                    classifier=&quot;win_x86_64&quot; />
-				&lt;/package>
-			&lt;/tibcoProduct>
-		&lt;/products>
-	&lt;/environment>
+  &lt;environment name=&quot;BW640-test&quot;>
+    &lt;tibcoRoot>C:/tibco/BW640-test&lt;/tibcoRoot>
+    &lt;products>
+      &lt;tibcoProduct type=&quot;tea&quot;>
+        &lt;package>
+          &lt;mavenTIBCOArtifact version=&quot;2.3.0&quot;
+                              classifier=&quot;win_x86_64&quot; />
+        &lt;/package>
+      &lt;/tibcoProduct>
+      &lt;tibcoProduct type=&quot;ems&quot;>
+        &lt;package>
+          &lt;mavenTIBCOArtifact version=&quot;8.4.0&quot;
+                              classifier=&quot;win_x86_64&quot; />
+        &lt;/package>
+      &lt;/tibcoProduct>
+      &lt;tibcoProduct type=&quot;bw6&quot;>
+        &lt;package>
+          &lt;mavenTIBCOArtifact version=&quot;6.5.0&quot;
+                              classifier=&quot;win_x86_64&quot; />
+        &lt;/package>
+      &lt;/tibcoProduct>
+    &lt;/products>
+  &lt;/environment>
 &lt;/environments>
 							]]></content>
 						</sample>
@@ -149,29 +149,29 @@
 							<content><![CDATA[
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?>
 &lt;environments xmlns=&quot;http://teecu.be/toe-installer/environments&quot;>
-	&lt;environment name=&quot;BW5130-test&quot;>
-		&lt;tibcoRoot>C:/tibco/BW5130-test&lt;/tibcoRoot>
-		&lt;products>
-			&lt;tibcoProduct type=&quot;admin&quot;>
-				&lt;package>
-					&lt;mavenTIBCOArtifact version=&quot;5.10.0&quot;
-					                    classifier=&quot;win_x86_64&quot; />
-				&lt;/package>
-			&lt;/tibcoProduct>
-			&lt;tibcoProduct type=&quot;ems&quot;>
-				&lt;package>
-					&lt;mavenTIBCOArtifact version=&quot;8.4.0&quot;
-					                    classifier=&quot;win_x86_64&quot; />
-				&lt;/package>
-			&lt;/tibcoProduct>
-			&lt;tibcoProduct type=&quot;bw5&quot;>
-				&lt;package>
-					&lt;mavenTIBCOArtifact version=&quot;5.13.0&quot;
-					                    classifier=&quot;win_x86_64&quot; />
-				&lt;/package>
-			&lt;/tibcoProduct>
-		&lt;/products>
-	&lt;/environment>
+  &lt;environment name=&quot;BW5130-test&quot;>
+    &lt;tibcoRoot>C:/tibco/BW5130-test&lt;/tibcoRoot>
+    &lt;products>
+      &lt;tibcoProduct type=&quot;admin&quot;>
+        &lt;package>
+          &lt;mavenTIBCOArtifact version=&quot;5.10.0&quot;
+                              classifier=&quot;win_x86_64&quot; />
+        &lt;/package>
+      &lt;/tibcoProduct>
+      &lt;tibcoProduct type=&quot;ems&quot;>
+        &lt;package>
+          &lt;mavenTIBCOArtifact version=&quot;8.4.0&quot;
+                              classifier=&quot;win_x86_64&quot; />
+        &lt;/package>
+      &lt;/tibcoProduct>
+      &lt;tibcoProduct type=&quot;bw5&quot;>
+        &lt;package>
+          &lt;mavenTIBCOArtifact version=&quot;5.13.0&quot;
+                              classifier=&quot;win_x86_64&quot; />
+        &lt;/package>
+      &lt;/tibcoProduct>
+    &lt;/products>
+  &lt;/environment>
 &lt;/environments>
 							]]></content>
 						</sample>

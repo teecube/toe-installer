@@ -61,7 +61,7 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 */
 public abstract class AbstractPackagesResolver extends CommonMojo {
 
-	@Parameter(property = InstallerMojosInformation.installationPackageDirectory, defaultValue = InstallerMojosInformation.installationPackageDirectory_default)
+	@Parameter(property = InstallerMojosInformation.Installation.installationPackageDirectory, description = InstallerMojosInformation.Installation.installationPackageDirectory_description, defaultValue = InstallerMojosInformation.Installation.installationPackageDirectory_default)
 	protected File installationPackageDirectory;
 
 	@org.apache.maven.plugins.annotations.Parameter(property = InstallerMojosInformation.FullEnvironment.topologyType, defaultValue = InstallerMojosInformation.FullEnvironment.topologyType_default)

@@ -40,7 +40,7 @@ import t3.toe.installer.InstallerMojosInformation;
 @Mojo(name = "envinfo-remove", requiresProject = false)
 public class RemoveEnvInfoMojo extends EnvInfo {
 
-	@Parameter(property = InstallerMojosInformation.environmentName, /*description = InstallerMojosInformation.environmentName_description,*/ defaultValue = "")
+	@Parameter(property = InstallerMojosInformation.Installation.environmentName, description = InstallerMojosInformation.Installation.environmentNameToRemove_description, defaultValue = "")
 	public String environmentName;
 
 	@Override

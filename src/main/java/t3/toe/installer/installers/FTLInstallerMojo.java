@@ -45,7 +45,7 @@ import java.util.Properties;
 @Mojo(name = "install-ftl", requiresProject = false)
 public class FTLInstallerMojo extends CommonInstaller {
 
-	@Parameter(property = InstallerMojosInformation.FTL.installationPackage, defaultValue = "${" + InstallerMojosInformation.installationPackageDirectory + "}/${tibco.tea.installation.package.regex}")
+	@Parameter(property = InstallerMojosInformation.FTL.installationPackage, description = InstallerMojosInformation.FTL.installationPackage_description, defaultValue = "${" + InstallerMojosInformation.Installation.installationPackageDirectory + "}/${tibco.tea.installation.package.regex}")
 	private File installationPackage;
 
 	@Parameter(property = InstallerMojosInformation.FTL.installationPackageRegex, defaultValue = InstallerMojosInformation.FTL.installationPackageRegex_default)

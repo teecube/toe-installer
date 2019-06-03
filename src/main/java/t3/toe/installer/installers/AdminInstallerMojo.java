@@ -50,7 +50,7 @@ import java.util.Properties;
 @Mojo(name = "install-admin", requiresProject = false)
 public class AdminInstallerMojo extends CommonInstaller {
 
-	@Parameter(property = InstallerMojosInformation.Administrator.installationPackage, defaultValue = "${" + InstallerMojosInformation.installationPackageDirectory + "}/${tibco.admin.installation.package.regex}")
+	@Parameter(property = InstallerMojosInformation.Administrator.installationPackage, description = InstallerMojosInformation.Administrator.installationPackage_description, defaultValue = "${" + InstallerMojosInformation.Installation.installationPackageDirectory + "}/${tibco.admin.installation.package.regex}")
 	private File installationPackage;
 
 	@Parameter(property = InstallerMojosInformation.Administrator.installationPackageRegex, defaultValue = InstallerMojosInformation.Administrator.installationPackageRegex_default)

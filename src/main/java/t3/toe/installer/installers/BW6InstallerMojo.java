@@ -49,7 +49,7 @@ import java.util.Properties;
 @Mojo(name = "install-bw6", requiresProject = false)
 public class BW6InstallerMojo extends CommonInstaller {
 
-	@Parameter(property = InstallerMojosInformation.BW6.installationPackage, defaultValue = "${" + InstallerMojosInformation.installationPackageDirectory + "}/${tibco.bw6.installation.package.regex}")
+	@Parameter(property = InstallerMojosInformation.BW6.installationPackage, description = InstallerMojosInformation.BW6.installationPackage_description, defaultValue = "${" + InstallerMojosInformation.Installation.installationPackageDirectory + "}/${tibco.bw6.installation.package.regex}")
 	private File installationPackage;
 
 	@Parameter(property = InstallerMojosInformation.BW6.installationPackageRegex, defaultValue = InstallerMojosInformation.BW6.installationPackageRegex_default)

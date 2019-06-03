@@ -42,7 +42,7 @@ import java.util.Properties;
 @Mojo(name = "install-rv", requiresProject = false)
 public class RVInstallerMojo extends CommonInstaller {
 
-	@Parameter(property = InstallerMojosInformation.RV.installationPackage, defaultValue = "${" + InstallerMojosInformation.installationPackageDirectory + "}/${tibco.rv.installation.package.regex}")
+	@Parameter(property = InstallerMojosInformation.RV.installationPackage, defaultValue = "${" + InstallerMojosInformation.Installation.installationPackageDirectory + "}/${tibco.rv.installation.package.regex}")
 	private File installationPackage;
 
 	@Parameter(property = InstallerMojosInformation.RV.installationPackageRegex, defaultValue = InstallerMojosInformation.RV.installationPackageRegex_default)

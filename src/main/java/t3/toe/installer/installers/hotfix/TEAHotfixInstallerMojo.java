@@ -37,10 +37,10 @@ import java.io.File;
 @Mojo(name = "install-tea-hotfix", requiresProject = false)
 public class TEAHotfixInstallerMojo extends CommonHotfixInstaller {
 
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.Hotfix.installationPackage, defaultValue = "")
+	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.Hotfix.installationPackage, description = InstallerMojosInformation.EnterpriseAdministrator.Hotfix.installationPackage_description, defaultValue = "")
 	private File installationPackage;
 
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.Hotfix.installationPackageVersion, defaultValue = "")
+	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.Hotfix.installationPackageVersion, description = InstallerMojosInformation.EnterpriseAdministrator.Hotfix.installationPackageVersion_description, defaultValue = "")
 	private String installationPackageVersion;
 
 	@Override

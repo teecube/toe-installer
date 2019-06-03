@@ -60,28 +60,28 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 */
 public abstract class CommonInstaller extends CommonMojo {
 
-	@Parameter(property = InstallerMojosInformation.installationPackageDirectory, defaultValue = InstallerMojosInformation.installationPackageDirectory_default)
+	@Parameter(property = InstallerMojosInformation.Installation.installationPackageDirectory, description = InstallerMojosInformation.Installation.installationPackageDirectory_description, defaultValue = InstallerMojosInformation.Installation.installationPackageDirectory_default)
 	protected File installationPackageDirectory;
 
-	@Parameter(property = InstallerMojosInformation.installationRoot, defaultValue = InstallerMojosInformation.installationRoot_default, description = InstallerMojosInformation.installationRoot_description)
+	@Parameter(property = InstallerMojosInformation.Installation.installationRoot, defaultValue = InstallerMojosInformation.Installation.installationRoot_default, description = InstallerMojosInformation.Installation.installationRoot_description)
 	protected File installationRoot;
 
-	@Parameter(property = InstallerMojosInformation.environmentName, defaultValue = InstallerMojosInformation.environmentName_default, description = InstallerMojosInformation.environmentName_description, required = true)
+	@Parameter(property = InstallerMojosInformation.Installation.environmentName, defaultValue = InstallerMojosInformation.Installation.environmentName_default, description = InstallerMojosInformation.Installation.environmentName_description, required = true)
 	protected String environmentName;
 
-	@Parameter(property = InstallerMojosInformation.createNewEnvironment, defaultValue = InstallerMojosInformation.createNewEnvironment_default)
+	@Parameter(property = InstallerMojosInformation.Installation.createNewEnvironment, description = InstallerMojosInformation.Installation.createNewEnvironment_description, defaultValue = InstallerMojosInformation.Installation.createNewEnvironment_default)
 	protected Boolean createNewEnvironment;
 
-	@Parameter(property = InstallerMojosInformation.dotTIBCOHome, defaultValue = InstallerMojosInformation.dotTIBCOHome_default)
+	@Parameter(property = InstallerMojosInformation.dotTIBCOHome, description = InstallerMojosInformation.dotTIBCOHome_description, defaultValue = InstallerMojosInformation.dotTIBCOHome_default)
 	private File dotTIBCOHome;
 
-	@Parameter(property = InstallerMojosInformation.removeExistingEnvironment, defaultValue = InstallerMojosInformation.removeExistingEnvironment_default)
+	@Parameter(property = InstallerMojosInformation.Installation.removeExistingEnvironment, description = InstallerMojosInformation.Installation.removeExistingEnvironment_description, defaultValue = InstallerMojosInformation.Installation.removeExistingEnvironment_default)
 	protected Boolean removeExistingEnvironment;
 
-	@Parameter(property = InstallerMojosInformation.ignoreDependencies, defaultValue = InstallerMojosInformation.ignoreDependencies_default)
+	@Parameter(property = InstallerMojosInformation.Installation.ignoreDependencies, description = InstallerMojosInformation.Installation.ignoreDependencies_description, defaultValue = InstallerMojosInformation.Installation.ignoreDependencies_default)
 	protected Boolean ignoreDependencies;
 
-	@org.apache.maven.plugins.annotations.Parameter(property = InstallerMojosInformation.additionalDependencies)
+	@org.apache.maven.plugins.annotations.Parameter(property = InstallerMojosInformation.Installation.additionalDependencies)
 	protected List<File> additionalDependencies;
 
 	private List<File> ignoredInstallationPackages;
@@ -172,7 +172,7 @@ public abstract class CommonInstaller extends CommonMojo {
 				_createNewEnvironment = false;
 				_installationRoot = installationRoot;
 
-				session.getCurrentProject().getProperties().put(InstallerMojosInformation.installationRoot, installationRoot.getAbsolutePath().replace("\\", "/"));
+				session.getCurrentProject().getProperties().put(InstallerMojosInformation.Installation.installationRoot, installationRoot.getAbsolutePath().replace("\\", "/"));
 				return installationRoot;
 			}
 		} else if (!installationRootChecked) {
@@ -192,9 +192,9 @@ public abstract class CommonInstaller extends CommonMojo {
 						(!installationRootSet.exists() && !installationRootFromEnvironment.exists() && !installationRootSet.getAbsolutePath().equals(installationRootFromEnvironment.getAbsolutePath()))
 						) {
 
-						getLog().error("Installation root set by '" + InstallerMojosInformation.installationRoot + "' property is not the same as the one found in current environment '" + environment.getName() + "' (set by '" + InstallerMojosInformation.environmentName + "').");
+						getLog().error("Installation root set by '" + InstallerMojosInformation.Installation.installationRoot + "' property is not the same as the one found in current environment '" + environment.getName() + "' (set by '" + InstallerMojosInformation.Installation.environmentName + "').");
 						getLog().error(installationRootSet.getAbsolutePath() + " != " + installationRootFromEnvironment.getAbsolutePath());
-						getLog().error("Either remove '" + InstallerMojosInformation.installationRoot + "' property (current installation root directory '" + installationRootFromEnvironment.getAbsolutePath() + "' will be used) or change '" + InstallerMojosInformation.environmentName + "' to create a new environment.");
+						getLog().error("Either remove '" + InstallerMojosInformation.Installation.installationRoot + "' property (current installation root directory '" + installationRootFromEnvironment.getAbsolutePath() + "' will be used) or change '" + InstallerMojosInformation.Installation.environmentName + "' to create a new environment.");
 						throw new MojoExecutionException(installationRootSet.getAbsolutePath() + " != " + installationRootFromEnvironment.getAbsolutePath());
 					}
 				} catch (IOException e) {
@@ -230,8 +230,8 @@ public abstract class CommonInstaller extends CommonMojo {
 		if (((createNewEnvironment || _createNewEnvironment) && installationRootWasNotSet) || _isDependency) {
 			if (!_isDependency) {
 				getLog().info("");
-				getLog().info("The environment '" + environmentName + "' exists and the '" + InstallerMojosInformation.installationRoot + "' property was not set.");
-				getLog().info("Assuming you want to use existing environment ('" + InstallerMojosInformation.createNewEnvironment + "' property set to 'false').");
+				getLog().info("The environment '" + environmentName + "' exists and the '" + InstallerMojosInformation.Installation.installationRoot + "' property was not set.");
+				getLog().info("Assuming you want to use existing environment ('" + InstallerMojosInformation.Installation.createNewEnvironment + "' property set to 'false').");
 			} else {
 				if (installationRoot == null ||
 					this.installationRoot == null ||
@@ -684,16 +684,16 @@ public abstract class CommonInstaller extends CommonMojo {
 
 			if (installationRoot.exists()) {
 				getLog().error("There is no installation root directory set and the default directory '" + installationRoot + "' already exists.");
-				getLog().error("Set installation root directory explicitly with '" + InstallerMojosInformation.installationRoot + "' property to force installation in this directory or to choose another one.");
+				getLog().error("Set installation root directory explicitly with '" + InstallerMojosInformation.Installation.installationRoot + "' property to force installation in this directory or to choose another one.");
 
 				throw new MojoExecutionException("Default installation root directory already exists", new FileExistsException(installationRoot));
 			} else {
-				getLog().warn("There is no installation root directory set with property '" + InstallerMojosInformation.installationRoot + "'.");
+				getLog().warn("There is no installation root directory set with property '" + InstallerMojosInformation.Installation.installationRoot + "'.");
 				getLog().warn("The default directory '" + installationRoot + "' will be used because it does not exist.");
-				getLog().warn("Set installation root directory explicitly with '" + InstallerMojosInformation.installationRoot + "' property to avoid this warning.");
+				getLog().warn("Set installation root directory explicitly with '" + InstallerMojosInformation.Installation.installationRoot + "' property to avoid this warning.");
 			}
 
-			session.getCurrentProject().getProperties().put(InstallerMojosInformation.installationRoot, getInstallationRoot().getAbsolutePath().replace("\\", "/"));
+			session.getCurrentProject().getProperties().put(InstallerMojosInformation.Installation.installationRoot, getInstallationRoot().getAbsolutePath().replace("\\", "/"));
 		}
 
 		File installationPackage = getInstallationPackage();
@@ -742,7 +742,7 @@ public abstract class CommonInstaller extends CommonMojo {
 	@Override
 	public <T> void initStandalonePOM() throws MojoExecutionException {
 		if (installationRoot != null) {
-			session.getCurrentProject().getProperties().put(InstallerMojosInformation.installationRoot, installationRoot.getAbsolutePath().replace("\\", "/"));
+			session.getCurrentProject().getProperties().put(InstallerMojosInformation.Installation.installationRoot, installationRoot.getAbsolutePath().replace("\\", "/"));
 		}
 
 		super.initStandalonePOM();
@@ -889,11 +889,11 @@ public abstract class CommonInstaller extends CommonMojo {
 				this.installationRoot = environmentLocation;
 				_installationRoot = environmentLocation;
 			} else {
-				getLog().error("Unable to continue. Set '" + InstallerMojosInformation.removeExistingEnvironment + "' to 'true' to force installation removal.");
+				getLog().error("Unable to continue. Set '" + InstallerMojosInformation.Installation.removeExistingEnvironment + "' to 'true' to force installation removal.");
 				getLog().error("!!! Caution: this will remove the 'TIBCO_HOME' directory of the installation: '" + environmentLocation + "' !!!");
 				getLog().error("");
 				getLog().error("Otherwise, specify another target environment with the two properties 'tibco.installation.root' and 'tibco.installation.environmentName'.");
-				getLog().error("If the product to install needs to be installed in an existing environment, set '" + InstallerMojosInformation.createNewEnvironment + "' to 'false'.");
+				getLog().error("If the product to install needs to be installed in an existing environment, set '" + InstallerMojosInformation.Installation.createNewEnvironment + "' to 'false'.");
 				throw new MojoExecutionException("The installation already exists");
 			}
 		} else if (environment != null && !environmentLocation.exists()) {

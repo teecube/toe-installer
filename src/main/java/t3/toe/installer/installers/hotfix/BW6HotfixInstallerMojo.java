@@ -36,10 +36,10 @@ import java.io.File;
 @Mojo(name = "install-bw6-hotfix", requiresProject = false)
 public class BW6HotfixInstallerMojo extends CommonHotfixInstaller {
 
-	@Parameter(property = InstallerMojosInformation.BW6.Hotfix.installationPackage, defaultValue = "")
+	@Parameter(property = InstallerMojosInformation.BW6.Hotfix.installationPackage, description = InstallerMojosInformation.BW6.Hotfix.installationPackage_description, defaultValue = "")
 	private File installationPackage;
 
-	@Parameter(property = InstallerMojosInformation.BW6.Hotfix.installationPackageVersion, defaultValue = "")
+	@Parameter(property = InstallerMojosInformation.BW6.Hotfix.installationPackageVersion, description = InstallerMojosInformation.BW6.Hotfix.installationPackageVersion_description, defaultValue = "")
 	private String installationPackageVersion;
 
 	@Override

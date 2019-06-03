@@ -42,7 +42,7 @@ import java.util.Properties;
 @Mojo(name = "install-tea", requiresProject = false)
 public class TEAInstallerMojo extends CommonInstaller {
 
-	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.installationPackage, defaultValue = "${" + InstallerMojosInformation.installationPackageDirectory + "}/${tibco.tea.installation.package.regex}")
+	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.installationPackage, description = InstallerMojosInformation.EnterpriseAdministrator.installationPackage_description, defaultValue = "${" + InstallerMojosInformation.Installation.installationPackageDirectory + "}/${tibco.tea.installation.package.regex}")
 	private File installationPackage;
 
 	@Parameter(property = InstallerMojosInformation.EnterpriseAdministrator.installationPackageRegex, defaultValue = InstallerMojosInformation.EnterpriseAdministrator.installationPackageRegex_default)

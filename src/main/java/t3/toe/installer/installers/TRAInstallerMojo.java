@@ -50,7 +50,7 @@ import java.util.Properties;
 @Mojo(name = "install-tra", requiresProject = false)
 public class TRAInstallerMojo extends CommonInstaller {
 
-	@Parameter(property = InstallerMojosInformation.TRA.installationPackage, defaultValue = "${" + InstallerMojosInformation.installationPackageDirectory + "}/${" + InstallerMojosInformation.TRA.installationPackageRegex + "}")
+	@Parameter(property = InstallerMojosInformation.TRA.installationPackage, description = InstallerMojosInformation.TRA.installationPackage_description, defaultValue = "${" + InstallerMojosInformation.Installation.installationPackageDirectory + "}/${" + InstallerMojosInformation.TRA.installationPackageRegex + "}")
 	private File installationPackage;
 
 	@Parameter(property = InstallerMojosInformation.TRA.installationPackageRegex, defaultValue = InstallerMojosInformation.TRA.installationPackageRegex_default)

@@ -44,7 +44,7 @@ public class ListEnvInfoMojo extends EnvInfo {
 		displayEnvironments();
 		
 		getLog().info("");
-		getLog().info("To remove an environment, use: 'mvn " + InstallerMojosInformation.pluginPrefix + "envinfo-remove -D" + InstallerMojosInformation.environmentName + "=<EnvironmentName>'");
+		getLog().info("To remove an environment, use: 'mvn " + InstallerMojosInformation.pluginPrefix + "envinfo-remove -D" + InstallerMojosInformation.Installation.environmentName + "=<EnvironmentName>'");
 	}
 
 }

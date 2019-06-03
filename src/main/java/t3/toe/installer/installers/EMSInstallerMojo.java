@@ -42,7 +42,7 @@ import java.util.Properties;
 @Mojo(name = "install-ems", requiresProject = false)
 public class EMSInstallerMojo extends CommonInstaller {
 
-	@Parameter(property = InstallerMojosInformation.EMS.installationPackage, defaultValue = "${" + InstallerMojosInformation.installationPackageDirectory + "}/${tibco.ems.installation.package.regex}")
+	@Parameter(property = InstallerMojosInformation.EMS.installationPackage, description = InstallerMojosInformation.EMS.installationPackage_description, defaultValue = "${" + InstallerMojosInformation.Installation.installationPackageDirectory + "}/${tibco.ems.installation.package.regex}")
 	private File installationPackage;
 
 	@Parameter(property = InstallerMojosInformation.EMS.installationPackageRegex, defaultValue = InstallerMojosInformation.EMS.installationPackageRegex_default)

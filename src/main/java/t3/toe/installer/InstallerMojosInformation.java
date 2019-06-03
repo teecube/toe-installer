@@ -35,67 +35,91 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 
 	public final static String pluginPrefix = "toe:";
 
-	public static final String installationRoot = "tibco.installation.root";
-	public static final String installationRoot_default = "";
-	/**
-	 * <p>The path to the directory where the TIBCO environment will be installed.</p>
-	 * <p>This is also known as TIBCO_HOME in TIBCO documentation.</p>
-	 */
-	public static final String installationRoot_description = "tibco.installation.root";
-
-	public static final String environmentName = "tibco.installation.environmentName";
-	public static final String environmentName_default = "TIBCO-HOME";
-	/**
-	 * <p>The name the TIBCO environment to be installed.</p>
-	 * <p>
-	 *     This must be unique on current system.<br />
-	 *     Check the existing environments in current system using <a href="./envinfo-list-mojo.html">envinfo-list goal</a>.
-	 * </p>
-	 */
-	public static final String environmentName_description = "tibco.installation.environmentName";
-
-	public static final String enableProfile = "tibco.configuration.enableProfile";
-	public static final String enableProfile_default = "true";
-	public static final String enableProfile_description = "tibco.configuration.enableProfile";
-
-	public static final String overriddenSettingsLocation = "tibco.configuration.overriddenSettingsLocation";
-	public static final String overriddenSettingsLocation_default = "";
-	public static final String overriddenSettingsLocation_description = "tibco.configuration.overriddenSettingsLocation";
-
-	public static final String overwriteExistingProfile = "tibco.configuration.overwriteExistingProfile";
-	public static final String overwriteExistingProfile_default = "true";
-	public static final String overwriteExistingProfile_description = "tibco.configuration.overwriteExistingProfile";
-
-	public static final String useGlobalSettings = "tibco.configuration.useGlobalSettings";
-	public static final String useGlobalSettings_default = "false";
-	public static final String useGlobalSettings_description = "tibco.configuration.useGlobalSettings";
-	
-	public static final String writeToSettings = "tibco.configuration.writeToSettings";
-	public static final String writeToSettings_default = "false";
-	public static final String writeToSettings_description = "tibco.configuration.writeToSettings";
-
-	public static final String createNewEnvironment = "tibco.installation.createNew";
-	public static final String createNewEnvironment_default = "true";
-	public static final String createNewEnvironment_description = "tibco.installation.createNew";
-
-	public static final String removeExistingEnvironment = "tibco.installation.removeExisting";
-	public static final String removeExistingEnvironment_default = "false";
-	public static final String removeExistingEnvironment_description = "tibco.installation.removeExisting";
-
-	public static final String ignoreDependencies = "tibco.installation.ignoreDependencies";
-	public static final String ignoreDependencies_default = "false";
-	public static final String ignoreDependencies_description = "tibco.installation.ignoreDependencies";
-
-	public static final String additionalDependencies = "tibco.installation.additionalDependencies";
-	public static final String additionalDependencies_description = "tibco.installation.additionalDependencies";
-
-	public static final String installationPackageDirectory = "tibco.installation.packages.directory";
-	public static final String installationPackageDirectory_default = "${basedir}";
-	public static final String installationPackageDirectory_description = "tibco.installation.packages.directory";
-
 	public static final String dotTIBCOHome = "tibco.dothome.directory";
 	public static final String dotTIBCOHome_default = "${user.home}/.TIBCO";
-	public static final String dotTIBCOHome_description = "tibco.dothome.directory";
+	public static final String dotTIBCOHome_description = dotTIBCOHome;
+
+	public static class Installation {
+		public static final String installationRoot = "tibco.installation.root";
+		public static final String installationRoot_default = "";
+		/**
+		 * <p>The path to the directory where the TIBCO environment will be installed.</p>
+		 * <p>This is also known as TIBCO_HOME in TIBCO documentation.</p>
+		 */
+		public static final String installationRoot_description = installationRoot;
+
+		public static final String environmentName = "tibco.installation.environmentName";
+		public static final String environmentName_default = "TIBCO-HOME";
+		/**
+		 * <p>The name the TIBCO environment to be installed.</p>
+		 * <p>This must be unique on current system.<br /> Check the existing environments in current system using
+		 * <a href="./envinfo-list-mojo.html">envinfo-list goal</a>.</p>
+		 */
+		public static final String environmentName_description = "tibco.installation.environmentName";
+		/**
+		 * <p>The name the of TIBCO environment to be removed.</p>
+		 * <p>Check the existing environments in current system using
+		 * <a href="./envinfo-list-mojo.html">envinfo-list goal</a>.</p>
+		 */
+		public static final String environmentNameToRemove_description = "tibco.installation.environmentName";
+
+		public static final String createNewEnvironment = "tibco.installation.createNew";
+		public static final String createNewEnvironment_default = "true";
+		public static final String createNewEnvironment_description = "tibco.installation.createNew";
+
+		public static final String removeExistingEnvironment = "tibco.installation.removeExisting";
+		public static final String removeExistingEnvironment_default = "false";
+		public static final String removeExistingEnvironment_description = "tibco.installation.removeExisting";
+
+		public static final String ignoreDependencies = "tibco.installation.ignoreDependencies";
+		public static final String ignoreDependencies_default = "false";
+		public static final String ignoreDependencies_description = "tibco.installation.ignoreDependencies";
+
+		public static final String additionalDependencies = "tibco.installation.additionalDependencies";
+
+		public static final String installationPackageDirectory = "tibco.installation.packages.directory";
+		public static final String installationPackageDirectory_default = "${basedir}";
+		public static final String installationPackageDirectory_description = "tibco.installation.packages.directory";
+	}
+
+	public static class Configuration {
+		public static final String enableProfile = "tibco.configuration.enableProfile";
+		public static final String enableProfile_default = "true";
+		/**
+		 * <p>Whether to activate the generated profile in the Maven settings.xml by adding it to the
+		 * &lt;activeProfiles> list.</p>
+		 */
+		public static final String enableProfile_description = enableProfile;
+
+		public static final String overriddenSettingsLocation = "tibco.configuration.overriddenSettingsLocation";
+		public static final String overriddenSettingsLocation_default = "";
+		/**
+		 * <p>The location of the Maven settings.xml where to write the generated profile. If not set, the user or
+		 * global settings is used.</p>
+		 */
+		public static final String overriddenSettingsLocation_description = overriddenSettingsLocation;
+
+		public static final String overwriteExistingProfile = "tibco.configuration.overwriteExistingProfile";
+		public static final String overwriteExistingProfile_default = "true";
+		/**
+		 * <p>Whether to overwrite an existing profile with the same name in the Maven settings.xml.</p>
+		 */
+		public static final String overwriteExistingProfile_description = overwriteExistingProfile;
+
+		public static final String useGlobalSettings = "tibco.configuration.useGlobalSettings";
+		public static final String useGlobalSettings_default = "false";
+		/**
+		 * <p>Whether to write the generated profile to the global Maven settings.xml instead of the user one.</p>
+		 */
+		public static final String useGlobalSettings_description = useGlobalSettings;
+
+		public static final String writeToSettings = "tibco.configuration.writeToSettings";
+		public static final String writeToSettings_default = "false";
+		/**
+		 * <p>Whether to write the generated profile to the Maven settings.xml.</p>
+		 */
+		public static final String writeToSettings_description = writeToSettings;
+	}
 
 	public static class RV {
 		public static final String category = "TIBCO RendezVous";

@@ -67,22 +67,22 @@ public abstract class CommonConfigurer extends CommonMojo {
 	@org.apache.maven.plugins.annotations.Parameter (defaultValue = "${localRepository}", readonly = true, required = true)
 	protected ArtifactRepository localRepository;
 
-	@Parameter(property = InstallerMojosInformation.environmentName, defaultValue = InstallerMojosInformation.environmentName_default)
+	@Parameter(property = InstallerMojosInformation.Installation.environmentName, defaultValue = InstallerMojosInformation.Installation.environmentName_default)
 	protected String environmentName;
 
-	@Parameter(property = InstallerMojosInformation.enableProfile, defaultValue = InstallerMojosInformation.enableProfile_default, description = InstallerMojosInformation.enableProfile_description)
+	@Parameter(property = InstallerMojosInformation.Configuration.enableProfile, defaultValue = InstallerMojosInformation.Configuration.enableProfile_default, description = InstallerMojosInformation.Configuration.enableProfile_description)
 	protected Boolean enableProfile;
 
-	@Parameter(property = InstallerMojosInformation.overwriteExistingProfile, defaultValue = InstallerMojosInformation.overwriteExistingProfile_default, description = InstallerMojosInformation.overwriteExistingProfile_description)
+	@Parameter(property = InstallerMojosInformation.Configuration.overwriteExistingProfile, defaultValue = InstallerMojosInformation.Configuration.overwriteExistingProfile_default, description = InstallerMojosInformation.Configuration.overwriteExistingProfile_description)
 	protected Boolean overwriteExistingProfile;
 
-	@Parameter(property = InstallerMojosInformation.useGlobalSettings, defaultValue = InstallerMojosInformation.useGlobalSettings_default, description = InstallerMojosInformation.useGlobalSettings_description)
+	@Parameter(property = InstallerMojosInformation.Configuration.useGlobalSettings, defaultValue = InstallerMojosInformation.Configuration.useGlobalSettings_default, description = InstallerMojosInformation.Configuration.useGlobalSettings_description)
 	protected Boolean useGlobalSettings;
 
-	@Parameter(property = InstallerMojosInformation.overriddenSettingsLocation, defaultValue = InstallerMojosInformation.overriddenSettingsLocation_default, description = InstallerMojosInformation.overriddenSettingsLocation_description)
+	@Parameter(property = InstallerMojosInformation.Configuration.overriddenSettingsLocation, defaultValue = InstallerMojosInformation.Configuration.overriddenSettingsLocation_default, description = InstallerMojosInformation.Configuration.overriddenSettingsLocation_description)
 	protected File overriddenSettingsLocation;
 
-	@Parameter(property = InstallerMojosInformation.writeToSettings, defaultValue = InstallerMojosInformation.writeToSettings_default, description = InstallerMojosInformation.writeToSettings_description)
+	@Parameter(property = InstallerMojosInformation.Configuration.writeToSettings, defaultValue = InstallerMojosInformation.Configuration.writeToSettings_default, description = InstallerMojosInformation.Configuration.writeToSettings_description)
 	protected Boolean writeToSettings;
 	
 	protected abstract String getGroupId();
@@ -105,7 +105,7 @@ public abstract class CommonConfigurer extends CommonMojo {
 		Environment currentEnvironment = null;
 		if (environmentName != null && !environmentName.isEmpty()) {
 			currentEnvironment = CommonInstaller.getCurrentEnvironment(environmentName);
-			if (currentEnvironment == null && !InstallerMojosInformation.environmentName_default.equals(environmentName)) {
+			if (currentEnvironment == null && !InstallerMojosInformation.Installation.environmentName_default.equals(environmentName)) {
 				getLog().info("");
 				getLog().warn("The provided environment '" + environmentName + "' is not found.");
 				getLog().info("");
@@ -115,7 +115,7 @@ public abstract class CommonConfigurer extends CommonMojo {
 				getLog().info("");
 			} else if (currentEnvironment != null && validateProfileProperties(currentEnvironment)) {
 
-			} else if (!InstallerMojosInformation.environmentName_default.equals(environmentName)) {
+			} else if (!InstallerMojosInformation.Installation.environmentName_default.equals(environmentName)) {
 				getLog().info("");
 				getLog().warn("The default environment '" + environmentName + "' is not found.");
 				getLog().info("");
@@ -234,7 +234,7 @@ public abstract class CommonConfigurer extends CommonMojo {
 				if (!writeToSettings) {
 					getLog().info("");
 					getLog().info("To persist the sample profile in the Maven settings,");
-					getLog().info("set '" + InstallerMojosInformation.writeToSettings + "' to 'true'.");
+					getLog().info("set '" + InstallerMojosInformation.Configuration.writeToSettings + "' to 'true'.");
 				}
 			}
 
@@ -243,7 +243,7 @@ public abstract class CommonConfigurer extends CommonMojo {
 				getLog().info("[...] must be replaced by actual values from the TIBCO environment to use.");
 				getLog().info("");
 				getLog().info("You can run again this command with option");
-				getLog().info("  '-D" + InstallerMojosInformation.environmentName + "=<EnvironmentName>'");
+				getLog().info("  '-D" + InstallerMojosInformation.Installation.environmentName + "=<EnvironmentName>'");
 				getLog().info("to fill values automatically using an existing environment.");
 
 				String availableEnvironments = StringUtils.join(Lists.newArrayList(Iterables.transform(CommonInstaller.getAllEnvironments(), new Function<TIBCOEnvironment.Environment, String>() {
@@ -273,7 +273,7 @@ public abstract class CommonConfigurer extends CommonMojo {
 		}
 
 		if (useGlobalSettings && !session.getRequest().getGlobalSettingsFile().exists()) {
-			getLog().warn("'" + InstallerMojosInformation.useGlobalSettings + "' was set to true but no Maven global settings was found. Defaulting to Maven user settings.");
+			getLog().warn("'" + InstallerMojosInformation.Configuration.useGlobalSettings + "' was set to true but no Maven global settings was found. Defaulting to Maven user settings.");
 			useGlobalSettings = false;
 		}
 

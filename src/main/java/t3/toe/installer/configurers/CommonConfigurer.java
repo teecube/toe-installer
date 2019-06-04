@@ -67,7 +67,7 @@ public abstract class CommonConfigurer extends CommonMojo {
 	@org.apache.maven.plugins.annotations.Parameter (defaultValue = "${localRepository}", readonly = true, required = true)
 	protected ArtifactRepository localRepository;
 
-	@Parameter(property = InstallerMojosInformation.Installation.environmentName, defaultValue = InstallerMojosInformation.Installation.environmentName_default)
+	@Parameter(property = InstallerMojosInformation.Installation.environmentName, defaultValue = InstallerMojosInformation.Installation.environmentName_default, description = InstallerMojosInformation.Configuration.environmentName_description)
 	protected String environmentName;
 
 	@Parameter(property = InstallerMojosInformation.Configuration.enableProfile, defaultValue = InstallerMojosInformation.Configuration.enableProfile_default, description = InstallerMojosInformation.Configuration.enableProfile_description)

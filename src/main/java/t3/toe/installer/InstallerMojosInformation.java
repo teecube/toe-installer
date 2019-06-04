@@ -83,6 +83,13 @@ public class InstallerMojosInformation extends CommonMojoInformation {
 	}
 
 	public static class Configuration {
+		/**
+		 * <p>The name the TIBCO environment to be configured.</p>
+		 * <p>This must be an exiting environment on current system.<br /> Check the existing environments in current
+		 * system using <a href="./envinfo-list-mojo.html">envinfo-list goal</a>.</p>
+		 */
+		public static final String environmentName_description = "tibco.installation.environmentName";
+
 		public static final String enableProfile = "tibco.configuration.enableProfile";
 		public static final String enableProfile_default = "true";
 		/**

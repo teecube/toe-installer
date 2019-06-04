@@ -108,6 +108,7 @@ public class MavenCommandToExecute extends CommandToExecute<MavenCommand> {
         mavenRunner.setLog(getLog());
         mavenRunner.setDebug(this.mavenCommand.isEnableDebugOutput());
         mavenRunner.setIgnoreFailure(true);
+        mavenRunner.setOffline(this.session.isOffline());
 
         if (pomFileInWorkingDirectory.exists()) {
             mavenRunner.setPomFile(pomFileInWorkingDirectory);

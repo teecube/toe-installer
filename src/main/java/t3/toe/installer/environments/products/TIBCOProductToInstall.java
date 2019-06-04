@@ -87,6 +87,7 @@ public class TIBCOProductToInstall extends ProductToInstall<TIBCOProduct> {
 	public TIBCOProductToInstall(TIBCOProduct tibcoProduct, EnvironmentToInstall environment, CommonMojo commonMojo) {
 		super(tibcoProduct, environment, commonMojo);
 
+		this.setPackage(tibcoProduct.getPackage());
 		this.setHotfixes(tibcoProduct.getHotfixes());
 		this.setDependencies(tibcoProduct.getDependencies());
 		this.setName(tibcoProduct.getName());

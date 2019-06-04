@@ -74,6 +74,7 @@ public class UncompressCommandToExecute extends CommandToExecute<UncompressComma
     @Override
     public boolean doExecuteCommand(String commandCaption) throws MojoExecutionException {
         if (productToInstall == null || productToInstall.getResolvedInstallationPackage() == null || !productToInstall.getResolvedInstallationPackage().exists()) {
+            getLog().info("");
             getLog().error("The package file for this custom product was not resolved.");
             throw new MojoExecutionException("The package file for this custom product was not resolved.", new FileNotFoundException());
         }

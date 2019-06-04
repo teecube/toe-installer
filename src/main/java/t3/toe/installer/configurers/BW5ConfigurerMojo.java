@@ -39,13 +39,13 @@ import java.util.Properties;
 @Mojo(name = "configure-bw5", requiresProject = false)
 public class BW5ConfigurerMojo extends CommonConfigurer {
 
-	@Parameter(property = InstallerMojosInformation.BW5.pluginGroupId, defaultValue = InstallerMojosInformation.BW5.pluginGroupId_default)
+	@Parameter(property = InstallerMojosInformation.BW5.pluginGroupId, defaultValue = InstallerMojosInformation.BW5.pluginGroupId_default, hideDocumentation = true)
 	protected String groupId;
 
-	@Parameter(property = InstallerMojosInformation.BW5.pluginArtifactId, defaultValue = InstallerMojosInformation.BW5.pluginArtifactId_default)
+	@Parameter(property = InstallerMojosInformation.BW5.pluginArtifactId, defaultValue = InstallerMojosInformation.BW5.pluginArtifactId_default, hideDocumentation = true)
 	protected String artifactId;
 
-	@Parameter(property = InstallerMojosInformation.BW5.bootstrapClass, defaultValue = InstallerMojosInformation.BW5.bootstrapClass_default)
+	@Parameter(property = InstallerMojosInformation.BW5.bootstrapClass, defaultValue = InstallerMojosInformation.BW5.bootstrapClass_default, hideDocumentation = true)
 	protected String bootstrapClass;
 
 	private Properties profileProperties = null;

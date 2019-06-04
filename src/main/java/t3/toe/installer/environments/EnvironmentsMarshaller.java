@@ -36,11 +36,25 @@ public class EnvironmentsMarshaller extends XMLMarshall<Environments, ObjectFact
 		super(xmlFile);
 	}
 
+	/**
+	 * Load only a subset of the schema containing only the root element and the minRequiredVersion attribute.
+	 *
+	 * @param environmentsTopology
+	 * @return
+	 * @throws MojoExecutionException
+	 */
+	public static EnvironmentsMarshaller getMinimalEnvironmentMarshaller(File environmentsTopology) throws MojoExecutionException {
+		return getEnvironmentMarshaller(environmentsTopology, "/xsd/environments-failsafe.xsd");
+	}
+
 	public static EnvironmentsMarshaller getEnvironmentMarshaller(File environmentsTopology) throws MojoExecutionException {
+		return getEnvironmentMarshaller(environmentsTopology, "/xsd/environments.xsd");
+	}
+
+	public static EnvironmentsMarshaller getEnvironmentMarshaller(File environmentsTopology, String schemaRelativeUri) throws MojoExecutionException {
 		EnvironmentsMarshaller environmentsMarshaller = null;
 		try {
-			String filename = "/xsd/environments.xsd";
-			InputStream configStream = EnvironmentInstallerMojo.class.getResourceAsStream(filename);
+			InputStream configStream = EnvironmentInstallerMojo.class.getResourceAsStream(schemaRelativeUri);
 
 			environmentsMarshaller = new EnvironmentsMarshaller(environmentsTopology, configStream);
 		} catch (JAXBException | SAXException e) {

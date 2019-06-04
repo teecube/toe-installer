@@ -85,7 +85,6 @@ public abstract class ProductToInstall<P extends Product> {
 
         this.setId(product.getId());
         this.setIfExists(product.getIfExists());
-        this.setPackage(product.getPackage());
         this.setPostInstallCommands(product.getPostInstallCommands());
         this.setPreInstallCommands(product.getPreInstallCommands());
         this.setPriority(product.getPriority());

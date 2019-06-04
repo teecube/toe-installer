@@ -37,6 +37,7 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
     public CustomProductToInstall(CustomProduct customProduct, EnvironmentToInstall environment, CommonMojo commonMojo) {
         super(customProduct, environment, commonMojo);
 
+        this.setPackage(customProduct.getPackage());
         this.setName(customProduct.getName());
 
         this.customProduct = customProduct;
@@ -61,35 +62,37 @@ public class CustomProductToInstall extends ProductToInstall<CustomProduct> {
 
     @Override
     public void init(int productIndex) throws MojoExecutionException {
-        AbstractPackage abstractPackage = customProduct.getPackage().getFileWithVersion();
-        if (abstractPackage == null) {
-            abstractPackage = customProduct.getPackage().getDirectoryWithPattern();
-        }
-        if (abstractPackage == null) {
-            abstractPackage = customProduct.getPackage().getHttpRemote();
-        }
-        if (abstractPackage == null) {
-            abstractPackage = customProduct.getPackage().getMavenArtifact();
-        }
-        if (abstractPackage == null) {
-            abstractPackage = customProduct.getPackage().getMavenTIBCOArtifact();
-        }
+        if (customProduct.getPackage() != null) {
+            AbstractPackage abstractPackage = customProduct.getPackage().getFileWithVersion();
+            if (abstractPackage == null) {
+                abstractPackage = customProduct.getPackage().getDirectoryWithPattern();
+            }
+            if (abstractPackage == null) {
+                abstractPackage = customProduct.getPackage().getHttpRemote();
+            }
+            if (abstractPackage == null) {
+                abstractPackage = customProduct.getPackage().getMavenArtifact();
+            }
+            if (abstractPackage == null) {
+                abstractPackage = customProduct.getPackage().getMavenTIBCOArtifact();
+            }
 
-        File resolvedInstallationPackage = resolvePackage(abstractPackage, commonMojo);
-        try {
-            this.setResolvedInstallationPackage(resolvedInstallationPackage);
-        } catch (IOException e) {
-            throw new MojoExecutionException(e.getLocalizedMessage(), e);
-        }
+            File resolvedInstallationPackage = resolvePackage(abstractPackage, commonMojo);
+            try {
+                this.setResolvedInstallationPackage(resolvedInstallationPackage);
+            } catch (IOException e) {
+                throw new MojoExecutionException(e.getLocalizedMessage(), e);
+            }
 
-        if (customProduct.getPackage().getFileWithVersion() != null) {
-            setVersion(customProduct.getPackage().getFileWithVersion().getVersion());
-        } else if (customProduct.getPackage().getDirectoryWithPattern() != null) {
-            logger.warn("directory with pattern is not supported for custom products");
-        } else if (customProduct.getPackage().getHttpRemote() != null) {
-            String url = customProduct.getPackage().getHttpRemote().getUrl();
-            // TODO : fetch URL
-            logger.warn("Fetch URL not supported");
+            if (customProduct.getPackage().getFileWithVersion() != null) {
+                setVersion(customProduct.getPackage().getFileWithVersion().getVersion());
+            } else if (customProduct.getPackage().getDirectoryWithPattern() != null) {
+                logger.warn("directory with pattern is not supported for custom products");
+            } else if (customProduct.getPackage().getHttpRemote() != null) {
+                String url = customProduct.getPackage().getHttpRemote().getUrl();
+                // TODO : fetch URL
+                logger.warn("Fetch URL not supported");
+            }
         }
     }
 

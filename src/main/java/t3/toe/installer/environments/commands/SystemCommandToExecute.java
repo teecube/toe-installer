@@ -56,6 +56,10 @@ public class SystemCommandToExecute extends CommandToExecute<SystemCommand> {
                 return false;
             }
         } catch (MojoExecutionException | IOException e) {
+            if (e.getLocalizedMessage().contains("CreateProcess error=2")) {
+                getLog().info("");
+                getLog().warn("'sh' program is not found. On Windows, try installing Git Bash for Windows or use WSL.");
+            }
             return false;
         } finally {
             try {

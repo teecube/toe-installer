@@ -184,7 +184,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 			for (EnvironmentToInstall environment : environments) {
 				List<TIBCOProductToInstall> resolvedProducts = new ArrayList<TIBCOProductToInstall>();
 
-				environmentsToCreate.put(platformOs + "-" + environment.getName(), new MutablePair<EnvironmentToInstall, List<TIBCOProductToInstall>>(environment, resolvedProducts));
+				environmentsToCreate.put((platformOs == "linux" ? "unix" : platformOs) + "-" + environment.getName(), new MutablePair<EnvironmentToInstall, List<TIBCOProductToInstall>>(environment, resolvedProducts));
 				if (!environment.getTIBCOProducts().isEmpty()) { // replace installers with actual needed TIBCO installation packages
 					List<CommonInstaller> resolvedInstallers = new ArrayList<CommonInstaller>();
 					for (TIBCOProduct tibcoProduct : environment.getTIBCOProducts()) {
@@ -284,7 +284,8 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 
 			for (TIBCOProductToInstall tibcoProduct : resolvedProducts) {
 				CommonInstaller installer = tibcoProduct.getInstaller();
-				if (!osEnvironment.startsWith(installer.getInstallationPackageOs(true))) continue;
+				String installationPackageOs = installer.getInstallationPackageOs(true);
+				if (!osEnvironment.startsWith(installationPackageOs)) continue;
 
 				if (topologyType.equals(TopologyType.REMOTE) && (tibcoProduct.getPackage().getFileWithVersion() != null || tibcoProduct.getPackage().getDirectoryWithPattern() != null)) {
 					// translate LocalPackage to MavenArtifactPackage

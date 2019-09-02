@@ -972,7 +972,7 @@ public class StandalonePackageGeneratorMojo extends AbstractPackagesResolver {
 			}
 			ArtifactVersion lowerBound = new DefaultArtifactVersion("0.1.0"); // versions < 0.1.0 do not have a help goal and are not supported
 			ArtifactVersion upperBound = new DefaultArtifactVersion("1000.0.0"); // upper bound : we have time
-			ArtifactVersion newest = artifactVersions.getNewestVersion(lowerBound, upperBound);
+			ArtifactVersion newest = artifactVersions.getNewestVersion(lowerBound, upperBound, false, true, true);
 			if (newest != null) {
 				getLog().debug("Newest version for " + pluginArtifact.getGroupId() + ":" + pluginArtifact.getArtifactId() + " is " + newest.toString());
 				version = newest.toString();			

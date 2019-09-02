@@ -68,13 +68,6 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 		loadTopology();
 
 		DefaultArtifactVersion actualVersion = new DefaultArtifactVersion(pluginDescriptor.getVersion());
-		DefaultArtifactVersion minRequiredVersion = new DefaultArtifactVersion(environmentsMarshaller.getObject().getMinRequiredVersion());
-		// check whether the topology is supported by this plugin
-		if (minRequiredVersion.compareTo(actualVersion) > 0) {
-			String message = "The topology '" + environmentsTopology.getAbsolutePath() + "' cannot be installed because it requires a newer version ( >= " + minRequiredVersion.toString() + " ) of this plugin.";
-			getLog().error(message);
-			throw new MojoExecutionException(message);
-		}
 
 		EnvironmentsToInstall environmentsToInstall = new EnvironmentsToInstall(environmentsMarshaller.getObject().getEnvironment(), environmentsMarshaller.getObject());
 
@@ -93,7 +86,7 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			getLog().debug("Minimal required version: " + environment.getMinRequiredVersion());
 			getLog().debug("Actual version: " + pluginDescriptor.getVersion());
 
-			minRequiredVersion = new DefaultArtifactVersion(environment.getMinRequiredVersion());
+			DefaultArtifactVersion minRequiredVersion = new DefaultArtifactVersion(environment.getMinRequiredVersion());
 
 			// check whether the environment is supported by this plugin
 			if (minRequiredVersion.compareTo(actualVersion) > 0) {
@@ -243,6 +236,18 @@ public class EnvironmentInstallerMojo extends CommonMojo {
 			getLog().error("Topology not found");
 			getLog().error("Set '" + InstallerMojosInformation.FullEnvironment.topologyFile + "' parameter with an existing topology file");
 			throw new MojoExecutionException("Topology not found", new FileNotFoundException(environmentsTopology.getAbsolutePath()));
+		}
+
+		// load the topology with a minimal bootstrap schema
+		BootstrapEnvironmentsMarshaller bootstrapEnvironmentsMarshaller = BootstrapEnvironmentsMarshaller.getEnvironmentMarshaller(environmentsTopology);
+
+		DefaultArtifactVersion actualVersion = new DefaultArtifactVersion(pluginDescriptor.getVersion());
+		DefaultArtifactVersion minRequiredVersion = new DefaultArtifactVersion(bootstrapEnvironmentsMarshaller.getObject().getMinRequiredVersion());
+		// check whether the topology is supported by this plugin
+		if (minRequiredVersion.compareTo(actualVersion) > 0) {
+			String message = "The topology '" + environmentsTopology.getAbsolutePath() + "' cannot be loaded because it requires a newer version ( >= " + minRequiredVersion.toString() + " ) of this plugin.";
+			getLog().error(message);
+			throw new MojoExecutionException(message);
 		}
 
 		environmentsMarshaller = EnvironmentsMarshaller.getEnvironmentMarshaller(environmentsTopology);

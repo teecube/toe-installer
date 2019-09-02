@@ -51,6 +51,17 @@
 							<generatePackage>t3.toe.installer.environments</generatePackage>
 						</configuration>
 					</execution>
+					<execution>
+						<id>xjc-simple</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<schemaDirectory>src/main/resources/xsd-bootstrap</schemaDirectory>
+							<generatePackage>t3.toe.installer.environments.bootstrap</generatePackage>
+							<generateDirectory>${project.basedir}/src/main/jaxb/bootstrap</generateDirectory>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
@@ -128,13 +139,13 @@
       &lt;/tibcoProduct>
       &lt;tibcoProduct type=&quot;ems&quot;>
         &lt;package>
-          &lt;mavenTIBCOArtifact version=&quot;8.4.0&quot;
+          &lt;mavenTIBCOArtifact version=&quot;8.5.0&quot;
                               classifier=&quot;win_x86_64&quot; />
         &lt;/package>
       &lt;/tibcoProduct>
       &lt;tibcoProduct type=&quot;bw6&quot;>
         &lt;package>
-          &lt;mavenTIBCOArtifact version=&quot;6.5.0&quot;
+          &lt;mavenTIBCOArtifact version=&quot;6.5.1&quot;
                               classifier=&quot;win_x86_64&quot; />
         &lt;/package>
       &lt;/tibcoProduct>
@@ -236,6 +247,12 @@
 			<artifactId>t3-site-enhancer</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<version>2.0.1.Final</version>
+		</dependency>
+
 		<!-- Maven dependencies -->
 		<dependency>
 			<groupId>org.apache.maven</groupId>
@@ -245,7 +262,7 @@
 		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-resolver-provider</artifactId>
-			<version>${maven.version}</version>
+			<version>3.6.1</version>
 		</dependency>
 
 		<dependency>

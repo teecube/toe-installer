@@ -95,7 +95,7 @@ public class DeployPackagesMojo extends AbstractPackagesResolver {
 			String version = installer.getInstallationPackageVersion();
 			String packaging = installer.getRemoteInstallationPackagePackaging();
 
-			getLog().info("Deploying product '" + installer.getProductName() + "'");
+			getLog().info("Deploying product '" + installer.getPrettyPackageName() + "'");
 
 			getLog().info("");
 			this.deployDependency(groupId, artifactId, version, packaging, classifier, installer.getInstallationPackage(), remoteRepositoryId, remoteRepositoryURL, false);

@@ -554,6 +554,14 @@ public abstract class CommonInstaller extends CommonMojo {
 		return normalized ? getNormalizedInstallationPackageOs(installationPackageOs) : installationPackageOs;
 	}
 
+	public String getPrettyPackageName() {
+		try {
+			return this.getProductName() + " v" + this.getInstallationPackageVersion() + " (" + this.getInstallationPackageOs(false) + "_" + this.getInstallationPackageArch(false) + ") @ " + this.getInstallationPackage();
+		} catch (MojoExecutionException e) {
+			return this.getProductName();
+		}
+	}
+
 	protected void extractInstallationPackagePreparation(@NotNull File installationPackage) throws MojoExecutionException {
 		String version = getInstallationPackageVersion();
 		String productName = getProductName();
@@ -590,6 +598,10 @@ public abstract class CommonInstaller extends CommonMojo {
 			}
 
 			silentFile = getSilentFile(tmpDirectory);
+
+			if (silentFile == null) {
+				throw new MojoExecutionException("Silent file was not found", new FileNotFoundException("Silent file was not found"));
+			}
 
 			Properties props = new Properties();
 			props.loadFromXML(new FileInputStream(silentFile));

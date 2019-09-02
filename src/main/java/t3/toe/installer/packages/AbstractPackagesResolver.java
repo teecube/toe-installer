@@ -128,7 +128,7 @@ public abstract class AbstractPackagesResolver extends CommonMojo {
 		if (installers.size() > 0) {
 			getLog().info("Found " + installers.size() + " TIBCO installation packages:");
 			for (CommonInstaller installer : installers) {
-				getLog().info("-> " + installer.getProductName() + " version " + installer.getInstallationPackageVersion() + " @ " + installer.getInstallationPackage());
+				getLog().info("-> " + installer.getPrettyPackageName());
 			}
 
 			if (getGenerateTopology()) {

@@ -19,29 +19,31 @@ package t3.toe.installer.environments;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.xml.sax.SAXException;
 import t3.xml.XMLMarshall;
+import t3.toe.installer.environments.bootstrap.Environments;
+import t3.toe.installer.environments.bootstrap.ObjectFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.InputStream;
 
-public class EnvironmentsMarshaller extends XMLMarshall<Environments, ObjectFactory> {
+public class BootstrapEnvironmentsMarshaller extends XMLMarshall<Environments, ObjectFactory> {
 
-	public static final String NAMESPACE = "http://teecu.be/toe-installer/environments";
+	public static final String NAMESPACE = "http://teecu.be/toe-installer/environments/bootstrap";
 
-	public EnvironmentsMarshaller(File xmlFile, InputStream xsdStream) throws JAXBException, SAXException {
+	public BootstrapEnvironmentsMarshaller(File xmlFile, InputStream xsdStream) throws JAXBException, SAXException {
 		super(xmlFile, xsdStream);
 	}
 
-	public EnvironmentsMarshaller(File xmlFile) throws JAXBException, SAXException {
+	public BootstrapEnvironmentsMarshaller(File xmlFile) throws JAXBException, SAXException {
 		super(xmlFile);
 	}
 
-	public static EnvironmentsMarshaller getEnvironmentMarshaller(File environmentsTopology) throws MojoExecutionException {
-		EnvironmentsMarshaller environmentsMarshaller = null;
+	public static BootstrapEnvironmentsMarshaller getEnvironmentMarshaller(File environmentsTopology) throws MojoExecutionException {
+		BootstrapEnvironmentsMarshaller environmentsMarshaller = null;
 		try {
-			InputStream configStream = EnvironmentInstallerMojo.class.getResourceAsStream("/xsd/environments.xsd");
+			InputStream configStream = BootstrapEnvironmentsMarshaller.class.getResourceAsStream("/xsd-bootstrap/environments.xsd");
 
-			environmentsMarshaller = new EnvironmentsMarshaller(environmentsTopology, configStream);
+			environmentsMarshaller = new BootstrapEnvironmentsMarshaller(environmentsTopology, configStream);
 		} catch (JAXBException | SAXException e) {
 			throw new MojoExecutionException("Unable to load topology from file '" + environmentsTopology.getAbsolutePath() + "'", e);
 		}
